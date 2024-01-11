@@ -1,0 +1,69 @@
+from flask import Flask, jsonify, request, Blueprint
+from flask_cors import CORS
+from random import randint
+from config import Config
+from models import main_db, general_db
+from instagram.routes import *
+from youtube.routes import *
+from bilibili.routes import *
+from music.routes import *
+from artist.routes import *
+from tiktok.routes import *
+from news.routes import *
+from twitter.routes import *
+
+
+app = Flask(__name__)
+CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
+
+# register blueprint
+app.register_blueprint(instagram_api_bp)
+app.register_blueprint(youtube_api_bp)
+app.register_blueprint(bilibili_api_bp)
+app.register_blueprint(music_api_bp)
+app.register_blueprint(artist_api_bp)
+app.register_blueprint(tiktok_api_bp)
+app.register_blueprint(news_api_bp)
+app.register_blueprint(twitter_api_bp)
+
+# add resource endpoint
+# Instagram
+instagram_api.add_resource(InstagramPost, '/instagram/post')
+# YouTube
+youtube_api.add_resource(YoutubePost, '/youtube/post')
+youtube_api.add_resource(YoutubeUsedTags, '/youtube/tags/most-used')
+youtube_api.add_resource(YoutubeEngagedTags, '/youtube/tags/most-engaged')
+youtube_api.add_resource(YoutubeComment, '/youtube/comment')
+# Bilibili
+bilibili_api.add_resource(BilibiliPost, '/bilibili/post')
+# Music
+music_api.add_resource(SpotifyIndex, '/spotify/index')
+music_api.add_resource(MelonFollower, '/melon/follower')
+music_api.add_resource(WeeklyMusicCharts, '/weekly/music-charts')
+music_api.add_resource(SpotifyTopTrackByCountry, '/spotify/top-track')
+music_api.add_resource(SpotifyTopTrackPopularityByRegion, '/spotify/top-track/region')
+#Artist Info
+
+# Tiktok
+tiktok_api.add_resource(TiktokPost, '/tiktok/post')
+# News
+news_api.add_resource(TheQooHot, '/theqoo/hot')
+# Twitter
+twitter_api.add_resource(TwitterIndex, '/twitter/index')
+
+
+@app.route('/', methods=['GET'])
+def root():
+    text = "Welcome Flask"
+    return text
+
+@app.route('/rand', methods=['GET'])
+def get_rand():
+    response = {
+        'randomNum': randint(1,100)
+    }
+    return jsonify(response)
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5001)
