@@ -2595,6 +2595,7 @@ class YoutubeComment(Resource):
                         "video_id": "$_id",
                         "label": "$latest_ten.label",
                     },
+                    "datetime": {"$first": "$latest_ten.published_at"},
                     "count": {"$sum": {"$toInt": 1}}
                     # "comment_id": {"$first": "$list.comment_id"},
                     # "comment": {"$first": "$list.comment_text"},
@@ -2604,6 +2605,7 @@ class YoutubeComment(Resource):
                 }},
                 {"$group": {
                     "_id": "$_id.video_id",
+                    "datetime": {"$first": "$datetime"},
                     "count": {
                         "$addToSet": {
                             "k": "$_id.label",
@@ -2612,12 +2614,14 @@ class YoutubeComment(Resource):
                     }
                 }},
                 {"$project": {
+                    "datetime": "$datetime",
                     "count": {
                         "$arrayToObject": "$count"
                     }
                 }},
                 {"$project": {
                     "vid": "$_id",
+                    "datetime": "$datetime",
                     "pos": "$count.Positive",
                     "neg": "$count.Negative",
                     "neu": "$count.Neutral",
@@ -2625,6 +2629,7 @@ class YoutubeComment(Resource):
                 }},
                 {"$project": {
                     "vid": "$vid",
+                    "datetime": "$datetime",
                     "pos_perc": {
                         "$round": [{"$multiply": [{"$divide": ["$pos", "$total"]}, 100]}, 2]
                     },
@@ -2635,6 +2640,7 @@ class YoutubeComment(Resource):
                         "$round": [{"$multiply": [{"$divide": ["$neu", "$total"]}, 100]}, 2]
                     },
                 }},
+                {"$sort": {"datetime": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
                 {"$limit": int(page_limit)}
             ])
@@ -2692,6 +2698,7 @@ class YoutubeComment(Resource):
                         "video_id": "$_id",
                         "label": "$latest_ten.label",
                     },
+                    "datetime": {"$first": "$latest_ten.published_at"},
                     "count": {"$sum": {"$toInt": 1}}
                     # "comment_id": {"$first": "$list.comment_id"},
                     # "comment": {"$first": "$list.comment_text"},
@@ -2701,6 +2708,7 @@ class YoutubeComment(Resource):
                 }},
                 {"$group": {
                     "_id": "$_id.video_id",
+                    "datetime": {"$first": "$datetime"},
                     "count": {
                         "$addToSet": {
                             "k": "$_id.label",
@@ -2709,12 +2717,14 @@ class YoutubeComment(Resource):
                     }
                 }},
                 {"$project": {
+                    "datetime": "$datetime",
                     "count": {
                         "$arrayToObject": "$count"
                     }
                 }},
                 {"$project": {
                     "vid": "$_id",
+                    "datetime": "$datetime",
                     "pos": "$count.Positive",
                     "neg": "$count.Negative",
                     "neu": "$count.Neutral",
@@ -2722,6 +2732,7 @@ class YoutubeComment(Resource):
                 }},
                 {"$project": {
                     "vid": "$vid",
+                    "datetime": "$datetime",
                     "pos_perc": {
                         "$round": [{"$multiply": [{"$divide": ["$pos", "$total"]}, 100]}, 2]
                     },
@@ -2732,6 +2743,7 @@ class YoutubeComment(Resource):
                         "$round": [{"$multiply": [{"$divide": ["$neu", "$total"]}, 100]}, 2]
                     },
                 }},
+                {"$sort": {"datetime": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
                 {"$limit": int(page_limit)}
             ])
@@ -2785,6 +2797,7 @@ class YoutubeComment(Resource):
                         "video_id": "$_id",
                         "label": "$latest_ten.label",
                     },
+                    "datetime": {"$first": "$latest_ten.published_at"},
                     "count": {"$sum": {"$toInt": 1}}
                     # "comment_id": {"$first": "$list.comment_id"},
                     # "comment": {"$first": "$list.comment_text"},
@@ -2794,6 +2807,7 @@ class YoutubeComment(Resource):
                 }},
                 {"$group": {
                     "_id": "$_id.video_id",
+                    "datetime": {"$first": "$datetime"},
                     "count": {
                         "$addToSet": {
                             "k": "$_id.label",
@@ -2802,12 +2816,14 @@ class YoutubeComment(Resource):
                     }
                 }},
                 {"$project": {
+                    "datetime": "$datetime",
                     "count": {
                         "$arrayToObject": "$count"
                     }
                 }},
                 {"$project": {
                     "vid": "$_id",
+                    "datetime": "$datetime",
                     "pos": "$count.Positive",
                     "neg": "$count.Negative",
                     "neu": "$count.Neutral",
@@ -2815,6 +2831,7 @@ class YoutubeComment(Resource):
                 }},
                 {"$project": {
                     "vid": "$vid",
+                    "datetime": "$datetime",
                     "pos_perc": {
                         "$round": [{"$multiply": [{"$divide": ["$pos", "$total"]}, 100]}, 2]
                     },
@@ -2825,6 +2842,7 @@ class YoutubeComment(Resource):
                         "$round": [{"$multiply": [{"$divide": ["$neu", "$total"]}, 100]}, 2]
                     },
                 }},
+                {"$sort": {"datetime": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
                 {"$limit": int(page_limit)}
             ])

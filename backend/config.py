@@ -3,7 +3,7 @@ import os
 
 
 class Config(object):
-    os.environ["DB_HOST"] = "mongodb://43.198.139.72:27017/"
+    os.environ["DB_HOST"] = "mongodb://43.198.78.239:27017/"
     os.environ["DB_USERNAME"] = "admin"
     os.environ["DB_PASSWORD"] = "demo1008"
     os.environ["AWS_ACCESS_KEY"] = "AKIAWCQFEI4JBUP6LVBH"

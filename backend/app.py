@@ -42,8 +42,15 @@ music_api.add_resource(MelonFollower, '/melon/follower')
 music_api.add_resource(WeeklyMusicCharts, '/weekly/music-charts')
 music_api.add_resource(SpotifyTopTrackByCountry, '/spotify/top-track')
 music_api.add_resource(SpotifyTopTrackPopularityByRegion, '/spotify/top-track/region')
+music_api.add_resource(CircleChartRetailAlbum, '/circle/chart/retail-album')
+music_api.add_resource(MusicCenterMusicBroadcast, '/music-broadcast/music-center/chart')
+music_api.add_resource(McountdownMusicBroadcast, '/music-broadcast/mcountdown/chart')
+music_api.add_resource(ShowChampionMusicBroadcast, '/music-broadcast/show-champion/chart')
+music_api.add_resource(TheShowMusicBroadcast, '/music-broadcast/the-show/chart')
+music_api.add_resource(InkigayoMusicBroadcast, '/music-broadcast/inkigayo/chart')
 #Artist Info
-
+artist_api.add_resource(CampaignPackageDetail, '/campaign')
+artist_api.add_resource(ArtistInfo, '/artist/info')
 # Tiktok
 tiktok_api.add_resource(TiktokPost, '/tiktok/post')
 # News

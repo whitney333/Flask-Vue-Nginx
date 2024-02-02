@@ -14,3 +14,4 @@ cloud_client = pymongo.MongoClient(os.environ["DB_HOST"],
 main_db = cloud_client["t024"]
 general_db = cloud_client["general"]
 news_db = cloud_client["news"]
+campaign_db = cloud_client["campaign_package"]

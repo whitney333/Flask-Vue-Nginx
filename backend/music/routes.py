@@ -127,6 +127,349 @@ def get_spotify_top_city():
 #     except Exception as e:
 #         return dumps({'err': str(e)})
 
+class TheShowMusicBroadcast(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('year', type=int, required=True, location='args')
+        posts_data.add_argument('week', type=int, required=True, location='args')
+        data = posts_data.parse_args()
+        year = data['year']
+        week = data['week']
+
+        fetch_posts = music_db.the_show.aggregate([
+            {"$sort": {"onair_date": -1}},
+            {"$match":
+                 {"year":
+                      {"$gt": year - 1,
+                       "$lte": year}
+                  }},
+            {"$match": {
+                "week":
+                    {"$gt": week - 1,
+                     "$lte": week}
+            }},
+            {"$project": {
+                "_id": 0,
+                "year": "$year",
+                "week": "$week",
+                "onair_date": "$onair_date",
+                "artist": "$artist",
+                "rank": "$rank",
+                "song": "$song",
+                "total_score": "$total_score"
+            }}
+        ])
+        posts_list = []
+        for post in fetch_posts:
+            posts_list.append(post)
+        response = {'year': year,
+                    'week': week,
+                    'result': posts_list}
+
+        return jsonify(response)
+
+
+class MusicCenterMusicBroadcast(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('year', type=int, required=True, location='args')
+        posts_data.add_argument('week', type=int, required=True, location='args')
+        data = posts_data.parse_args()
+        year = data['year']
+        week = data['week']
+
+        results = music_db.music_center.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$unwind": "$data"},
+            {"$match":
+                 {"year":
+                      {"$lte": year,
+                       "$gt": year - 1}
+                  }
+             },
+            {"$match":
+                 {"week":
+                      {"$lte": week,
+                       "$gt": week - 1}
+                  }
+             },
+            {"$project": {
+                "_id": 0,
+                "week": "$week_date",
+                "rank": "$data.rank",
+                "artist": "$data.artist",
+                "song": "$data.song",
+                "soundtrack&AlbumScore": {
+                    "$convert": {
+                        "input": {
+                            "$reduce": {
+                                "input": {
+                                    "$split": ["$data.sounrtrackAndAlbumScore", ',']
+                                },
+                                "initialValue": '',
+                                "in": {
+                                    "$concat": ['$$value', '$$this']
+                                }
+                            }
+                        },
+                        "to": 'int',
+                        "onError": 0
+                    }},
+                "videoAndBroadcastScore": {
+                    "$convert": {
+                        "input": {
+                            "$reduce": {
+                                "input": {
+                                    "$split": ["$data.videoAndBroadcastScore", ',']
+                                },
+                                "initialValue": '',
+                                "in": {
+                                    "$concat": ['$$value', '$$this']
+                                }
+                            }
+                        },
+                        "to": 'int',
+                        "onError": 0
+                    }},
+                "previousVoteAndGlobal": {
+                    "$convert": {
+                        "input": {
+                            "$reduce": {
+                                "input": {
+                                    "$split": ["$data.previousVoteAndGlobal", ',']
+                                },
+                                "initialValue": '',
+                                "in": {
+                                    "$concat": ['$$value', '$$this']
+                                }
+                            }
+                        },
+                        "to": 'int',
+                        "onError": 0
+                    }},
+                "smsScore": {
+                    "$convert": {
+                        "input": {
+                            "$reduce": {
+                                "input": {
+                                    "$split": ["$data.smsScore", ',']
+                                },
+                                "initialValue": '',
+                                "in": {
+                                    "$concat": ['$$value', '$$this']
+                                }
+                            }
+                        },
+                        "to": 'int',
+                        "onError": 0
+                    }},
+                "totalScore": {
+                    "$convert": {
+                        "input": {
+                            "$reduce": {
+                                "input": {
+                                    "$split": ["$data.totalScore", ',']
+                                },
+                                "initialValue": '',
+                                "in": {
+                                    "$concat": ['$$value', '$$this']
+                                }
+                            }
+                        },
+                        "to": 'int',
+                        "onError": 0
+                    }}
+            }},
+            {"$project": {
+                "_id": 0,
+                "week": "$week",
+                "rank": "$rank",
+                "artist": "$artist",
+                "song": "$song",
+                "soundtrack_album_score": "$soundtrack&AlbumScore",
+                "total_score": "$totalScore",
+                "video_broadcast_score": "$videoAndBroadcastScore",
+                "global_vote_score": "$previousVoteAndGlobal",
+                "sms_score": "$smsScore",
+                "all_other_score": {
+                    "$subtract": ["$totalScore", "$soundtrack&AlbumScore"]
+                }
+            }}
+        ])
+
+        posts_list = []
+        for post in results:
+            posts_list.append(post)
+        response = {'year': year,
+                    'week': week,
+                    'result': posts_list}
+
+        return jsonify(response)
+
+
+class McountdownMusicBroadcast(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('year', type=int, required=True, location='args')
+        posts_data.add_argument('week', type=int, required=True, location='args')
+        data = posts_data.parse_args()
+        year = data['year']
+        week = data['week']
+
+        results = music_db.mcountdown.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$unwind": "$data"},
+            {"$match":
+                 {"year":
+                      {"$lte": year,
+                       "$gt": year - 1}
+                  }
+             },
+            {"$match":
+                 {"week":
+                      {"$lte": week,
+                       "$gt": week - 1}
+                  }
+             },
+            {"$project": {
+                "_id": 0,
+                "week": "$week_date",
+                "title": "$data.songName",
+                "album": "$data.albumName",
+                "artist": "$data.artistName",
+                "soundScore": {"$toInt": "$data.soundScore"},
+                "albumScore": {"$toInt": "$data.albumScore"},
+                "globalSNS": {"$toInt": "$data.globalSNS"},
+                "globalVote": {"$toInt": "$data.globalVote"},
+                "broadcastScore": {"$toInt": "$data.broadcastScore"},
+                "liveVote": {"$toInt": "$data.liveVote"},
+                "totalScore": {"$toInt": "$data.totalScore"}
+            }}
+        ])
+
+
+        posts_list = []
+        for post in results:
+            posts_list.append(post)
+        response = {'year': year,
+                    'week': week,
+                    'result': posts_list}
+
+        return jsonify(response)
+
+
+class ShowChampionMusicBroadcast(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('year', type=int, required=True, location='args')
+        posts_data.add_argument('week', type=int, required=True, location='args')
+        data = posts_data.parse_args()
+        year = data['year']
+        week = data['week']
+
+        results = music_db.show_champion.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$unwind": "$data"},
+            {"$match":
+                 {"year":
+                      {"$lte": year,
+                       "$gt": year - 1}
+                  }
+            },
+            {"$match":
+                 {"week":
+                      {"$lte": week,
+                       "$gt": week - 1}
+                  }
+            },
+            {"$project": {
+                "_id": 0,
+                "week": "$week_date",
+                "rank": "$data.rank",
+                "artist": "$data.artist",
+                "song": "$data.song",
+                "soundtrackScore": {"$toInt": "$data.soundtrackRank"},
+                "albumScore": {"$toInt": "$data.albumRank"},
+                "snsScore": {"$toInt": "$data.snsRank"},
+                "globalFanScore": {"$toInt": "$data.globalFanRank"},
+                "broadcastScore": {"$toInt": "$data.broadcastRank"},
+                "totalScore": {"$toInt": "$data.totalScore"}
+            }}
+        ])
+
+        posts_list = []
+        for post in results:
+            posts_list.append(post)
+        response = {'year': year,
+                    'week': week,
+                    'result': posts_list}
+
+        return jsonify(response)
+
+
+class InkigayoMusicBroadcast(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('year', type=int, required=True, location='args')
+        posts_data.add_argument('week', type=int, required=True, location='args')
+        data = posts_data.parse_args()
+        year = data['year']
+        week = data['week']
+
+        results = music_db.inkigayo.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$match":
+                 {"year":
+                      {"$lte": year,
+                       "$gt": year - 1}
+                  }
+             },
+            {"$match":
+                 {"week":
+                      {"$lte": week,
+                       "$gt": week - 1}
+                  }
+             },
+            {"$unwind": "$data"},
+            {"$project": {
+                "_id": 0,
+                "rank": {"$toInt": "$data.rank"},
+                "artist": "$data.artist",
+                "song": "$data.song",
+                "soundtrackScore": {"$toInt": "$data.soundtrackScore"},
+                "albumScore": {"$toInt": "$data.albumScore"},
+                "snsScore": {"$toInt": "$data.snsScore"},
+                "onairScore": {"$trim":
+                                   {"input": "$data.onairScore"}
+                               },
+                "smsScore": {"$trim":
+                                 {"input": "$data.smsScore"}
+                             },
+                "realtimeAppVoteScore": {"$toInt": "$data.realtimeAppVoteScore"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "rank": "$rank",
+                "artist": "$artist",
+                "song": "$song",
+                "soundtrackScore": "$soundtrackScore",
+                "albumScore": "$albumScore",
+                "snsScore": "$snsScore",
+                "onairScore": {"$toInt": "$onairScore"},
+                "smsScore": {"$toInt": "$smsScore"},
+                "realtimeAppVoteScore": "$realtimeAppVoteScore"
+            }}
+        ])
+
+        posts_list = []
+        for post in results:
+            posts_list.append(post)
+        response = {'year': year,
+                    'week': week,
+                    'result': posts_list}
+
+        return jsonify(response)
+
 
 class SpotifyIndex(Resource):
     def get(self):
@@ -816,7 +1159,7 @@ class WeeklyMusicCharts(Resource):
                 {"$unwind": "$data"},
                 {"$project": {
                     "_id": 0,
-                    "year": "$ year",
+                    "year": "$year",
                     "week": "$week",
                     "artist": "$data.artist",
                     "rank": "$data.ranking",
@@ -1159,7 +1502,8 @@ class SpotifyTopTrackPopularityByRegion(Resource):
             {"$group": {
                 "_id": {"region": "$region", "track": "$top_track_name"},
                 "count": {"$sum": {"$toInt": 1}},
-                "popularity": {"$sum": "$top_track_popularity"}
+                "popularity": {"$sum": "$top_track_popularity"},
+                "datetime": {"$first": "$datetime"}
             }},
             {"$addFields": {
                 "agg_popularity": {"$round": [{"$divide": ["$popularity", "$count"]}, 2]}
@@ -1170,12 +1514,14 @@ class SpotifyTopTrackPopularityByRegion(Resource):
                 "track": "$_id.track",
                 "count": "$count",
                 "popularity": "$popularity",
-                "agg_popularity": "$agg_popularity"
+                "agg_popularity": "$agg_popularity",
+                "datetime": "$datetime"
             }},
             {"$group": {
                 "_id": "$track",
                 "region": {"$push": "$region"},
-                "agg_popularity": {"$push": "$agg_popularity"}
+                "agg_popularity": {"$push": "$agg_popularity"},
+                "datetime": {"$first": "$datetime"}
             }},
             {"$match": {
                 "_id": track
@@ -1201,3 +1547,184 @@ class SpotifyTopTrackPopularityByRegion(Resource):
                     'result': posts_list}
 
         return jsonify(response)
+
+
+class CircleChartRetailAlbum(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('end', type=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'), required=True,
+                                location='args')
+        posts_data.add_argument('select', type=str, required=True, location='args')
+        data = posts_data.parse_args()
+        end = data['end']
+        select = data['select']
+
+        if (select == 'daily'):
+            fetch_posts = general_db.daily_retail_album_gaon.aggregate([
+                {"$match": {
+                    "record_day":
+                        {"$lte": end,
+                         "$gt": end - datetime.timedelta(days=1)}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "data": "$data"
+                }},
+                {"$unwind": "$data"},
+                {"$project": {
+                    "album": "$data.album",
+                    "artist": "$data.artist",
+                    "domesticSum": {"$toInt": "$data.domesticSum"},
+                    "abroadSum": {"$toInt": "$data.abroadSum"},
+                    "total_sold": {"$toInt": "$data.total_sold_count"}
+                }},
+                {"$group": {
+                    "_id": "$album",
+                    "artist": {"$first": "$artist"},
+                    "domestic": {"$sum": "$domesticSum"},
+                    "abroad": {"$sum": "$abroadSum"},
+                    "sum": {"$sum": "$total_sold"}
+                }},
+                {"$sort": {"sum": -1}}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+            response = {'end': end.strftime("%Y-%m-%d"),
+                        'select': select,
+                        'posts': posts_list}
+
+            return jsonify(response)
+        elif (select == 'weekly'):
+            fetch_posts = general_db.daily_retail_album_gaon.aggregate([
+                {"$match": {
+                    "record_day":
+                        {"$lte": end,
+                         "$gt": end - datetime.timedelta(days=7)}
+                }},
+                {"$unwind": "$data"},
+                {"$project": {
+                    "album": "$data.album",
+                    "artist": "$data.artist",
+                    "domesticSum": {"$toInt": "$data.domesticSum"},
+                    "abroadSum": {"$toInt": "$data.abroadSum"},
+                    "total_sold": {"$toInt": "$data.total_sold_count"}
+                }},
+                {"$group": {
+                    "_id": "$album",
+                    "artist": {"$first": "$artist"},
+                    "domestic": {"$sum": "$domesticSum"},
+                    "abroad": {"$sum": "$abroadSum"},
+                    "sum": {"$sum": "$total_sold"}
+                }},
+                {"$sort": {"sum": -1}}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+            response = {'end': end.strftime("%Y-%m-%d"),
+                        'select': select,
+                        'posts': posts_list}
+
+            return jsonify(response)
+        elif (select == 'monthly'):
+            fetch_posts = general_db.daily_retail_album_gaon.aggregate([
+                {"$match": {
+                    "record_day":
+                        {"$lte": end,
+                         "$gt": end - datetime.timedelta(days=30)}
+                }},
+                {"$unwind": "$data"},
+                {"$project": {
+                    "album": "$data.album",
+                    "artist": "$data.artist",
+                    "domesticSum": {"$toInt": "$data.domesticSum"},
+                    "abroadSum": {"$toInt": "$data.abroadSum"},
+                    "total_sold": {"$toInt": "$data.total_sold_count"}
+                }},
+                {"$group": {
+                    "_id": "$album",
+                    "artist": {"$first": "$artist"},
+                    "domestic": {"$sum": "$domesticSum"},
+                    "abroad": {"$sum": "$abroadSum"},
+                    "sum": {"$sum": "$total_sold"}
+                }},
+                {"$sort": {"sum": -1}}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+            response = {'end': end.strftime("%Y-%m-%d"),
+                        'select': select,
+                        'posts': posts_list}
+
+            return jsonify(response)
+        elif (select == 'yearly'):
+            fetch_posts = general_db.daily_retail_album_gaon.aggregate([
+                {"$match": {
+                    "record_day":
+                        {"$lte": end,
+                         "$gt": end - datetime.timedelta(days=365)}
+                }},
+                {"$unwind": "$data"},
+                {"$project": {
+                    "album": "$data.album",
+                    "artist": "$data.artist",
+                    "domesticSum": {"$toInt": "$data.domesticSum"},
+                    "abroadSum": {"$toInt": "$data.abroadSum"},
+                    "total_sold": {"$toInt": "$data.total_sold_count"}
+                }},
+                {"$group": {
+                    "_id": "$album",
+                    "artist": {"$first": "$artist"},
+                    "domestic": {"$sum": "$domesticSum"},
+                    "abroad": {"$sum": "$abroadSum"},
+                    "sum": {"$sum": "$total_sold"}
+                }},
+                {"$sort": {"sum": -1}}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+            response = {'end': end.strftime("%Y-%m-%d"),
+                        'select': select,
+                        'posts': posts_list}
+
+            return jsonify(response)
+        else:
+            fetch_posts = general_db.daily_retail_album_gaon.aggregate([
+                {"$match": {
+                    "record_day":
+                        {"$lte": end,
+                         "$gt": end - datetime.timedelta(days=1)}
+                }},
+                {"$unwind": "$data"},
+                {"$project": {
+                    "album": "$data.album",
+                    "artist": "$data.artist",
+                    "domesticSum": {"$toInt": "$data.domesticSum"},
+                    "abroadSum": {"$toInt": "$data.abroadSum"},
+                    "total_sold": {"$toInt": "$data.total_sold_count"}
+                }},
+                {"$group": {
+                    "_id": "$album",
+                    "artist": {"$first": "$artist"},
+                    "domestic": {"$sum": "$domesticSum"},
+                    "abroad": {"$sum": "$abroadSum"},
+                    "sum": {"$sum": "$total_sold"}
+                }},
+                {"$sort": {"sum": -1}}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+            response = {'end': end.strftime("%Y-%m-%d"),
+                        'select': select,
+                        'posts': posts_list}
+
+            return jsonify(response)
