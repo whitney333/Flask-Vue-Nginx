@@ -83,7 +83,7 @@ export default {
   },
   methods: {
     async get_campaign_package() {
-      await this.axios.get("http://localhost/api/campaign?"
+      await this.axios.get("/api/campaign?"
           + "mid=" + this.mid
           + "&cid=" + this.campaignId,
           {setTimeout: 10000})

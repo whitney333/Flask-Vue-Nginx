@@ -132,7 +132,7 @@ export default {
       var days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
 
       this.weekNumber = (Math.ceil(days / 7)) - 3;
-      await this.axios.get("http://localhost/api/music-broadcast/music-center/chart?"
+      await this.axios.get("/api/music-broadcast/music-center/chart?"
         + "year=" + this.year
         + "&week=" + this.weekNumber, {setTimeout: 10000})
       .then(res => {
@@ -145,7 +145,7 @@ export default {
     },
     async get_musiccenter() {
       this.param = this.selected_week.split(" ")[1]
-      await this.axios.get("http://localhost/api/music-broadcast/music-center/chart?"
+      await this.axios.get("/api/music-broadcast/music-center/chart?"
         + "year=" + this.year
         + "&week=" + this.param, {setTimeout: 10000})
       .then(res => {

@@ -246,7 +246,7 @@ export default {
   },
   methods: {
     async getArtistInfo() {
-      await this.axios.get("http://localhost/api/artist/info?"
+      await this.axios.get("/api/artist/info?"
           + "mid=" + this.mid,
           {setTimeout: 10000})
       .then(res => {
@@ -258,7 +258,7 @@ export default {
       })
     },
     async getMemberInfo() {
-      await this.axios.get("http://localhost/api/artist/members",
+      await this.axios.get("/api/artist/members",
           {setTimeout: 10000})
       .then(res => {
         this.member_info = res.data["result"]
@@ -269,7 +269,7 @@ export default {
       })
     },
     async getTheQoo() {
-      await this.axios.get("http://localhost/api/theqoo/hot?page=" + this.page +
+      await this.axios.get("/api/theqoo/hot?page=" + this.page +
           "&limit=" + this.limit + "&q=" + this.q, {setTimeout: 10000})
       .then(res => {
         this.hot_data = res.data["posts"]

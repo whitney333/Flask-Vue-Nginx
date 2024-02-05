@@ -246,7 +246,7 @@ export default {
   },
   methods: {
     async get_total_collect() {
-      const {data} = await this.axios.get("http://localhost/api/bilibili/chart", {setTimeout: 10000})
+      const {data} = await this.axios.get("/api/bilibili/chart", {setTimeout: 10000})
 
       this.result = data["result"]
       this.index_number = data["result"][data["result"].length - 1]["total_collect"]
@@ -279,7 +279,7 @@ export default {
     update_data(timeline) {
       this.selection = timeline
 
-      this.axios.get("http://localhost/api/bilibili/chart", {setTimeout: 10000})
+      this.axios.get("/api/bilibili/chart", {setTimeout: 10000})
           .then(res => {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]

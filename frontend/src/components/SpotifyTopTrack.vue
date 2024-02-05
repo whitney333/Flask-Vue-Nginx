@@ -192,7 +192,7 @@ export default {
       let _date = new Date()
       this.end_date = _date.toISOString().split('T')[0]
 
-      const {data} = await this.axios.get("http://localhost/api/spotify/top-track?"
+      const {data} = await this.axios.get("/api/spotify/top-track?"
           + "end=" + this.end_date
           + "&country=" + this.country
           + "&drange=" + this.drange,
@@ -222,7 +222,7 @@ export default {
       let _date = new Date()
       this.end_date = _date.toISOString().split('T')[0]
 
-      const {data} = await this.axios.get("http://localhost/api/spotify/top-track?"
+      const {data} = await this.axios.get("/api/spotify/top-track?"
           + "end=" + this.end_date
           + "&country=" + this.selected_country
           + "&drange=" + this.drange,

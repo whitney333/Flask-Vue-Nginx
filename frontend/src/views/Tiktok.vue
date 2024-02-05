@@ -424,7 +424,7 @@ export default {
   },
   methods: {
     async get_posts() {
-      const {data} = await this.axios.get('http://localhost/api/tiktok/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
+      const {data} = await this.axios.get('/api/tiktok/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
       this.page = data["result"]["page"]
       this.sort = data["result"]["sort"]
       this.total_posts_count = data["result"]["total_posts_count"]

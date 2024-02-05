@@ -29,7 +29,7 @@
     }),
     methods: {
       async get_random() {
-        await this.axios({method: "GET", "url": "http://localhost/api/rand"})
+        await this.axios({method: "GET", "url": "/api/rand"})
             .then(result => {
               this.rand = result.data["randomNum"];
               // console.log(this.rand)

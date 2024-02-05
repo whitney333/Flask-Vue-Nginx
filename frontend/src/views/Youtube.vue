@@ -460,7 +460,7 @@ export default {
   },
   methods: {
     async get_youtube_post() {
-      const {data} = await this.axios.get('http://localhost/api/youtube/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
+      const {data} = await this.axios.get('/api/youtube/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
       this.page = data["result"]["page"]
       this.sort = data["result"]["sort"]
       this.total_posts_count = data["result"]["total_posts_count"]
@@ -494,7 +494,7 @@ export default {
       // console.log(this.video_subtotal)
     },
     async get_youtube_comment() {
-      const {data} = await this.axios.get("http://localhost/api/youtube/comment?"
+      const {data} = await this.axios.get("/api/youtube/comment?"
           + 'page=' + this.page
           + '&limit=' + this.perPage
           + '&drange=' + this.drange, {setTimeout: 10000})

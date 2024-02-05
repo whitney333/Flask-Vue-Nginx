@@ -421,7 +421,7 @@ export default {
   },
   methods: {
     async getBilibiliPost() {
-      const {data} = await this.axios.get('http://localhost/api/bilibili/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
+      const {data} = await this.axios.get('/api/bilibili/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
       this.page = data["page"]
       this.sort = data["sort"]
       this.total_posts_count = data["total_posts_count"]

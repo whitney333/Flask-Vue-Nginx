@@ -532,7 +532,7 @@ export default {
   },
   methods: {
     async getInstaPost() {
-      const {data} = await this.axios.get('http://localhost/api/instagram/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
+      const {data} = await this.axios.get('/api/instagram/post?' + 'page=' + this.page + '&limit=' + this.perPage + '&sort=' + this.sort)
       this.page = data["result"]["page"]
       this.sort = data["result"]["sort"]
       this.total_posts_count = data["result"]["total_posts_count"]
@@ -566,7 +566,7 @@ export default {
       // console.log(this.subTotalNum)
     },
     async getIndex() {
-      const {data} = await this.axios.get("http://localhost/api/instagram/index")
+      const {data} = await this.axios.get("/api/instagram/index")
       this.current_follower = data["result"][0]["follower_count"]
       this.past_follower = data["result"][6]["follower_count"]
       this.current_media = data["result"][0]["media_count"]

@@ -148,7 +148,7 @@ export default {
   },
   methods: {
     async get_twitter_follower() {
-      await this.axios.get("http://localhost/api/twitter/index?"
+      await this.axios.get("/api/twitter/index?"
           + "end=" + this.end
           + "&range=" + this.range,
           {setTimeout: 10000})
