@@ -17,16 +17,15 @@ services:
 
   # generates frontend
   frontend:
-    image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:latest"
+    image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:v0.3"
     depends_on:
         - backend
     ports:
       - 8080:80
     restart: on-failure
 
-
   backend:
-    image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-backend:latest"
+    image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-backend:v0.3"
     ports:
       - 5001:5001
     restart: on-failure
