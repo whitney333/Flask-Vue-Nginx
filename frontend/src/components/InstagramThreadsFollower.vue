@@ -216,7 +216,7 @@ export default {
   },
   methods: {
     async get_instagram_threads_follower() {
-      await this.axios.get("http://localhost/api/instagram/threads/follower",
+      await this.axios.get("/api/instagram/threads/follower",
           {setTimeout: 10000})
       .then(res => {
         this.instagram_threads_follower = res["data"]["result"]
@@ -243,7 +243,7 @@ export default {
     update_data(timeline) {
       this.selection = timeline
 
-      this.axios.get("http://localhost/api/instagram/threads/follower", {setTimeout: 10000})
+      this.axios.get("/api/instagram/threads/follower", {setTimeout: 10000})
           .then(res => {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]

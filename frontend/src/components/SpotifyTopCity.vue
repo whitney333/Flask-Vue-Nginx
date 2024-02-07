@@ -123,7 +123,7 @@ export default {
   },
   methods: {
     async get_city() {
-      const {data} = await this.axios.get('http://localhost/api/spotify/top-city', {setTimeout: 10000})
+      const {data} = await this.axios.get('/api/spotify/top-city', {setTimeout: 10000})
 
       this.city = data['result']
       this.latest_date = data['result'][0]['date']

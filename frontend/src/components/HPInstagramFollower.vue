@@ -147,7 +147,7 @@ export default {
   },
   methods: {
     async get_instagram_follower() {
-      const {data} = await this.axios.get("http://localhost/api/instagram/chart/follower", {setTimeout: 10000})
+      const {data} = await this.axios.get("/api/instagram/chart/follower", {setTimeout: 10000})
       this.instagram_follower = data["result"]
       this.index_number = data["result"][data["result"].length - 1]["follower_count"]
       // console.log(this.instagram_follower)

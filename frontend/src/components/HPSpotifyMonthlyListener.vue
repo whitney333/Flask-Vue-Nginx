@@ -149,7 +149,7 @@ export default {
   },
   methods: {
     async get_spotify_listener() {
-    const {data} = await this.axios.get("http://localhost/api/spotify/index?" + "end=" + this.end + "&range=" + this.range,
+    const {data} = await this.axios.get("/api/spotify/index?" + "end=" + this.end + "&range=" + this.range,
         {setTimeout: 10000})
 
     this.range = data["range"]

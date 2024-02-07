@@ -139,7 +139,7 @@ export default {
   },
   methods: {
     async get_youtube_country() {
-      await this.axios.get('http://localhost/api/youtube/stats/country',
+      await this.axios.get('/api/youtube/stats/country',
           {setTimeout: 10000})
       .then(res => {
         this.countries = res.data['result']

@@ -106,7 +106,7 @@ export default {
   },
   methods: {
     async get_youtube_language() {
-      await this.axios.get('http://localhost/api/youtube/stats/language',
+      await this.axios.get('/api/youtube/stats/language',
           {setTimeout: 10000})
       .then( res => {
         this.languages = res.data['results']

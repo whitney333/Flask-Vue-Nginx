@@ -145,7 +145,7 @@ export default {
   },
   methods: {
     async get_default_top_track_by_region() {
-      await this.axios.get('http://localhost/api/spotify/top-track/region?'
+      await this.axios.get('/api/spotify/top-track/region?'
           + "track=" + this.top_one_song,
           {setTimeout: 10000})
       .then( res => {
@@ -172,7 +172,7 @@ export default {
       })
     },
     async fetch_top_track_by_region() {
-      await this.axios.get('http://localhost/api/spotify/top-track/region?'
+      await this.axios.get('/api/spotify/top-track/region?'
           + "track=" + this.selected_track,
           {setTimeout: 10000})
       .then( res => {
@@ -203,7 +203,7 @@ export default {
       let _date = new Date()
       this.end_date = _date.toISOString().split('T')[0]
 
-      await this.axios.get("http://localhost/api/spotify/top-track?"
+      await this.axios.get("/api/spotify/top-track?"
           + "end=" + this.end_date
           + "&country=" + "KR"
           + "&drange=" + "",
