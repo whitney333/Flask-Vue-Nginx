@@ -131,7 +131,7 @@ export default {
   },
   methods: {
     async get_web_rising_query() {
-      await this.axios.get("http://localhost/api/google-trends/web-rising-query",
+      await this.axios.get("/api/google-trends/web-rising-query",
           {setTimeout: 10000})
       .then(res => {
         this.rising_query = res["data"]

@@ -171,7 +171,7 @@ export default {
   },
   methods: {
     async getRecentTens() {
-      const {data} = await this.axios.get('http://localhost/api/tiktok/hashtags/most-used/recent-ten-posts')
+      const {data} = await this.axios.get('/api/tiktok/hashtags/most-used/recent-ten-posts')
       this.TopTenUsed = data["result"]
       // console.log(this.TopTenUsed)
 
@@ -193,7 +193,7 @@ export default {
 
     },
     async getRecentThirtys() {
-      const {data} = await this.axios.get('http://localhost/api/tiktok/hashtags/most-used/recent-thirty-posts')
+      const {data} = await this.axios.get('/api/tiktok/hashtags/most-used/recent-thirty-posts')
       this.TopTenUsed = data["result"]
       // console.log(this.TopTenUsed)
 
@@ -215,7 +215,7 @@ export default {
       chart.updateSeries(this.series)
     },
     async getOveralls() {
-      const {data} = await this.axios.get('http://localhost/api/tiktok/hashtags/most-used/overall-posts')
+      const {data} = await this.axios.get('/api/tiktok/hashtags/most-used/overall-posts')
       this.TopTenUsed = data["result"]
       // console.log(this.TopTenUsed)
 

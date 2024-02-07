@@ -200,7 +200,7 @@ export default {
   },
   methods: {
     async get_tiktok_total_eng() {
-      const {data} = await this.axios.get("http://localhost/api/tiktok/chart", {setTimeout: 10000})
+      const {data} = await this.axios.get("/api/tiktok/chart", {setTimeout: 10000})
       this.tiktok_total_eng_rate = data["result"]
       this.index_number = data["result"][data["result"].length - 1]["eng_rate"]
       // console.log(this.tiktok_total_views)
@@ -222,7 +222,7 @@ export default {
     update_data(timeline) {
       this.selection = timeline
 
-      this.axios.get("http://localhost/api/tiktok/chart", {setTimeout: 10000})
+      this.axios.get("/api/tiktok/chart", {setTimeout: 10000})
           .then(res => {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]

@@ -159,7 +159,7 @@ export default {
         this.weekNumber === this.weekNumber
       }
 
-      await this.axios.get("http://localhost/api/weekly/music-charts?"
+      await this.axios.get("/api/weekly/music-charts?"
           + 'year=' + this.year
           + '&week=' + this.weekNumber
           + '&pl=' + this.platform,
@@ -180,7 +180,7 @@ export default {
     },
     async get_data() {
       this.param = this.selected_week.split(" ")[1]
-      await this.axios.get("http://localhost/api/weekly/music-charts?"
+      await this.axios.get("/api/weekly/music-charts?"
           + 'year=' + this.selected_year
           + '&week=' + this.param
           + '&pl=' + this.platform,

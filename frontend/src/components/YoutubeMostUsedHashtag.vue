@@ -158,7 +158,7 @@ export default {
   },
   methods: {
     async getRecentTens() {
-      const {data} = await this.axios.get('http://localhost/api/youtube/tags/most-used?' + 'latest=' + 'ten')
+      const {data} = await this.axios.get('/api/youtube/tags/most-used?' + 'latest=' + 'ten')
       this.latest = data["result"]["latest"]
       this.TopTenUsed = data["result"]["posts"]
       // console.log(this.TopTenUsed)
@@ -180,7 +180,7 @@ export default {
       ];
     },
     async getRecentThirtys() {
-      const {data} = await this.axios.get('http://localhost/api/youtube/tags/most-used?' + 'latest=' + 'thirty')
+      const {data} = await this.axios.get('/api/youtube/tags/most-used?' + 'latest=' + 'thirty')
       this.latest = data["result"]["latest"]
       this.TopTenUsed = data["result"]["posts"]
       // console.log(this.TopTenUsed)

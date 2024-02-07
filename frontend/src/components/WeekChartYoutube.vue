@@ -159,7 +159,7 @@ export default {
         this.weekNumber === this.weekNumber
       }
 
-      const {data} = await this.axios.get('http://localhost/api/weekly/music-charts?' + 'year=' + this.year + '&week=' + this.weekNumber + '&pl=' + this.platform, {setTimeout: 10000})
+      const {data} = await this.axios.get('/api/weekly/music-charts?' + 'year=' + this.year + '&week=' + this.weekNumber + '&pl=' + this.platform, {setTimeout: 10000})
 
       this.chart = data["posts"]
       // this.week = data['result'][0]['week']
@@ -174,7 +174,7 @@ export default {
     },
     async get_data() {
       this.param = this.selected_week.split(" ")[1]
-      const {data} = await this.axios.get('http://localhost/api/weekly/music-charts?' + 'year=' + this.selected_year + '&week=' + this.param + '&pl=' + this.platform, {setTimeout: 10000})
+      const {data} = await this.axios.get('/api/weekly/music-charts?' + 'year=' + this.selected_year + '&week=' + this.param + '&pl=' + this.platform, {setTimeout: 10000})
 
       this.chart = data["posts"]
       // console.log(this.chart)

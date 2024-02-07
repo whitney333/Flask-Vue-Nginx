@@ -89,7 +89,7 @@ export default {
   },
   methods: {
    async get_campaign_package() {
-      await this.axios.get("http://localhost/api/artist/campaign",
+      await this.axios.get("/api/artist/campaign",
           {setTimeout: 10000})
         .then(res => {
           this.campaigns = res.data["result"]

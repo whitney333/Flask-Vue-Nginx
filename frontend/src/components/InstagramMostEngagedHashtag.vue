@@ -154,7 +154,7 @@ export default {
   },
   methods: {
     async getRecentTens() {
-      const {data} = await this.axios.get('http://localhost/api/instagram/hashtags/most-engaged/recent-ten-posts')
+      const {data} = await this.axios.get('/api/instagram/hashtags/most-engaged/recent-ten-posts')
       this.TopTenUsed = data["result"]
       // console.log(this.TopTenUsed)
 
@@ -176,7 +176,7 @@ export default {
 
     },
     async getRecentThirtys() {
-      const {data} = await this.axios.get('http://localhost/api/instagram/hashtags/most-engaged/recent-thirty-posts')
+      const {data} = await this.axios.get('/api/instagram/hashtags/most-engaged/recent-thirty-posts')
       this.TopTenUsed = data["result"]
       // console.log(this.TopTenUsed)
 
@@ -198,7 +198,7 @@ export default {
 
     },
     async getOveralls() {
-      const {data} = await this.axios.get('http://localhost/api/instagram/hashtags/most-engaged/overall-posts')
+      const {data} = await this.axios.get('/api/instagram/hashtags/most-engaged/overall-posts')
       this.TopTenUsed = data["result"]
       // console.log(this.TopTenUsed)
 
