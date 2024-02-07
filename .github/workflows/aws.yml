@@ -46,7 +46,7 @@ jobs:
     - name: Deploy to EC2
       run: |
         ssh -o StrictHostKeyChecking=no ubuntu@18.183.241.87 << EOF
-        cd mishkan
+        cd Flask-Vue-Nginx
         git fetch --tags
         # Checkout the specific tag received from the GitHub Action trigger
         git checkout tags/${GITHUB_REF#refs/tags/} -b deploy-branch
