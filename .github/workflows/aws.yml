@@ -45,7 +45,7 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@18.183.241.87 << EOF
+        ssh -o StrictHostKeyChecking=no ubuntu@18.179.46.238 << EOF
         cd Flask-Vue-Nginx
         git fetch --tags
         # Checkout the specific tag received from the GitHub Action trigger
