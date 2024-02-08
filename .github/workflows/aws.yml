@@ -48,8 +48,17 @@ jobs:
         ssh -o StrictHostKeyChecking=no ubuntu@18.179.46.238 << EOF
         cd Flask-Vue-Nginx
         git fetch --tags
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        if git branch --list deploy-branch; then
+          echo "Resetting existing branch deploy-branch to tag $TAG_NAME."
+          git switch deploy-branch
+          git reset --hard tags/$TAG_NAME
+        else
+          echo "Creating and switching to new branch deploy-branch based on tag $TAG_NAME."
+          git checkout tags/$TAG_NAME -b deploy-branch
+        fi
         # Checkout the specific tag received from the GitHub Action trigger
-        git checkout tags/${GITHUB_REF#refs/tags/} -b deploy-branch
+        # git checkout tags/${GITHUB_REF#refs/tags/} -b deploy-branch
         # Clean up unused docker images to save disk space
         docker image prune -a -f --filter "until=24h"
         # Run docker-compose up -d
