@@ -137,7 +137,7 @@ export default {
       ]
     },
     {
-      title: '작품',
+      title: 'Works',
       icon: 'mdi-creation',
       to: '/works',
       sublinks:[
@@ -148,11 +148,11 @@ export default {
         }
       ]
     },
-    {
-      title:'News',
-      icon:'mdi-newspaper-variant-multiple-outline',
-      to:'/news'
-    },
+    // {
+    //   title:'News',
+    //   icon:'mdi-newspaper-variant-multiple-outline',
+    //   to:'/news'
+    // },
     {
       title:'Campaign',
       icon:'mdi-comment-processing',
@@ -164,11 +164,11 @@ export default {
           to: '/campaign-analytics',
           active: true
         },
-        {
-          title: 'Create',
-          icon: 'mdi-shape-circle-plus',
-          to: '/create-campaign',
-        }
+        // {
+        //   title: 'Create',
+        //   icon: 'mdi-shape-circle-plus',
+        //   to: '/create-campaign',
+        // }
       ]
     },
   ],
