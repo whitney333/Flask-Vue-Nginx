@@ -167,7 +167,7 @@ export default {
                 "</li>" +
                 "</span>" +
                 "<span>" +
-                "<li>" + "Likes/ per video: " +
+                "<li>" + "Likes per video: " +
                 (series[1][dataPointIndex]).toLocaleString() +
                 "</li>" +
                 "</span>" +
@@ -283,10 +283,10 @@ export default {
           .then(res => {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]
-            this.one_month = this.data[this.data.length - 6]["datetime"]
-            this.three_months = this.data[this.data.length - 14]["datetime"]
-            this.six_months = this.data[this.data.length - 25]["datetime"]
-            this.one_year = this.data[this.data.length - 48]["datetime"]
+            this.one_month = this.data[this.data.length - 4]["datetime"]
+            this.three_months = this.data[this.data.length - 12]["datetime"]
+            // this.six_months = this.data[this.data.length - 24]["datetime"]
+            // this.one_year = this.data[this.data.length - 48]["datetime"]
 
             this.latest_like_count = this.data[this.data.length - 1]["total_like"]
             this.past_month_like_count = this.data[this.data.length - 6]["total_like"]

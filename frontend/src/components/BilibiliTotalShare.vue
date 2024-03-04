@@ -170,7 +170,7 @@ export default {
                 "</li>" +
                 "</span>" +
                 "<span>" +
-                "<li>" + "Shares/ per video: " +
+                "<li>" + "Shares per video: " +
                 (series[1][dataPointIndex]).toLocaleString() +
                 "</li>" +
                 "</span>" +
@@ -283,10 +283,10 @@ export default {
           .then(res => {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]
-            this.one_month = this.data[this.data.length - 6]["datetime"]
-            this.three_months = this.data[this.data.length - 14]["datetime"]
-            this.six_months = this.data[this.data.length - 25]["datetime"]
-            this.one_year = this.data[this.data.length - 48]["datetime"]
+            this.one_month = this.data[this.data.length - 4]["datetime"]
+            this.three_months = this.data[this.data.length - 12]["datetime"]
+            // this.six_months = this.data[this.data.length - 24]["datetime"]
+            // this.one_year = this.data[this.data.length - 48]["datetime"]
 
             this.latest_share_count = this.data[this.data.length - 1]["total_share"]
             this.past_month_share_count = this.data[this.data.length - 6]["total_share"]
