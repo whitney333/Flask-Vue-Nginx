@@ -70,9 +70,8 @@
                         </v-list-item-content>
                         <span class="h6 pb-3 member-list"
                               v-for="(artist, index) in member_info"
-                              :key="index"
                               v-if="member_info != null">
-                        {{ artist["artist"] }}&nbsp;
+                        {{ artist["artist"] }}&nbsp;&nbsp;
                       </span>
                         <span class="h6 pb-3 member-list" v-else>
                         {{ 'N/A' }}
@@ -157,9 +156,9 @@
                   </ul>
                 </div>
               </div>
-            <div class="col-md-6">
-              <TheqooSentiment/>
-            </div>
+<!--            <div class="col-md-6">-->
+<!--              <TheqooSentiment/>-->
+<!--            </div>-->
           </div>
         </div>
       </div>
@@ -262,7 +261,7 @@ export default {
           {setTimeout: 10000})
       .then(res => {
         this.member_info = res.data["result"]
-        // console.log(this.member_info)
+        console.log(this.member_info)
       })
       .catch(err => {
         console.log(err);
@@ -273,17 +272,24 @@ export default {
           "&limit=" + this.limit + "&q=" + this.q, {setTimeout: 10000})
       .then(res => {
         this.hot_data = res.data["posts"]
-        console.log(this.hot_data)
+        // console.log(this.hot_data)
       })
       .catch(err => {
         console.log(err)
       })
-    }
+    },
+    addComma(result, val, idx) {
+      if (idx < result.length - 1) {
+        return val + ","
+      }
+      return val
+    },
   },
   created() {
     this.getArtistInfo();
     this.getMemberInfo();
     this.getTheQoo();
+    this.addComma();
   }
 }
 </script>

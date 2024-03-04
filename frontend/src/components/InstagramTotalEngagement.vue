@@ -248,12 +248,12 @@ export default {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]
             this.one_month = this.data[this.data.length - 30]["datetime"]
-            this.three_months = this.data[this.data.length - 90]["datetime"]
-            this.six_months = this.data[this.data.length - 180]["datetime"]
-            this.one_year = this.data[this.data.length - 365]["datetime"]
+            // this.three_months = this.data[this.data.length - 90]["datetime"]
+            // this.six_months = this.data[this.data.length - 180]["datetime"]
+            // this.one_year = this.data[this.data.length - 365]["datetime"]
 
             this.latest_er = this.data[this.data.length - 1]["eng_rate"]
-            this.past_month_er = this.data[this.data.length - 6]["eng_rate"]
+            this.past_month_er = this.data[this.data.length - 30]["eng_rate"]
 
             // console.log(this.latest_date)
             // console.log(this.one_month)

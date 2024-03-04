@@ -19,8 +19,10 @@
                     <p>Begin at: {{ campaign["start_date"] }}</p>
                     <h6>Target Region:</h6>
                     <p class="text-h6 text--primary"
-                       v-for='region in campaign["region"]'>
-                      <span class="resp-list">{{ region }}&nbsp;</span>
+                       v-for='(region, index) in campaign["region"]'>
+                      <span class="resp-list">
+                        {{ addComma(campaign["region"], region, index) }}
+                      </span>
                     </p>
                     <h6>Target Language:</h6>
                     <p class="text-h6 text--primary"
@@ -59,7 +61,31 @@
                   >
                     <p>Campaign ID: {{ campaign["cid"] }}</p>
                   </v-toolbar>
-                  <CampaignReport :campaginId="cid"></CampaignReport>
+                  <v-data-table
+                      :headers="headers"
+                      :items="packages"
+                      :items-per-page=5
+                      :search="search"
+                      class="elevation-1"
+                  >
+                    <template v-slot:top>
+                      <v-row class="align-center">
+                        <v-col cols="12" lg="4">
+                          <v-list-item>
+                            <v-list-item-content>
+                              <v-text-field
+                                  outlined
+                                  dense
+                                  v-model="search"
+                                  label="Search..."
+                              ></v-text-field>
+                            </v-list-item-content>
+                            <v-spacer/>
+                          </v-list-item>
+                        </v-col>
+                      </v-row>
+                    </template>
+                  </v-data-table>
                   <v-card-actions class="justify-end">
                     <v-btn
                         text
@@ -77,14 +103,54 @@
   </div>
 </template>
 <script>
-import CampaignReport from "@/components/CampaignReport";
+// import CampaignReport from "@/components/CampaignReport";
 export default {
   name: "CampaignAnalytics",
-  components: {CampaignReport},
   data() {
     return {
+      mid: "1297",
       campaigns: [],
-      cid: ""
+      headers: [
+        { text: 'Date',
+          value: 'POST_DATE',
+          width: '5%'
+        },
+        {
+          text: 'Account',
+          align: 'start',
+          sortable: true,
+          value: 'ACCOUNT_NAME',
+          width: '5%',
+        },
+        { text: 'Platform',
+          value: 'PLATFORM',
+          width: '6%'
+        },
+        { text: 'Follower',
+          value: 'FOLLOWER',
+          width: '3%',
+          formatter: this.formatterEx
+        },
+        { text: 'Region',
+          align: 'start',
+          value: 'REGION',
+          width: '3%'
+        },
+        { text: 'Language',
+          value: 'LANGUAGE',
+          width: '3%'
+        },
+        { text: 'Likes',
+          value: 'LIKES',
+          width: '3%'
+        },
+        { text: 'Comments',
+          value: 'COMMENTS',
+          width: '2%'
+        }
+      ],
+      packages: [],
+      search: "",
     }
   },
   methods: {
@@ -100,16 +166,34 @@ export default {
           console.log(err)
         })
     },
-   sendCid(cid) {
+    async sendCid(cid) {
      this.cid = cid;
      console.log(this.cid)
+     await this.axios.get("/api/campaign?"
+         + "mid=" + this.mid
+         + "&cid=" + cid,
+         {setTimeout: 10000})
+         .then(res => {
+           this.packages = res.data["results"]["posts"]
+           console.log(this.packages)
+           // this.packages.forEach((package_) => {
+           //   package_.forEach((campaign) => {
+           //     this.campaigns_list.push(campaign)
+           //   })
+           // })
+           // console.log(this.campaigns_list)
+           // console.log(typeof(this.campaigns_list))
+         })
+         .catch(err => {
+           console.log(err)
+         })
    },
     addComma(result, val, idx) {
      if(idx < result.length - 1) {
        return val + ","
      }
      return val
-    }
+    },
   },
   created() {
     this.get_campaign_package();
