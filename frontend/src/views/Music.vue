@@ -27,7 +27,7 @@
                     mdi-information-outline
                   </v-icon>
                 </template>
-                <span>The ratio of artist's followers to monthly listeners. (Number of followers/ monthly listeners)</span>
+                <span>Popularity of top tracks by different regions.</span>
               </v-tooltip>
               </span>
             </div>
@@ -56,7 +56,7 @@
                     mdi-information-outline
                   </v-icon>
                 </template>
-                <span>The ratio of artist's followers to monthly listeners. (Number of followers/ monthly listeners)</span>
+                <span>Popularity of top tracks by different countries.</span>
               </v-tooltip>
               </span>
             </div>

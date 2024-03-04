@@ -249,8 +249,8 @@ export default {
             this.latest_date = this.data[this.data.length - 1]["date"]
             this.one_month = this.data[this.data.length - 30]["date"]
             this.three_months = this.data[this.data.length - 90]["date"]
-            this.six_months = this.data[this.data.length - 180]["date"]
-            // this.one_year = this.data[this.data.length - 364]["date"]
+            // this.six_months = this.data[this.data.length - 180]["date"]
+            // this.one_year = this.data[this.data.length - 365]["date"]
 
             this.latest_follower_count = this.data[this.data.length - 1]["follower"]
             this.past_month_follower_count = this.data[this.data.length - 30]["follower"]

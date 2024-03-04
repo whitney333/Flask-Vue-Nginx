@@ -237,7 +237,7 @@ export default {
             this.latest_date = this.data[this.data.length - 1]["datetime"]
             this.one_month = this.data[this.data.length - 30]["datetime"]
             this.three_months = this.data[this.data.length - 90]["datetime"]
-            this.six_months = this.data[this.data.length - 180]["datetime"]
+            // this.six_months = this.data[this.data.length - 180]["datetime"]
             // this.one_year = this.data[this.data.length - 365]["datetime"]
 
             this.latest_video_view_count = this.data[this.data.length - 1]["total_view"]

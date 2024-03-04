@@ -131,6 +131,37 @@ export default {
             }
           }
         },
+        // annotations: {
+        //   xaxis: [{
+        //     x: new Date('31 Dec 2023').getTime(),
+        //     strokeDashArray: 0,
+        //     borderColor: '#775DD0',
+        //     label: {
+        //       borderColor: '#775DD0',
+        //       style: {
+        //         color: '#fff',
+        //         background: '#775DD0',
+        //       },
+        //       text: 'Anno Test',
+        //     }
+        //   }],
+        //   points: [{
+        //     x: new Date('31 Dec 2023').getTime(),
+        //     y: null,
+        //     marker: {
+        //       size: 8,
+        //       fillColor: '#fff',
+        //       strokeColor: 'red',
+        //       radius: 2,
+        //       cssClass: 'apexcharts-custom-class'
+        //     },
+        //     label: {
+        //       image: {
+        //         path: 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/ad-svgrepo-com.svg'
+        //       }
+        //     }
+        //   }]
+        // },
         dataLabels: {
           enabled: false,
         },
@@ -243,7 +274,7 @@ export default {
             this.data = res["data"]["result"]
             this.latest_date = this.data[this.data.length - 1]["datetime"]
             this.one_month = this.data[this.data.length - 30]["datetime"]
-            // this.three_months = this.data[this.data.length - 90]["datetime"]
+            this.three_months = this.data[this.data.length - 90]["datetime"]
             // this.six_months = this.data[this.data.length - 180]["datetime"]
             // this.one_year = this.data[this.data.length - 320]["datetime"]
 

@@ -188,7 +188,7 @@ export default {
         yaxis: [
           {
             axisBorder: {
-              show: true,
+              show: false,
               color: '#ff0000'
             },
             labels: {
@@ -283,8 +283,8 @@ export default {
             this.latest_date = this.data[this.data.length - 1]["datetime"]
             this.one_month = this.data[this.data.length - 30]["datetime"]
             this.three_months = this.data[this.data.length - 90]["datetime"]
-            this.six_months = this.data[this.data.length - 180]["datetime"]
-            // this.one_year = this.data[this.data.length - 48]["datetime"]
+            // this.six_months = this.data[this.data.length - 180]["datetime"]
+            // this.one_year = this.data[this.data.length - 365]["datetime"]
 
             this.latest_comment_count = this.data[this.data.length - 1]["total_comment"]
             this.past_month_comment_count = this.data[this.data.length - 30]["total_comment"]

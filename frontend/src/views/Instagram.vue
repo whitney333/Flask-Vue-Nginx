@@ -178,157 +178,160 @@
           </div>
         </div>
       </div>
-      <div class="section-overall">
-        <div class="section-title">
-          <h2>Know Your Audience</h2>
-        </div>
-        <div class="row">
-          <div class="col-lg-4 spacer">
-            <div class="chart-box-2">
-              <div class="section-header">
-                <h3>Gender</h3>
-                <button class="dots"></button>
-              </div>
-              <div class="chart">
-                <img src="../assets/img/chart08.svg" alt=""/>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-8 spacer">
-            <div class="chart-box-2">
-              <div class="section-header">
-                <h3>Gender by Age</h3>
-                <button class="dots"></button>
-              </div>
-              <div class="chart">
-                <span><img src="../assets/img/chart09.svg" alt=""/></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-lg-8 spacer">
-            <div class="chart-box-2">
-              <div class="section-header">
-                <h3>Fan Location</h3>
-                <button class="dots"></button>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="listing-title">
-                    <h5>Top Countries</h5>
-                    <a href="#">View more</a>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/indonesia-flag.svg" alt=""/>Indonesia</p>
-                    <span>21.11%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value green" style="width: 21.11%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/south-korea-flag.svg" alt=""/>South Korea</p>
-                    <span>11.44%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value green" style="width: 11.44%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/philippines-flag.svg" alt=""/>Philippines</p>
-                    <span>8.91%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value green" style="width: 8.91%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/united-states-of-america-flag.svg" alt=""/>United States</p>
-                    <span>6.80%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value green" style="width: 6.80%;"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="listing-title">
-                    <h5>Top Cities</h5>
-                    <a href="#">View more</a>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/south-korea-flag.svg" alt=""/>Seoul</p>
-                    <span>5.98%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value orange" style="width: 21.11%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/indonesia-flag.svg" alt=""/>Jakarta</p>
-                    <span>2.46%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value orange" style="width: 2.46%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/thailand-flag.svg" alt=""/>Bangkok</p>
-                    <span>1.61%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value orange" style="width: 1.61%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p><img src="../assets/img/japan-flag.svg" alt=""/>Tokyo</p>
-                    <span>1.06%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value orange" style="width: 1.06%;"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-4 spacer">
-            <div class="chart-box-2">
-              <div class="section-header">
-                <h3>Fan Language</h3>
-                <button class="dots"></button>
-              </div>
-              <div class="row">
-                <div class="col-12">
-                  <div class="listing-title placeholder">
-                  </div>
-                  <div class="listing-block">
-                    <p>English</p>
-                    <span>42.20%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value teal" style="width: 42.20%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p>Indonesian</p>
-                    <span>8.85%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value teal" style="width: 8.85%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p>Spanish</p>
-                    <span>8.01%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value teal" style="width: 8.01%;"></div>
-                    </div>
-                  </div>
-                  <div class="listing-block">
-                    <p>Korean</p>
-                    <span>7.70%</span>
-                    <div class="percent-bar">
-                      <div class="percent-value teal" style="width: 7.70%;"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!--TODO-->
+      <!-- Instagram Audience Demographic -->
+      <!-- public API: ?__a=1&__d=dis fail    -->
+<!--      <div class="section-overall">-->
+<!--        <div class="section-title">-->
+<!--          <h2>Know Your Audience</h2>-->
+<!--        </div>-->
+<!--        <div class="row">-->
+<!--          <div class="col-lg-4 spacer">-->
+<!--            <div class="chart-box-2">-->
+<!--              <div class="section-header">-->
+<!--                <h3>Gender</h3>-->
+<!--                <button class="dots"></button>-->
+<!--              </div>-->
+<!--              <div class="chart">-->
+<!--                <img src="../assets/img/chart08.svg" alt=""/>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-lg-8 spacer">-->
+<!--            <div class="chart-box-2">-->
+<!--              <div class="section-header">-->
+<!--                <h3>Gender by Age</h3>-->
+<!--                <button class="dots"></button>-->
+<!--              </div>-->
+<!--              <div class="chart">-->
+<!--                <span><img src="../assets/img/chart09.svg" alt=""/></span>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="row">-->
+<!--          <div class="col-lg-8 spacer">-->
+<!--            <div class="chart-box-2">-->
+<!--              <div class="section-header">-->
+<!--                <h3>Fan Location</h3>-->
+<!--                <button class="dots"></button>-->
+<!--              </div>-->
+<!--              <div class="row">-->
+<!--                <div class="col-md-6">-->
+<!--                  <div class="listing-title">-->
+<!--                    <h5>Top Countries</h5>-->
+<!--                    <a href="#">View more</a>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/indonesia-flag.svg" alt=""/>Indonesia</p>-->
+<!--                    <span>21.11%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value green" style="width: 21.11%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/south-korea-flag.svg" alt=""/>South Korea</p>-->
+<!--                    <span>11.44%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value green" style="width: 11.44%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/philippines-flag.svg" alt=""/>Philippines</p>-->
+<!--                    <span>8.91%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value green" style="width: 8.91%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/united-states-of-america-flag.svg" alt=""/>United States</p>-->
+<!--                    <span>6.80%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value green" style="width: 6.80%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                <div class="col-md-6">-->
+<!--                  <div class="listing-title">-->
+<!--                    <h5>Top Cities</h5>-->
+<!--                    <a href="#">View more</a>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/south-korea-flag.svg" alt=""/>Seoul</p>-->
+<!--                    <span>5.98%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value orange" style="width: 21.11%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/indonesia-flag.svg" alt=""/>Jakarta</p>-->
+<!--                    <span>2.46%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value orange" style="width: 2.46%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/thailand-flag.svg" alt=""/>Bangkok</p>-->
+<!--                    <span>1.61%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value orange" style="width: 1.61%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p><img src="../assets/img/japan-flag.svg" alt=""/>Tokyo</p>-->
+<!--                    <span>1.06%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value orange" style="width: 1.06%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-lg-4 spacer">-->
+<!--            <div class="chart-box-2">-->
+<!--              <div class="section-header">-->
+<!--                <h3>Fan Language</h3>-->
+<!--                <button class="dots"></button>-->
+<!--              </div>-->
+<!--              <div class="row">-->
+<!--                <div class="col-12">-->
+<!--                  <div class="listing-title placeholder">-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p>English</p>-->
+<!--                    <span>42.20%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value teal" style="width: 42.20%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p>Indonesian</p>-->
+<!--                    <span>8.85%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value teal" style="width: 8.85%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p>Spanish</p>-->
+<!--                    <span>8.01%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value teal" style="width: 8.01%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                  <div class="listing-block">-->
+<!--                    <p>Korean</p>-->
+<!--                    <span>7.70%</span>-->
+<!--                    <div class="percent-bar">-->
+<!--                      <div class="percent-value teal" style="width: 7.70%;"></div>-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
       <div class="section-overall">
         <div class="section-title">
           <h2>{{ $t('Hashtags Analytics') }}</h2>
@@ -503,6 +506,8 @@ import InstagramTotalEngagement from "@/components/InstagramTotalEngagement";
 import InstagramMostUsedHashtag from "@/components/InstagramMostUsedHashtag";
 import InstagramMostEngagedHashtag from "@/components/InstagramMostEngagedHashtag";
 import InstagramThreadsFollower from "@/components/InstagramThreadsFollower";
+// import InstagramMention from "@/components/InstagramMention";
+
 export default {
   name: "Instagram",
   components: {
