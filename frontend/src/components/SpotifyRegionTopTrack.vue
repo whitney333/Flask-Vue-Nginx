@@ -71,7 +71,7 @@ export default {
         },
         plotOptions: {
           radar: {
-            size: 100,
+            size: 80,
             polygons: {
               strokeColors: '#202850',
               strokeWidth: 1,

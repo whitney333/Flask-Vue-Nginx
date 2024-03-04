@@ -44,15 +44,6 @@ const routes = [
     }
   },
   {
-    path: '/sns-bilibili',
-    name: 'Bilibili',
-    component: Bilibili,
-    meta: {
-      requireAuth: true,
-      keepAlive: true
-    }
-  },
-  {
     path: '/sns-instagram',
     name: 'Instagram',
     component: Instagram,
@@ -80,14 +71,23 @@ const routes = [
     }
   },
   {
-    path: '/campaign',
-    name: 'Campaign',
-    component: Campaign,
+    path: '/sns-bilibili',
+    name: 'Bilibili',
+    component: Bilibili,
     meta: {
       requireAuth: true,
       keepAlive: true
     }
   },
+  // {
+  //   path: '/campaign',
+  //   name: 'Campaign',
+  //   component: Campaign,
+  //   meta: {
+  //     requireAuth: true,
+  //     keepAlive: true
+  //   }
+  // },
   {
     path: '/campaign-analytics',
     name: 'CampaignAnalytics',
@@ -123,15 +123,15 @@ const routes = [
       keepAlive: true
     }
   },
-  {
-    path: '/news',
-    name: 'News',
-    component: News,
-    meta: {
-      requireAuth: true,
-      keepAlive: true
-    }
-  }
+  // {
+  //   path: '/news',
+  //   name: 'News',
+  //   component: News,
+  //   meta: {
+  //     requireAuth: true,
+  //     keepAlive: true
+  //   }
+  // }
 ]
 
 const router = new VueRouter({
