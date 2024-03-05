@@ -211,7 +211,6 @@
   </div>
 </template>
 <script>
-import HelloWorld from "@/components/HelloWorld";
 import HPInstagramFollower from "@/components/HPInstagramFollower";
 import HPSpotifyFollower from "@/components/HPSpotifyFollower";
 import HPSpotifyMonthlyListener from "@/components/HPSpotifyMonthlyListener";
@@ -230,7 +229,6 @@ export default {
     HPSpotifyMonthlyListener,
     HPSpotifyFollower,
     HPInstagramFollower,
-      HelloWorld,
   },
   data() {
     return {
