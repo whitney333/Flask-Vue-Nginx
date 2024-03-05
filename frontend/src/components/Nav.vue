@@ -114,12 +114,6 @@ export default {
       to: '/sns',
       sublinks: [
         {
-          title: 'Bilibili',
-          icon: 'mdi-movie-filter',
-          to: '/sns-bilibili',
-          active: true
-        },
-        {
           title: 'Instagram',
           icon: 'mdi-instagram',
           to: '/sns-instagram',
@@ -133,7 +127,13 @@ export default {
           title: 'Youtube',
           icon: 'mdi-youtube',
           to: '/sns-youtube',
-        }
+        },
+        {
+          title: 'Bilibili',
+          icon: 'mdi-movie-filter',
+          to: '/sns-bilibili',
+          active: true
+        },
       ]
     },
     {
