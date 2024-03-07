@@ -46,16 +46,18 @@ jobs:
     - name: Deploy to EC2
       run: |
         echo "GITHUB_REF is ${GITHUB_REF}"
-        echo "env GITHUB_REF_NAME is ${{ env.GITHUB_REF_NAME }}"
-        echo "Tag name is ${GITHUB_REF#refs/tags/}"
+        # echo "env GITHUB_REF_NAME is ${{ env.GITHUB_REF_NAME }}"
+        echo "Tag name is (1): ${GITHUB_REF#refs/tags/}"
         ssh -o StrictHostKeyChecking=no ubuntu@52.195.229.41 << EOF
         cd Flask-Vue-Nginx
         git fetch --tags
-        TAG_NAME=${{  env.GITHUB_REF_NAME }}
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "Tag name is (2): $TAG_NAME"
+        export TAG_NAME
         if git branch --list deploy-branch; then
           echo "Resetting existing branch deploy-branch to tag $TAG_NAME."
           git switch deploy-branch
-          git reset --hard tags/$TAG_NAME
+          git reset --hard tags/\$TAG_NAME
         else
           echo "Creating and switching to new branch deploy-branch based on tag $TAG_NAME."
           git checkout tags/$TAG_NAME -b deploy-branch
