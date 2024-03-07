@@ -62,5 +62,5 @@ jobs:
         # Clean up unused docker images to save disk space
         docker image prune -a -f --filter "until=24h"
         # Run docker-compose up -d
-        docker-compose up -d
+        docker-compose -f docker-compose-deploy.yml up -d
         EOF
