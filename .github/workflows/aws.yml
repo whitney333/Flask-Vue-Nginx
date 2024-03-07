@@ -48,7 +48,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no ubuntu@52.195.229.41 << EOF
         cd Flask-Vue-Nginx
         git fetch --tags
-        TAG_NAME=${GITHUB_REF#refs/tags/}
+        TAG_NAME=${{  github.ref_name }}
         if git branch --list deploy-branch; then
           echo "Resetting existing branch deploy-branch to tag $TAG_NAME."
           git switch deploy-branch
