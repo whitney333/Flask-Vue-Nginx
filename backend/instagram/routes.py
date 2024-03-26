@@ -425,7 +425,8 @@ class InstagramPost(Resource):
                     "like_count": "$data.like_count",
                     "hashtags": "$data.hashtags",
                     "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "code": "$data.code",
+                    "cat": "$data.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -438,7 +439,8 @@ class InstagramPost(Resource):
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
                     "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
                 }},
                 {"$sort": {"post_date": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -465,7 +467,8 @@ class InstagramPost(Resource):
                     "like_count": "$data.like_count",
                     "hashtags": "$data.hashtags",
                     "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "code": "$data.code",
+                    "cat": "$data.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -478,7 +481,8 @@ class InstagramPost(Resource):
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
                     "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
                 }},
                 {"$sort": {"like_count": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -506,7 +510,8 @@ class InstagramPost(Resource):
                     "like_count": "$data.like_count",
                     "hashtags": "$data.hashtags",
                     "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "code": "$data.code",
+                    "cat": "$data.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -519,7 +524,8 @@ class InstagramPost(Resource):
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
                     "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
                 }},
                 {"$sort": {"comment_count": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -557,6 +563,7 @@ class InstagramPost(Resource):
                     "hashtags": "$data.hashtags",
                     "image": "$data.new_image_url",
                     "code": "$data.code",
+                    "cat": "$data.cat",
                     "follower": {"$slice": ["$instagram_user_info.follower_count", -1]}
                 }},
                 {"$addFields": {
@@ -571,7 +578,8 @@ class InstagramPost(Resource):
                     "hashtags": "$hashtags",
                     "image": "$image",
                     "follower": "$follower",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
                 }},
                 {"$unwind": "$follower"},
                 {"$addFields": {
@@ -592,7 +600,8 @@ class InstagramPost(Resource):
                     "url": "$url",
                     "eng_rate": {
                         "$multiply": ["$eng_rate", 100]
-                    }
+                    },
+                    "cat": "$cat"
                 }},
                 {"$sort": {"eng_rate": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -620,7 +629,8 @@ class InstagramPost(Resource):
                     "like_count": "$data.like_count",
                     "hashtags": "$data.hashtags",
                     "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "code": "$data.code",
+                    "cat": "$data.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -633,7 +643,8 @@ class InstagramPost(Resource):
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
                     "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
                 }},
                 {"$sort": {"post_date": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
