@@ -397,10 +397,10 @@ class InstagramPost(Resource):
         _temp_list = []
 
         # Total number of posts
-        posts_count_cur = main_db.display_instagram_post.aggregate([
-            {"$sort": {"datetime": -1}},
+        posts_count_cur = main_db.instagram_post_info.aggregate([
+            {"$sort": {"date": -1}},
             {"$limit": 1},
-            {"$unwind": "$data"},
+            {"$unwind": "$post"},
             {"$group": {"_id": "total", "count": {"$sum":1}}}
         ])
 
@@ -413,19 +413,20 @@ class InstagramPost(Resource):
         # case 1: Date
         if (sort == 'date'):
             # fetch all posts
-            fetch_posts = main_db.display_instagram_post.aggregate([
-                {"$sort": {"datetime": -1}},
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
                 {"$limit": 1},
-                {"$unwind": "$data"},
+                {"$unwind": "$post"},
                 {"$project": {
                     "_id": 0,
-                    "post_date": "$data.post_date",
-                    "title": "$data.title",
-                    "comment_count": "$data.comment_count",
-                    "like_count": "$data.like_count",
-                    "hashtags": "$data.hashtags",
-                    "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "post_date": "$post.taken_at",
+                    "title": "$post.caption_text",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "hashtags": "$post.hashtags",
+                    "image": "$post.thumbnail_url",
+                    "code": "$post.code",
+                    "cat": "$post.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -437,8 +438,67 @@ class InstagramPost(Resource):
                     "comment_count": "$comment_count",
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
-                    "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "image": {"$split": ["$image", "/"]},
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
+                }},
+                {"$match": {
+                    "image.2": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 5]}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$split": ["$image", "?"]}
+                }},
+                {"$match": {
+                    "image.1": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 0]}
+                }},
+                {"$addFields": {
+                    "former_img_url": "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-x/instagram-post-cover/"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$post_date"
+                        }
+                    },
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$concat": ["$former_img_url", "$image"]}
                 }},
                 {"$sort": {"post_date": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -453,19 +513,20 @@ class InstagramPost(Resource):
 
             return {'result': response}
         elif (sort == 'like'):
-            fetch_posts = main_db.display_instagram_post.aggregate([
-                {"$sort": {"datetime": -1}},
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
                 {"$limit": 1},
-                {"$unwind": "$data"},
+                {"$unwind": "$post"},
                 {"$project": {
                     "_id": 0,
-                    "post_date": "$data.post_date",
-                    "title": "$data.title",
-                    "comment_count": "$data.comment_count",
-                    "like_count": "$data.like_count",
-                    "hashtags": "$data.hashtags",
-                    "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "post_date": "$post.taken_at",
+                    "title": "$post.caption_text",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "hashtags": "$post.hashtags",
+                    "image": "$post.thumbnail_url",
+                    "code": "$post.code",
+                    "cat": "$post.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -477,8 +538,67 @@ class InstagramPost(Resource):
                     "comment_count": "$comment_count",
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
-                    "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "image": {"$split": ["$image", "/"]},
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
+                }},
+                {"$match": {
+                    "image.2": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 5]}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$split": ["$image", "?"]}
+                }},
+                {"$match": {
+                    "image.1": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 0]}
+                }},
+                {"$addFields": {
+                    "former_img_url": "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-x/instagram-post-cover/"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$post_date"
+                        }
+                    },
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$concat": ["$former_img_url", "$image"]}
                 }},
                 {"$sort": {"like_count": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -494,19 +614,20 @@ class InstagramPost(Resource):
             return {'result': response}
 
         elif (sort == 'comment'):
-            fetch_posts = main_db.display_instagram_post.aggregate([
-                {"$sort": {"datetime": -1}},
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
                 {"$limit": 1},
-                {"$unwind": "$data"},
+                {"$unwind": "$post"},
                 {"$project": {
                     "_id": 0,
-                    "post_date": "$data.post_date",
-                    "title": "$data.title",
-                    "comment_count": "$data.comment_count",
-                    "like_count": "$data.like_count",
-                    "hashtags": "$data.hashtags",
-                    "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "post_date": "$post.taken_at",
+                    "title": "$post.caption_text",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "hashtags": "$post.hashtags",
+                    "image": "$post.thumbnail_url",
+                    "code": "$post.code",
+                    "cat": "$post.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -518,8 +639,67 @@ class InstagramPost(Resource):
                     "comment_count": "$comment_count",
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
-                    "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "image": {"$split": ["$image", "/"]},
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
+                }},
+                {"$match": {
+                    "image.2": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 5]}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$split": ["$image", "?"]}
+                }},
+                {"$match": {
+                    "image.1": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 0]}
+                }},
+                {"$addFields": {
+                    "former_img_url": "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-x/instagram-post-cover/"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$post_date"
+                        }
+                    },
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$concat": ["$former_img_url", "$image"]}
                 }},
                 {"$sort": {"comment_count": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -534,29 +714,27 @@ class InstagramPost(Resource):
 
             return {'result': response}
         elif (sort == 'engaged'):
-            fetch_posts = main_db.display_instagram_post.aggregate([
-                {"$sort": {"datetime": -1}},
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
                 {"$limit": 1},
-                {"$unwind": "$data"},
-                {"$addFields": {
-                    "sub_total": {
-                        "$sum": ["$data.comment_count", "$data.like_count"]}
-                }},
+                {"$unwind": "$post"},
                 {"$lookup": {
                     "from": "instagram_user_info",
                     "localField": "date",
-                    "foreignField": "datetime",
+                    "foreignField": "date",
                     "as": "instagram_user_info"
                 }},
                 {"$project": {
                     "_id": 0,
-                    "post_date": "$data.post_date",
-                    "title": "$data.title",
-                    "comment_count": "$data.comment_count",
-                    "like_count": "$data.like_count",
-                    "hashtags": "$data.hashtags",
-                    "image": "$data.new_image_url",
-                    "code": "$data.code",
+                    "date": "$date",
+                    "post_date": "$post.taken_at",
+                    "title": "$post.caption_text",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "hashtags": "$post.hashtags",
+                    "image": "$post.thumbnail_url",
+                    "code": "$post.code",
+                    "cat": "$post.cat",
                     "follower": {"$slice": ["$instagram_user_info.follower_count", -1]}
                 }},
                 {"$addFields": {
@@ -569,30 +747,88 @@ class InstagramPost(Resource):
                     "comment_count": "$comment_count",
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
-                    "image": "$image",
+                    "image": {"$split": ["$image", "/"]},
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat",
                     "follower": "$follower",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
                 }},
-                {"$unwind": "$follower"},
                 {"$addFields": {
                     "sub_total": {
                         "$sum": ["$comment_count", "$like_count"]}
                 }},
+                {"$unwind": "$follower"},
                 {"$addFields": {
                     "eng_rate": {"$divide": ["$sub_total", "$follower"]}
                 }},
+                {"$match": {
+                    "image.2": {"$exists": 1}
+                }},
                 {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "sub_total": "$sub_total",
+                    "follower": "$follower",
+                    "eng_rate": "$eng_rate",
+                    "image": {"$arrayElemAt": ["$image", 5]}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "sub_total": "$sub_total",
+                    "follower": "$follower",
+                    "eng_rate": "$eng_rate",
+                    "image": {"$split": ["$image", "?"]}
+                }},
+                {"$match": {
+                    "image.1": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
                     "post_date": "$post_date",
                     "title": "$title",
                     "comment_count": "$comment_count",
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
-                    "image": "$image",
-                    "follower": "$follower",
                     "url": "$url",
+                    "cat": "$cat",
+                    "sub_total": "$sub_total",
+                    "follower": "$follower",
+                    "eng_rate": "$eng_rate",
+                    "image": {"$arrayElemAt": ["$image", 0]}
+                }},
+                {"$addFields": {
+                    "former_img_url": "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-x/instagram-post-cover/"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "post_date": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$post_date"
+                        }
+                    },
+                    "title": "$title",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
                     "eng_rate": {
                         "$multiply": ["$eng_rate", 100]
-                    }
+                    },
+                    "image": {"$concat": ["$former_img_url", "$image"]}
                 }},
                 {"$sort": {"eng_rate": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -608,19 +844,20 @@ class InstagramPost(Resource):
             return {'result': response}
         else:
             # fetch all posts
-            fetch_posts = main_db.display_instagram_post.aggregate([
-                {"$sort": {"datetime": -1}},
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
                 {"$limit": 1},
-                {"$unwind": "$data"},
+                {"$unwind": "$post"},
                 {"$project": {
                     "_id": 0,
-                    "post_date": "$data.post_date",
-                    "title": "$data.title",
-                    "comment_count": "$data.comment_count",
-                    "like_count": "$data.like_count",
-                    "hashtags": "$data.hashtags",
-                    "image": "$data.new_image_url",
-                    "code": "$data.code"
+                    "post_date": "$post.taken_at",
+                    "title": "$post.caption_text",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "hashtags": "$post.hashtags",
+                    "image": "$post.thumbnail_url",
+                    "code": "$post.code",
+                    "cat": "$post.cat"
                 }},
                 {"$addFields": {
                     "former_url": "https://instagram.com/p/"
@@ -632,8 +869,67 @@ class InstagramPost(Resource):
                     "comment_count": "$comment_count",
                     "like_count": "$like_count",
                     "hashtags": "$hashtags",
-                    "image": "$image",
-                    "url": {"$concat": ["$former_url", "$code", "/"]}
+                    "image": {"$split": ["$image", "/"]},
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "cat": "$cat"
+                }},
+                {"$match": {
+                    "image.2": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 5]}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$split": ["$image", "?"]}
+                }},
+                {"$match": {
+                    "image.1": {"$exists": 1}
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": "$post_date",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$arrayElemAt": ["$image", 0]}
+                }},
+                {"$addFields": {
+                    "former_img_url": "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-x/instagram-post-cover/"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "title": "$title",
+                    "post_date": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$post_date"
+                        }
+                    },
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "hashtags": "$hashtags",
+                    "url": "$url",
+                    "cat": "$cat",
+                    "image": {"$concat": ["$former_img_url", "$image"]}
                 }},
                 {"$sort": {"post_date": -1}},
                 {"$skip": int(page_limit) * (int(page) - 1)},
@@ -645,5 +941,691 @@ class InstagramPost(Resource):
                 posts_list.append(post)
 
             response = {'total_posts_count': posts_count, 'page': int(page), 'perPage': int(page_limit), 'sort': sort, 'posts': posts_list}
+
+            return {'result': response}
+
+class InstagramPostCategory(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('cat', type=int, required=True, help='Limit number is required', location='args')
+        data = posts_data.parse_args()
+
+        cat = data['cat']
+        _temp_list = []
+
+        # fetch post categories and calculate their engagement rate
+        # params: latest 10 posts/ 30 posts/ all posts
+        if (cat == 10):
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat",
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$limit": 10},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$cat",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {"$sum": "$_eng_rate"},
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$divide": ["$_total_eng_rate", "$count"]
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$round": [
+                            {"$multiply": ["$eng_rate_by_cat", 100]}, 2
+                    ]}
+                }},
+                {"$sort": {"eng_rate_by_cat": -1}},
+                {"$limit": 10}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'cat': posts_list}
+
+            return {'result': response}
+        elif (cat == 30):
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat",
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$limit": 30},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$cat",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {"$sum": "$_eng_rate"},
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$divide": ["$_total_eng_rate", "$count"]
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$round": [
+                            {"$multiply": ["$eng_rate_by_cat", 100]}, 2
+                        ]}
+                }},
+                {"$sort": {"eng_rate_by_cat": -1}},
+                {"$limit": 10}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'cat': posts_list}
+
+            return {'result': response}
+        elif (cat == 0):
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat",
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$cat",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {"$sum": "$_eng_rate"},
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$divide": ["$_total_eng_rate", "$count"]
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$round": [
+                            {"$multiply": ["$eng_rate_by_cat", 100]}, 2
+                        ]}
+                }},
+                {"$sort": {"eng_rate_by_cat": -1}},
+                {"$limit": 10}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'cat': posts_list}
+
+            return {'result': response}
+        else:
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat",
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$limit": 10},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$cat",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {"$sum": "$_eng_rate"},
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$divide": ["$_total_eng_rate", "$count"]
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_by_cat": {
+                        "$round": [
+                            {"$multiply": ["$eng_rate_by_cat", 100]}, 2
+                        ]}
+                }},
+                {"$sort": {"eng_rate_by_cat": -1}},
+                {"$limit": 10}
+            ])
+
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'cat': posts_list}
+
+            return {'result': response}
+
+class InstagramCategoryPercentage(Resource):
+    def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('post', type=int, required=True, help='Page number is required', location='args')
+        data = posts_data.parse_args()
+
+        post = data['post']
+        _temp_list = []
+
+        # fetch post categories and calculate their occurrences
+        # params: latest 12 posts/ 30 posts/ all posts
+        if (post == 12):
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat"
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$limit": post},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$id",
+                    "cat": {"$first": "$cat"}
+                }},
+                {"$facet": {
+                    "nDocs": [{
+                        "$count": "nDocs"
+                    }],
+                    "groupValues": [
+                        {"$group": {
+                            "_id": "$cat",
+                            "total": {
+                                "$sum": {"$toInt": 1}
+                            }
+                        }
+                    }]
+                }},
+                {"$addFields": {
+                    "nDocs": {
+                        "$arrayElemAt": [
+                            "$nDocs",
+                            0
+                        ]
+                    }
+                }},
+                {"$unwind": "$groupValues"},
+                {"$project": {
+                    "_id": 0,
+                    "category": "$groupValues._id",
+                    "total": "$groupValues.total",
+                    "percentage": {
+                        "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                "$groupValues.total",
+                                "$nDocs.nDocs"
+                            ]}, 100
+                        ]}, 2]
+                    }
+                }},
+                {"$sort": {"percentage": -1}}
+            ])
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'posts': posts_list}
+
+            return {'result': response}
+        elif (post == 30):
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat"
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$limit": post},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$id",
+                    "cat": {"$first": "$cat"}
+                }},
+                {"$facet": {
+                    "nDocs": [{
+                        "$count": "nDocs"
+                    }],
+                    "groupValues": [
+                        {"$group": {
+                            "_id": "$cat",
+                            "total": {
+                                "$sum": {"$toInt": 1}
+                            }
+                        }
+                    }]
+                }},
+                {"$addFields": {
+                    "nDocs": {
+                        "$arrayElemAt": [
+                            "$nDocs",
+                            0
+                        ]
+                    }
+                }},
+                {"$unwind": "$groupValues"},
+                {"$project": {
+                    "_id": 0,
+                    "category": "$groupValues._id",
+                    "total": "$groupValues.total",
+                    "percentage": {
+                        "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                "$groupValues.total",
+                                "$nDocs.nDocs"
+                            ]}, 100
+                        ]}, 2]
+                    }
+                }},
+                {"$sort": {"percentage": -1}}
+            ])
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'posts': posts_list}
+
+            return {'result': response}
+        elif (post == 0):
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat"
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$id",
+                    "cat": {"$first": "$cat"}
+                }},
+                {"$facet": {
+                    "nDocs": [{
+                        "$count": "nDocs"
+                    }],
+                    "groupValues": [
+                        {"$group": {
+                            "_id": "$cat",
+                            "total": {
+                                "$sum": {"$toInt": 1}
+                            }
+                        }
+                    }]
+                }},
+                {"$addFields": {
+                    "nDocs": {
+                        "$arrayElemAt": [
+                            "$nDocs",
+                            0
+                        ]
+                    }
+                }},
+                {"$unwind": "$groupValues"},
+                {"$project": {
+                    "_id": 0,
+                    "category": "$groupValues._id",
+                    "total": "$groupValues.total",
+                    "percentage": {
+                        "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                "$groupValues.total",
+                                "$nDocs.nDocs"
+                            ]}, 100
+                        ]}, 2]
+                    }
+                }},
+                {"$sort": {"percentage": -1}}
+            ])
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'posts': posts_list}
+
+            return {'result': response}
+        else:
+            fetch_posts = main_db.instagram_post_info.aggregate([
+                {"$sort": {"date": -1}},
+                {"$limit": 1},
+                {"$unwind": "$post"},
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$post.comment_count", "$post.like_count"]}
+                }},
+                {"$project": {
+                    "date": "$date",
+                    "media_count": "$media_count",
+                    "follower_count": "$follower_count",
+                    "sub_total": "$sub_total",
+                    "pk": "$post.pk",
+                    "id": "$post.id",
+                    "code": "$post.code",
+                    "taken_at": "$post.taken_at",
+                    "media_type": "$post.media_type",
+                    "product_type": "$post.product_type",
+                    "thumbnail_url": "$post.thumbnail_url",
+                    "location": "$post.location",
+                    "user": "$post.user",
+                    "comment_count": "$post.comment_count",
+                    "like_count": "$post.like_count",
+                    "has_liked": "$post.has_Liked",
+                    "caption_text": "$post.caption_text",
+                    "accessibility_caption": "$post.accessibility_caption",
+                    "usertags": "$post.usertags",
+                    "video_url": "$post.video_url",
+                    "view_count": "$post.view_count",
+                    "video_duration": "$post.video_duration",
+                    "title": "$post.title",
+                    "resources": "$post.resources",
+                    "clips_metadata": "$post.clips_metadata",
+                    "username": "$post.username",
+                    "hashtags": "$post.hashtags",
+                    "cat": "$post.cat"
+                }},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$follower_count"]}
+                }},
+                {"$sort": {"taken_at": -1}},
+                {"$limit": 12},
+                {"$unwind": "$cat"},
+                {"$group": {
+                    "_id": "$id",
+                    "cat": {"$first": "$cat"}
+                }},
+                {"$facet": {
+                    "nDocs": [{
+                        "$count": "nDocs"
+                    }],
+                    "groupValues": [
+                        {"$group": {
+                            "_id": "$cat",
+                            "total": {
+                                "$sum": {"$toInt": 1}
+                            }
+                        }
+                    }]
+                }},
+                {"$addFields": {
+                    "nDocs": {
+                        "$arrayElemAt": [
+                            "$nDocs",
+                            0
+                        ]
+                    }
+                }},
+                {"$unwind": "$groupValues"},
+                {"$project": {
+                    "_id": 0,
+                    "category": "$groupValues._id",
+                    "total": "$groupValues.total",
+                    "percentage": {
+                        "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                "$groupValues.total",
+                                "$nDocs.nDocs"
+                            ]}, 100
+                        ]}, 2]
+                    }
+                }},
+                {"$sort": {"percentage": -1}}
+            ])
+            posts_list = []
+            for post in fetch_posts:
+                posts_list.append(post)
+
+            response = {'posts': posts_list}
 
             return {'result': response}

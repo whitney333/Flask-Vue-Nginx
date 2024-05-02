@@ -399,6 +399,74 @@
           </div>
         </div>
       </div>
+      <!-- post categories analytics -->
+      <div class="section-category">
+        <div class="section-title">
+          <h2>{{ $t('Topic Analytics') }}</h2>
+        </div>
+        <div class="row">
+<!--          <div class="col-lg-6 spacer">-->
+<!--            <div class="chart-box-2">-->
+<!--              <div class="section-header">-->
+<!--                <v-img-->
+<!--                    src="https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/hashtag.svg"-->
+<!--                    max-height="30px"-->
+<!--                    max-width="30px"-->
+<!--                    class="mr-3"-->
+<!--                ></v-img>-->
+<!--                <span>-->
+<!--                {{ $t('Post Categories(%)') }}-->
+<!--                  <v-tooltip bottom color="grey lighten-4">-->
+<!--                <template v-slot:activator="{ on, attrs }">-->
+<!--                  <v-icon-->
+<!--                      color="primary"-->
+<!--                      v-bind="attrs"-->
+<!--                      v-on="on"-->
+<!--                  >-->
+<!--                    mdi-information-outline-->
+<!--                  </v-icon>-->
+<!--                </template>-->
+<!--                <span></span>-->
+<!--              </v-tooltip>-->
+<!--                </span>-->
+<!--              </div>-->
+<!--              <div class="hash-list">-->
+<!--                <CategoryPercentage/>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+          <div class="col-lg-6 spacer">
+            <div class="chart-box-2">
+              <div class="section-header">
+                <v-img
+                    src="https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/hashtag.svg"
+                    max-height="30px"
+                    max-width="30px"
+                    class="mr-3"
+                ></v-img>
+                <span>
+                {{ $t('Engagement Rate by Categories') }}
+                  <v-tooltip bottom color="grey lighten-4">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                      color="primary"
+                      v-bind="attrs"
+                      v-on="on"
+                  >
+                    mdi-information-outline
+                  </v-icon>
+                </template>
+                <span></span>
+              </v-tooltip>
+                </span>
+              </div>
+              <div class="hash-list">
+                <CategoryBar/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="section-latest-posts">
         <div class="section-title">
           <h2>{{ $t('All Posts') }}</h2>
@@ -428,34 +496,47 @@
 <!--            >-->
 <!--            </v-skeleton-loader>-->
 <!--          </div>-->
-
           <div class="col-xl-3 col-lg-6 col-md-6" v-for="(post, index) in InstaPost"
-            v-if="index < total_posts_count" :key="index">
+               v-if="index < total_posts_count" :key="index">
             <a v-bind:href="post.url" target="_blank">
-            <div class="box2" :style="{backgroundImage: 'url(' + post.image +')'}">
-              <div class="box-body">
-                <div class="infoStat">
-                  <ul>
-                    <v-tooltip top color="grey lighten-4">
-                      <template v-slot:activator="{ on }">
-                        <li class="stat3" v-on="on">{{ post.like_count | formatNumber }}</li>
-                      </template>
-                      <span>{{ $t('Likes') }}: {{ (post.like_count).toLocaleString() }}</span>
-                    </v-tooltip>
-                    <v-tooltip bottom color="grey lighten-4">
-                      <template v-slot:activator="{ on }">
-                        <li class="stat2" v-on="on">{{ post.comment_count | formatNumber }}</li>
-                      </template>
-                      <span>{{ $t('Comments') }}: {{ (post.comment_count).toLocaleString() }}</span>
-                    </v-tooltip>
-                  </ul>
-                  <div class="right-side">
-                    <span class="num">{{ (post.RowTotal/ current_follower*100).toFixed(2)}}%</span>
-                    <span class="date">{{ post.post_date }}</span>
+              <div class="box2" :style="{backgroundImage: 'url(' + post.image +')'}">
+                <div class="box-body">
+                  <div class="infoStat">
+                    <ul>
+                      <v-tooltip top color="grey lighten-4">
+                        <template v-slot:activator="{ on }">
+                          <li class="stat3" v-on="on">{{ post.like_count | formatNumber }}</li>
+                        </template>
+                        <span>{{ $t('Likes') }}: {{ (post.like_count).toLocaleString() }}</span>
+                      </v-tooltip>
+                      <v-tooltip bottom color="grey lighten-4">
+                        <template v-slot:activator="{ on }">
+                          <li class="stat2" v-on="on">{{ post.comment_count | formatNumber }}</li>
+                        </template>
+                        <span>{{ $t('Comments') }}: {{ (post.comment_count).toLocaleString() }}</span>
+                      </v-tooltip>
+                    </ul>
+                    <div class="right-side">
+                      <span class="num">{{ (post.RowTotal / current_follower * 100).toFixed(2) }}%</span>
+                      <span class="date">{{ post.post_date }}</span>
+                    </div>
                   </div>
                 </div>
+                <div class="box-overlay pa-4">
+                  <v-chip-group column>
+                      <div class="text-post-category"
+                           v-for='(category, index) in post["cat"]'>
+                        <v-chip
+                            color="blue lighten-4"
+                            class="mr-3"
+                        >
+                          {{ category }}
+                        </v-chip>
+                      </div>
+
+                  </v-chip-group>
+                </div>
               </div>
-            </div>
             </a>
           </div>
           <div class="col-12">
@@ -506,11 +587,15 @@ import InstagramTotalEngagement from "@/components/InstagramTotalEngagement";
 import InstagramMostUsedHashtag from "@/components/InstagramMostUsedHashtag";
 import InstagramMostEngagedHashtag from "@/components/InstagramMostEngagedHashtag";
 import InstagramThreadsFollower from "@/components/InstagramThreadsFollower";
+import CategoryPercentage from "@/components/CategoryPercentage";
+import CategoryBar from "@/components/CategoryBar";
 // import InstagramMention from "@/components/InstagramMention";
 
 export default {
   name: "Instagram",
   components: {
+    CategoryBar,
+    CategoryPercentage,
     InstagramThreadsFollower,
     InstagramMostEngagedHashtag,
     InstagramMostUsedHashtag,
@@ -520,6 +605,7 @@ export default {
     data() {
     return {
       InstaPost: [],
+      overlay: false,
       page: 1,
       perPage: 16,
       sort: "",
@@ -532,7 +618,8 @@ export default {
       current_media: "",
       past_media: "",
       update_date: "",
-      select_items: ["Date(Default)", "Most Likes", "Most Comments", "Most Engaged"]
+      select_items: ["Date(Default)", "Most Likes",
+                    "Most Comments", "Most Engaged"],
     }
   },
   methods: {
@@ -612,7 +699,7 @@ export default {
         this.sort = 'engaged'
         this.getInstaPost();
       }
-    }
+    },
   },
   created() {
     this.getInstaPost();
@@ -695,6 +782,38 @@ export default {
   font-weight: 500;
   margin: 0;
   padding-top: 5px;
+}
+.box2:hover .box-overlay {
+  opacity: 1;
+  background-color: rgba(0,0,0,.5);
+  border-radius:6px;
+  -webkit-border-radius:6px;
+  padding:15px
+}
+.box-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  transition: .5s ease;
+  background-color: rgba(0,0,0,.5);
+}
+.text-post-category {
+  font-weight: bold;
+  font-family: 'Cairo', sans-serif;
+  margin-bottom: -1rem;
+  color: white;
+  font-size: 20px;
+  position: relative;
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  text-align: center;
 }
 /*.button {*/
 /*  color: white;*/

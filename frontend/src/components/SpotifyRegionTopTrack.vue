@@ -178,8 +178,8 @@ export default {
       .then( res => {
         this.tracks = res.data['result'][0]["track_info"]
         this.track_list = res.data["track_select_list"][0]["track"]
-        console.log(this.track_list)
-        console.log(this.tracks)
+        // console.log(this.track_list)
+        // console.log(this.tracks)
 
         const formattedData = this.tracks.map((e, i) => {
           return {
