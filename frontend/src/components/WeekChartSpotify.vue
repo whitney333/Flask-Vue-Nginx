@@ -178,7 +178,10 @@ export default {
     },
     async get_data() {
       this.param = this.selected_week.split(" ")[1]
-      const {data} = await this.axios.get('/api/weekly/music-charts?' + 'year=' + this.selected_year + '&week=' + this.param + '&pl=' + this.platform, {setTimeout: 10000})
+      const {data} = await this.axios.get('/api/weekly/music-charts?'
+          + 'year=' + this.selected_year
+          + '&week=' + this.param
+          + '&pl=' + this.platform, {setTimeout: 10000})
 
       this.chart = data["posts"]
       // console.log(this.chart)
