@@ -449,7 +449,7 @@ export default {
       videos: [],
       YTPost: [],
       vd_comments: [],
-      drange: 10,
+      drange: 30,
       page: 1,
       perPage: 12,
       selected_cat: "",
