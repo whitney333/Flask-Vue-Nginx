@@ -29,6 +29,8 @@ app.register_blueprint(twitter_api_bp)
 # add resource endpoint
 # Instagram
 instagram_api.add_resource(InstagramPost, '/instagram/post')
+instagram_api.add_resource(InstagramPostCategory, '/instagram/post/cat')
+instagram_api.add_resource(InstagramCategoryPercentage, '/instagram/post/topic-prc')
 # YouTube
 youtube_api.add_resource(YoutubePost, '/youtube/post')
 youtube_api.add_resource(YoutubeUsedTags, '/youtube/tags/most-used')
