@@ -2901,3 +2901,54 @@ class YoutubeEngagementRate(Resource):
         #             ]}
         #     }}
         # ])
+
+
+class LatestTenPostEngagementRate(Resource):
+    def get(self):
+        pass
+        # db.instagram_post_info.aggregate([
+        #     {"$sort": {"date": -1}},
+        #     {"$limit": 1},
+        #     {"$unwind": "$post"},
+        #     {"$project": {
+        #         "_id": 0,
+        #         "date": "$date",
+        #         "post_date": "$post.taken_at",
+        #         "title": "$post.caption_text",
+        #         "comment_count": "$post.comment_count",
+        #         "like_count": "$post.like_count",
+        #         "hashtags": "$post.hashtags",
+        #         "image": "$post.thumbnail_url",
+        #         "code": "$post.code",
+        #         "cat": "$post.cat",
+        #         "follower": "$follower_count"
+        #     }},
+        #     {"$addFields": {
+        #         "sub_total": {
+        #             "$sum": ["$comment_count", "$like_count"]}
+        #     }},
+        #     {"$sort": {"post_date": -1}},
+        #     {"$limit": 10},
+        #     {"$addFields": {
+        #         "eng_rate": {
+        #             "$divide": ["$sub_total", "$follower"]}
+        #     }},
+        #     {"$group": {
+        #         "_id": null,
+        #         "total_cnt": {"$sum": {"$toInt": 1}},
+        #         "total_eng": {"$sum": "$eng_rate"}
+        #     }},
+        #     {"$project": {
+        #         "_id": 0,
+        #         "total_eng": {
+        #             "$round": [
+        #                 {"$divide": ["$total_eng", "$total_cnt"]},
+        #                 3
+        #             ]}
+        #     }},
+        #     {"$project": {
+        #         "_id": 0,
+        #         "latest_10_avg_eng":
+        #             {"$multiply": ["$total_eng", 100]}
+        #     }}
+        # ])
