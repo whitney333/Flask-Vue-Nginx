@@ -117,5 +117,8 @@
   "News": "여론",
   "Campaign": "캠페인",
   "Analytics": "캠페인 분석",
-  "Create": "캠페인 크리에이트"
+  "Create": "캠페인 크리에이트",
+  "Topic Analytics": "토픽 분석",
+  "Post Categories(%)": "카테고리별(%)",
+  "Engagement Rate by Categories": "카테고리별 참여율"
 }
