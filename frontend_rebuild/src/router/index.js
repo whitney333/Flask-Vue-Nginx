@@ -18,17 +18,17 @@ const router = createRouter({
     {
       path: '/sns',
       name: 'Sns',
-      component: HomeView
+      component: AboutView
     },
     {
       path: '/works',
       name: 'Works',
-      component: HomeView
+      component: AboutView
     },
     {
       path: '/campaign',
       name: 'Campaign',
-      component: HomeView
+      component: AboutView
     }
   ]
 })

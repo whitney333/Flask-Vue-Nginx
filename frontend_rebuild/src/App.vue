@@ -1,6 +1,6 @@
 <template>
     <v-div class="flex">
-        <Nav />
+        <Drawer />
         <RouterView />
     </v-div>
     
@@ -8,7 +8,7 @@
 
 <script setup>
 import { RouterView } from 'vue-router';
-import Nav from './components/Nav.vue'
+import Drawer from './components/Drawer.vue';
 </script>
 
 

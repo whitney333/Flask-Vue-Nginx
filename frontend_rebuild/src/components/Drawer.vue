@@ -1,6 +1,8 @@
 <script setup>
   import { ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
+
+  const mishkanIcon = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/sidebar_logo.svg"
   const drawer = ref(true)
   const rail = ref(true)
   const isHovered = ref(false);
@@ -66,7 +68,6 @@
         },
       ],
 )
-  console.log(items.value)
 
   const handleMouseEnter = () => {
     isHovered.value = true;
@@ -80,12 +81,14 @@
     router.push({path: "/"})
   }
 
+
 </script>
 
  <template>
     <v-layout>
       <v-navigation-drawer
         expand-on-hover
+        mobile-breakpoint="xs"
         rail
         :color="`#212121`"
         @mouseenter="handleMouseEnter"
@@ -94,16 +97,21 @@
         <v-list>
           <v-list-item>
             <div @click="handleToHomePage()" class="svg-container">
-              <img src="https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/sidebar_logo.svg" class="clipped-svg" />
+              <img :src="mishkanIcon" class="clipped-svg" />
             </div>
           </v-list-item>
         </v-list>
 
         <v-divider></v-divider>
         
-        <!------------ to do ------------->
-        <v-list v-for="[index, item] in items.entries()" density="compact" nav>
-          <v-list-item :prepend-icon="item.icon" :title="item.title" :to="item.to" :value="index" :key="index"></v-list-item>
+        <v-list density="compact" nav>
+          <v-list-item 
+            v-for="[index, item] in items.entries()" 
+            :prepend-icon="item.icon" 
+            :title="item.title" 
+            :to="item.to"
+            :value="index"
+            :key="index" />
         </v-list>
       </v-navigation-drawer>
 
