@@ -16,19 +16,42 @@ const router = createRouter({
       component: AboutView
     },
     {
-      path: '/sns',
-      name: 'Sns',
+      path: '/sns/instagram',
+      name: 'Instagram',
       component: AboutView
     },
     {
-      path: '/works',
-      name: 'Works',
-      component: AboutView
+    path: '/sns/youtube',
+    name: 'Youtube',
+    component: AboutView,
     },
     {
-      path: '/campaign',
-      name: 'Campaign',
-      component: AboutView
+      path: '/sns/tiktok',
+      name: 'TikTok',
+      component: AboutView,
+    },  
+    {
+      path: '/sns/bilibili',
+      name: 'Bilibili',
+      component: AboutView,
+      meta: {
+        requireAuth: true,
+        keepAlive: true
+      }
+    },
+    {
+      path: '/works/music',
+      name: 'Music',
+      component: AboutView,
+      meta: {
+        requireAuth: true,
+        keepAlive: true
+      }
+    },
+    {
+      path: '/campaign/analytics',
+      name: 'Campaign Analytics',
+      component: AboutView,
     }
   ]
 })

@@ -19,7 +19,7 @@
   <div class="flex-row">
     <v-btn @click="handleToAbout">To About</v-btn>
     <v-btn @click="handleIncrement">{{ counterStore.count }}</v-btn>
-    <v-div>{{ instance }}</v-div>
+    <template>{{ instance }}</template>
   </div>
 
 </template>

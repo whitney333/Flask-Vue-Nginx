@@ -7,17 +7,22 @@
   const rail = ref(true)
   const isHovered = ref(false);
   const router = useRouter()
+  const opened = ref([])
   const items = ref(
     [
       {
         title:'Dashboard',
         icon:'mdi-view-dashboard',
-        to:'/'
+        to:'/',
+        hasSublinks: false,
+        isOpen: false,
       },
       {
         title: 'SNS',
         icon: 'mdi-account-multiple',
         to: '/sns',
+        hasSublinks: true,
+        isOpen: false,
         sublinks: [
         {
           title: 'Instagram',
@@ -41,33 +46,37 @@
         },
         ]
       },
-        {
-          title: 'Works',
-          icon: 'mdi-creation',
-          to: '/works',
-          sublinks:[
-            {
-              title: 'Music',
-              icon: 'mdi-music-box',
-              to: '/works/music'
-            }
-          ]
-        },
-        {
-          title:'Campaign',
-          icon:'mdi-comment-processing',
-          to:'/campaign',
-          sublinks: [
-            {
-              title: 'Analytics',
-              icon: 'mdi-poll',
-              to: '/campaign-analytics',
-              active: true
-            },
-          ]
-        },
-      ],
-)
+      {
+        title: 'Works',
+        icon: 'mdi-creation',
+        to: '/works',
+        hasSublinks: true,
+        isOpen: false,
+        sublinks:[
+          {
+            title: 'Music',
+            icon: 'mdi-music-box',
+            to: '/works/music'
+          }
+        ]
+      },
+      {
+        title:'Campaign',
+        icon:'mdi-comment-processing',
+        to:'/campaign',
+        hasSublinks: true,
+        isOpen: false,
+        sublinks: [
+          {
+            title: 'Analytics',
+            icon: 'mdi-poll',
+            to: '/campaign/analytics',
+            active: true
+          },
+        ]
+      },
+    ],
+  )
 
   const handleMouseEnter = () => {
     isHovered.value = true;
@@ -81,18 +90,26 @@
     router.push({path: "/"})
   }
 
+  const onDrawerToggle = (val) => {
+    if (!val) {
+      items.value.forEach((item) => item.isOpen = false)
+      console.log("///onDrawerToggle: Active!");
+    }
+  }
 
 </script>
 
  <template>
-    <v-layout>
       <v-navigation-drawer
+        fill-height
         expand-on-hover
         mobile-breakpoint="xs"
         rail
+        permanent
+        app
         :color="`#212121`"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
+        v-model="drawer"
+        mini-variant
       >
         <v-list>
           <v-list-item>
@@ -104,19 +121,59 @@
 
         <v-divider></v-divider>
         
-        <v-list density="compact" nav>
-          <v-list-item 
-            v-for="[index, item] in items.entries()" 
-            :prepend-icon="item.icon" 
-            :title="item.title" 
-            :to="item.to"
-            :value="index"
-            :key="index" />
+        <v-list 
+          density="compact" 
+          nav lines="two" 
+          app
+          :opened="opened"
+          @update:opened="newOpened => opened = newOpened.slice(-1)"
+          >
+          <template v-for="(item, index) in items" :key="item.title">
+            <!-- Without sublinks -->
+            <v-list-item
+              v-if="!item.hasSublinks"
+              :prepend-icon="item.icon" 
+              :title="item.title" 
+              :no-action="item.hasSublinks"
+              :to="item.to"
+              :value="item.title"
+              link
+            >
+
+            </v-list-item>
+
+            <!-- With sublinks -->
+
+            <v-list-group
+              v-if="item.hasSublinks"
+              :prepend-icon="item.icon" 
+              :title="item.title" 
+              no-action
+              :value="item.title"
+              v-model="item.isOpen"
+              :item="item"
+              >        
+              <template v-slot:activator="{ props }">
+                <v-list-item
+                v-bind="props"
+                :prepend-icon="item.icon" 
+                :title="item.title"
+                ></v-list-item>
+              </template>
+              <v-list-item
+              v-for="(subitem, subIndex) in item.sublinks"
+              :key="subIndex"
+              link
+              :prepend-icon="subitem.icon"
+              :title="subitem.title"
+              :value="subitem.title"
+              :to="subitem.to"
+              ></v-list-item>
+            </v-list-group>
+          </template>
         </v-list>
       </v-navigation-drawer>
-
-    </v-layout>
-</template>
+  </template>
 
 <style>
 .svg-container {
