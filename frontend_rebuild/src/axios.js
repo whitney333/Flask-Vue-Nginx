@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axiosAPI from 'axios';
 
-const instance = axios.create({
+const axios = axiosAPI.create({
   baseURL: process.env.VUE_APP_API_URL,
 });
 
-export default instance;
+export default axios;

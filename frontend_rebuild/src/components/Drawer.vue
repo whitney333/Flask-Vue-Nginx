@@ -109,7 +109,7 @@
         app
         :color="`#212121`"
         v-model="drawer"
-        mini-variant
+        :mini-variant.sync="mini"
       >
         <v-list>
           <v-list-item>
@@ -123,7 +123,8 @@
         
         <v-list 
           density="compact" 
-          nav lines="two" 
+          nav 
+          lines="two" 
           app
           :opened="opened"
           @update:opened="newOpened => opened = newOpened.slice(-1)"

@@ -3,9 +3,7 @@
         <Drawer />
         <AppBar />
         <v-main>
-            <v-container>
-                <RouterView />
-            </v-container>
+            <RouterView />
         </v-main>
     </v-app>
 </template>

@@ -5,7 +5,7 @@ const route = useRoute()
 
 </script>
 <template>
-    <v-app-bar :elevation="2" app :style="{ padding: '0px 20px' }">        
+    <v-app-bar :elevation="1" app :style="{ padding: '0px 20px' }">        
         <v-app-bar-title :style="{ fontSize: '1.5rem', fontWeight: 'bold'}">{{ route.name }}</v-app-bar-title>
         
         <template v-slot:append>
