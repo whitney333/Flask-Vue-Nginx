@@ -74,14 +74,12 @@
     fluid >
     <v-row
       class="mb-2"
-      no-gutters
       align="stretch"
     >
       <!-- Artist Info -->
       <v-col>
         <v-card 
           class="fill-height"
-          variant="text"
           title="Summary"
           :loading="cardLoading.artist"
           >
