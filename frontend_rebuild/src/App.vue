@@ -1,5 +1,5 @@
 <template>
-    <v-app >
+    <v-app class="font">
         <Drawer />
         <AppBar />
         <v-main>
@@ -16,4 +16,7 @@ import AppBar from './components/AppBar.vue';
 
 
 <style scoped>
+    .font {
+        font-family: 'Cairo', sans-serif;
+    }
 </style>
