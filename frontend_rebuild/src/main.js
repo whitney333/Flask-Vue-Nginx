@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import './assets/main.css'
 import App from './App.vue'
 import router from './router'
 import VueApexCharts from 'vue3-apexcharts'
@@ -12,8 +13,7 @@ import * as directives from 'vuetify/directives'
 import '@mdi/font/css/materialdesignicons.css'
 import initI18n from './i18n'; // Path to your i18n setup file
 
-
-window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
+// window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
 
 const vuetify = createVuetify({
     components,

@@ -72,8 +72,8 @@ chartOptions.value = {
             trim: true,
             style: {
               fontSize: '12px',
-              fontWeight: 'bold',
-              fontFamily: 'Cairo',
+              fontWeight: '500',
+              fontFamily: 'Cairo, sans-serif',
             }
           },
           tickAmount: 4,
@@ -103,8 +103,8 @@ chartOptions.value = {
         },
         legend: {
           fontSize: '14px',
-          fontWeight: 'bold',
-          fontFamily: 'Cairo',
+          fontWeight: '500',
+          fontFamily: 'Cairo, sans-serif',
           position: 'top',
           horizontalAlign: 'left'
         },
@@ -114,8 +114,8 @@ chartOptions.value = {
             labels: {
               style: {
                 fontSize: '12px',
-                fontWeight: 'bold',
-                fontFamily: 'Cairo',
+                fontWeight: '500',
+                fontFamily: 'Cairo, sans-serif',
               },
               formatter: function (value) {
                 if (String(value).length < 4) {
@@ -142,10 +142,6 @@ const getData = async () => {
     const data = await axios.get(props.fetchURL, {setTimeout: 10000})
     follower.value = data.data[props.fetchFollowerType]
     index_number.value = follower.value[follower.value.length - 1][props.followerDataType]
-    console.log(props.followerDataType);
-    console.log(follower.value[follower.value.length - 1]);
-    // console.log(index_number.value, formatNumber.value);
-    // console.log("follower", follower, "index_number.value", index_number.value)
 
     let formattedData = follower.value.map((e, i) => {
         return {
@@ -196,21 +192,21 @@ fetchAll()
                 </v-col>
             </v-row>
         </template>
-        <template v-slot:text>
+        <v-card-text :class="['pa-0']">
             <AreaCharts :series="series" :chartOptions="chartOptions" ></AreaCharts>
-        </template>
+        </v-card-text>
     </v-card>
     
 </template>
 
 <style scoped>
 .toolbar .index_number {
-    padding-left: 20px;
-    padding-right: 10px;
-    color: #000000;
-    display: inline-flex;
-    font-size: 24px;
-    font-weight: bold;
-    font-family: 'Cairo', sans-serif;
+        padding-left: 20px;
+        padding-right: 10px;
+        color: #000000;
+        display: inline-flex;
+        font-size: 24px;
+        font-weight: bold;
+        font-family: 'Cairo', sans-serif;
     }
 </style>
