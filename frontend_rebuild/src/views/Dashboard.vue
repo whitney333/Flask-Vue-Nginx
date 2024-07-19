@@ -311,11 +311,20 @@ import HPFollower from '@/components/HPFollower.vue';
      <br />
     <v-card title="Top Statistics" style="background-color: #f8f7f2;"> 
       <template v-slot:text>
-        <v-row no-gutters>
-        <template v-for="item in graphItems">
-          <v-col>
+        <v-slide-group
+          show-arrows
+          v-model="model"
+          class="pa-4"
+          selected-class="bg-success"
+        >
+        <v-slide-group-item
+          v-for="item in graphItems"
+          :key="item.name"
+        >
+
             <HPFollower
             :type="item.type"
+            :class="['ma-4', 'rounded-xl', 'pa-2']"
             :fetchURL="item.fetchURL"
             :iconHref="item.iconHref"
             :iconSrc="item.iconSrc"
@@ -324,9 +333,9 @@ import HPFollower from '@/components/HPFollower.vue';
             :fetchDateType="item.fetchDateType"
             :colors="item.colors"
             />
-          </v-col>
-        </template>
-      </v-row>
+        </v-slide-group-item>
+      </v-slide-group>
+
       </template>
     </v-card>
   </v-container>
