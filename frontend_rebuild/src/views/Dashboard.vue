@@ -6,7 +6,7 @@
   import { useRoute, useRouter } from 'vue-router';
 import HPFollower from '@/components/HPFollower.vue';
   const artistInfo = ref({})
-  const memberInfo = ref({})
+  const memberInfo = ref("")
   const hotData = ref([])
   const router = useRouter()
   const counterStore = useCounterStore()
@@ -171,7 +171,9 @@ import HPFollower from '@/components/HPFollower.vue';
           :loading="cardLoading.artist"
           >
           <template v-slot:title>
-            {{ $t("Summary") }}
+            <span :class="['text-h5']">
+              {{ $t("Summary") }}
+            </span>
           </template>
           <template v-slot:text>
           <v-divider></v-divider>
@@ -194,14 +196,18 @@ import HPFollower from '@/components/HPFollower.vue';
                   <v-card  class="pa-2 ma-2" variant="text">
                     {{ $t("Artist") }}:
                     <br />
-                    {{ artistInfo.artist ? artistInfo.artist : 'N/A'}}
+                    <span :class="['font-weight-bold', 'text-body-1']">
+                      {{ artistInfo.artist ? artistInfo.artist : 'N/A'}}
+                    </span>
                   </v-card>
                 </v-col>
                 <v-col>
                   <v-card class="pa-2 ma-2" variant="text">
                     {{ $t("Debut Year") }}:
                     <br />
-                    {{ artistInfo.debut_year ? artistInfo.debut_year : 'N/A' }}
+                    <span :class="['font-weight-bold', 'text-body-1']">
+                      {{ artistInfo.debut_year ? artistInfo.debut_year : 'N/A' }}
+                    </span>
                   </v-card>
                 </v-col>
                 <v-responsive width="100%"></v-responsive>
@@ -221,7 +227,9 @@ import HPFollower from '@/components/HPFollower.vue';
                   <v-card class="pa-2 ma-2" variant="text">
                     {{ $t("Birth")}}:
                     <br />
-                    {{  artistInfo.birth ? artistInfo.birth : "N/A" }}
+                    <span :class="['font-weight-bold', 'text-body-1']">
+                      {{  artistInfo.birth ? artistInfo.birth : "N/A" }}
+                    </span>
                   </v-card>
                 </v-col>
               </v-row>
@@ -233,14 +241,20 @@ import HPFollower from '@/components/HPFollower.vue';
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Type") }}:
                 <br />
-                {{  artistInfo.type ? artistInfo.type : "N/A" }}
+                <span :class="['font-weight-bold', 'text-body-1']">
+                  <span :class="['font-weight-bold', 'text-body-1']">
+                    {{  artistInfo.type ? artistInfo.type[0] : "N/A" }}
+                  </span>
+                </span>
               </v-card>
             </v-col>
             <v-col>
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Members")}}:
                 <br />
-                {{  memberInfo ? memberInfo : "N/A" }}
+                   <span :class="['font-weight-bold', 'text-body-1']">
+                {{    memberInfo ? memberInfo : "N/A" }}
+                </span>
               </v-card>
             </v-col>
           </v-row>
@@ -250,28 +264,36 @@ import HPFollower from '@/components/HPFollower.vue';
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Label")}}:
                 <br />
-                {{  artistInfo.labels ? artistInfo.labels : "N/A" }}
+                <span :class="['font-weight-bold', 'text-body-1']">
+                  {{    artistInfo.labels ? artistInfo.labels : "N/A" }}
+                </span>
               </v-card>
             </v-col>
             <v-col>
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Fandom")}}:
                 <br />
-                {{  artistInfo.fandom ? artistInfo.fandom : "N/A" }}
+                <span :class="['font-weight-bold', 'text-body-1']">
+                  {{    artistInfo.fandom ? artistInfo.fandom : "N/A" }}
+                </span>
               </v-card>
             </v-col>
             <v-col>
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Color")}}:
                 <br />
-                {{  artistInfo.color ? artistInfo.color : "N/A" }}
+                <span :class="['font-weight-bold', 'text-body-1']">
+                  {{    artistInfo.color ? artistInfo.color : "N/A" }}
+                </span>
               </v-card>
             </v-col>
             <v-col>
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Last Release")}}:
                 <br />
-                {{  artistInfo.last_release ? artistInfo.last_release : "N/A" }}
+                <span :class="['font-weight-bold', 'text-body-1']">
+                  {{    artistInfo.last_release ? artistInfo.last_release : "N/A" }}
+                </span>
               </v-card>
             </v-col>
 
@@ -287,9 +309,13 @@ import HPFollower from '@/components/HPFollower.vue';
       <v-col>
         <v-card 
           class="fill-height"
-          title="Trending"
           :loading="cardLoading.trending"
           >
+          <template v-slot:title>
+            <span :class="['text-h5']">
+              {{  $t('Trending') }}
+            </span>
+          </template>
           <template v-slot:text>
 
           <v-divider></v-divider>
@@ -309,12 +335,17 @@ import HPFollower from '@/components/HPFollower.vue';
     <br />
      <v-divider></v-divider>
      <br />
-    <v-card title="Top Statistics" style="background-color: #f8f7f2;"> 
+    <v-card style="background-color: #f8f7f2;">
+      <template v-slot:title>
+        <span :class="['text-h4']">
+          {{ $t('Top Statistics') }}
+        </span>
+      </template >
       <template v-slot:text>
         <v-slide-group
           show-arrows
           v-model="model"
-          class="pa-4"
+          :class="['pa-4']"
           selected-class="bg-success"
         >
         <v-slide-group-item
