@@ -1,29 +1,29 @@
-// import Vue from 'vue'
-// import VueI18n from 'vue-i18n'
-// import en from './language/config/en.json'
-// import kr from './language/config/kr.json'
+import { createI18n } from 'vue-i18n';
 
-// Vue.use(VueI18n)
+const loadLocaleMessages = async () => {
+  const locales = import.meta.glob('./language/config/*.json');
+  const messages = {};
 
-// function loadLocaleMessages() {
-//   const locales = require.context(
-//     "./language",
-//     true,
-//     /[A-Za-z0-9-_,\s]+\.json$/i
-//   );
-//   const messages = {};
-//   locales.keys().forEach(key => {
-//     const matched = key.match(/([A-Za-z0-9-_]+)\./i);
-//     if (matched && matched.length > 1) {
-//       const locale = matched[1];
-//       messages[locale] = locales(key);
-//     }
-//   });
-//   return messages;
-// }
+  for (const path in locales) {
+    const matched = path.match(/\/([A-Za-z0-9-_]+)\./i);
+    if (matched && matched.length > 1) {
+      const locale = matched[1];
+      const module = await locales[path](); // Await the import
+      messages[locale] = module.default || module; // Access the default export or the module itself
+    }
+  }
 
-// export default new VueI18n({
-//   locale: process.env.VUE_APP_I18N_LOCALE || "en",
-//   fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || "en",
-//   messages: loadLocaleMessages()
-// });
+  return messages;
+};
+
+const initI18n = async () => {
+  const messages = await loadLocaleMessages();
+
+  return createI18n({
+    locale: import.meta.env.VITE_I18N_LOCALE || 'en',
+    fallbackLocale: import.meta.env.VITE_I18N_FALLBACK_LOCALE || 'en',
+    messages,
+  });
+};
+
+export default initI18n;

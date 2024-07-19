@@ -1,5 +1,6 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
+import LangSwitcher from './LangSwitcher.vue'
 
 const route = useRoute()
 
@@ -12,6 +13,7 @@ const route = useRoute()
             <v-btn icon="mdi-heart"></v-btn>
             
             <v-btn icon="mdi-magnify"></v-btn>
+            <!-- <LangSwitcher></LangSwitcher> -->
             
             <v-btn icon="mdi-dots-vertical"></v-btn>
         </template>
