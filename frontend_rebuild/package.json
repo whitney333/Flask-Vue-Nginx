@@ -12,6 +12,7 @@
     "@mdi/font": "^7.4.47",
     "apexcharts": "^3.50.0",
     "axios": "^1.7.2",
+    "country-flag-icons": "^1.5.13",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
     "vue-cli-service": "^5.0.10",

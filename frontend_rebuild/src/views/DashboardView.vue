@@ -4,7 +4,8 @@
   import { reactive, ref } from 'vue';
   import AreaCharts from '../components/AreaCharts.vue'
   import { useRoute, useRouter } from 'vue-router';
-import HPFollower from '@/components/HPFollower.vue';
+  import DB_TS_card from '@/components/DashBoard/DB_TS_card.vue';
+import PageHolder from '@/components/PageHolder.vue';
   const artistInfo = ref({})
   const memberInfo = ref("")
   const hotData = ref([])
@@ -158,14 +159,16 @@ import HPFollower from '@/components/HPFollower.vue';
 
 <template>
   <v-container
-    class="bgcolor"
+    :class="['bg-grey-lighten-4']"
     fluid >
     <v-row
       class="mb-2"
       align="stretch"
     >
       <!-- Artist Info -->
-      <v-col>
+      <v-col
+      cols="12"
+      md="6">
         <v-card 
           class="fill-height"
           :loading="cardLoading.artist"
@@ -182,7 +185,9 @@ import HPFollower from '@/components/HPFollower.vue';
             <v-col 
             align="center"
             justify="center"
-            class="flex-grow-2">
+            class="flex-grow-2"
+            cols="12"
+            sm="6">
               <v-avatar style="height:150px; width:150px;">
                 <v-img
                     :src=artistInfo.image
@@ -190,7 +195,9 @@ import HPFollower from '@/components/HPFollower.vue';
                 ></v-img>
               </v-avatar>
             </v-col>
-            <v-col  class="flex-grow-2">
+            <v-col
+            cols="12"
+            sm="6">
               <v-row>
                 <v-col>
                   <v-card  class="pa-2 ma-2" variant="text">
@@ -252,7 +259,7 @@ import HPFollower from '@/components/HPFollower.vue';
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Members")}}:
                 <br />
-                   <span :class="['font-weight-bold', 'text-body-1']">
+                    <span :class="['font-weight-bold', 'text-body-1']">
                 {{    memberInfo ? memberInfo : "N/A" }}
                 </span>
               </v-card>
@@ -260,7 +267,9 @@ import HPFollower from '@/components/HPFollower.vue';
           </v-row>
           <v-divider></v-divider>
           <v-row>
-            <v-col>
+            <v-col
+            cols="6"
+            sm="3">
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Label")}}:
                 <br />
@@ -269,7 +278,9 @@ import HPFollower from '@/components/HPFollower.vue';
                 </span>
               </v-card>
             </v-col>
-            <v-col>
+            <v-col
+            cols="6"
+            sm="3">
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Fandom")}}:
                 <br />
@@ -278,7 +289,9 @@ import HPFollower from '@/components/HPFollower.vue';
                 </span>
               </v-card>
             </v-col>
-            <v-col>
+            <v-col
+            cols="6"
+            sm="3">
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Color")}}:
                 <br />
@@ -287,7 +300,9 @@ import HPFollower from '@/components/HPFollower.vue';
                 </span>
               </v-card>
             </v-col>
-            <v-col>
+            <v-col
+            cols="6"
+            sm="3">
               <v-card class="pa-2 ma-2" variant="text">
                 {{ $t("Last Release")}}:
                 <br />
@@ -304,9 +319,10 @@ import HPFollower from '@/components/HPFollower.vue';
         </v-card>
       </v-col>
 
-
       <!-- Trending Info -->
-      <v-col>
+      <v-col
+      cols="12"
+      md="6">
         <v-card 
           class="fill-height"
           :loading="cardLoading.trending"
@@ -329,13 +345,20 @@ import HPFollower from '@/components/HPFollower.vue';
           
         </template>
         </v-card>
+
       </v-col>
     </v-row>
     <!-- Statistic-->
     <br />
-     <v-divider></v-divider>
-     <br />
-    <v-card style="background-color: #f8f7f2;">
+  </v-container>
+  <v-divider></v-divider>
+    <v-container
+    fluid
+    style="background-color: #f8f7f2;">
+
+    <v-card 
+    style="background-color: #f8f7f2;"
+    flat>
       <template v-slot:title>
         <span :class="['text-h4']">
           {{ $t('Top Statistics') }}
@@ -352,35 +375,22 @@ import HPFollower from '@/components/HPFollower.vue';
           v-for="item in graphItems"
           :key="item.name"
         >
-
-            <HPFollower
-            :type="item.type"
+            <DB_TS_card
+            :value="item"
             :class="['ma-4', 'rounded-xl', 'pa-2']"
-            :fetchURL="item.fetchURL"
-            :iconHref="item.iconHref"
-            :iconSrc="item.iconSrc"
-            :fetchFollowerType="item.fetchFollowerType"
-            :followerDataType="item.followerDataType"
-            :fetchDateType="item.fetchDateType"
-            :colors="item.colors"
             />
         </v-slide-group-item>
       </v-slide-group>
 
       </template>
     </v-card>
-  </v-container>
-
+    </v-container>
 </template>
 
 <style>
   .card {
     min-width: 600px;
     min-height: 600px;
-  }
-
-  .bgcolor {
-    background-color: #F5F5F5;
   }
 
 </style>

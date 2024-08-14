@@ -75,6 +75,13 @@
           },
         ]
       },
+      {
+        title:'Trending Artists',
+        icon:'mdi-trending-up',
+        to:'/trending-artists',
+        hasSublinks: false,
+        isOpen: false,
+      }
     ],
   )
 

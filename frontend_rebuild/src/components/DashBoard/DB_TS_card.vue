@@ -1,17 +1,16 @@
+
+
+
+<!-- Dashboard Top Statics Card -->
+
+
 <script setup>
 import axios from '@/axios';
 import { computed, ref } from 'vue';
-import AreaCharts from './AreaCharts.vue';
+import AreaCharts from '@/components/AreaCharts.vue';
 
 const props = defineProps({
-    type: String,
-    fetchURL: String,
-    iconHref: String,
-    iconSrc: String,
-    fetchFollowerType: String,
-    followerDataType: String,
-    fetchDateType: String,
-    colors: Object,
+  value: Object
 })
 
 const latest_date = ref("")
@@ -60,7 +59,7 @@ chartOptions.value = {
         },
         stroke: {
           curve: 'smooth',
-          width: 3,
+          width: 2,
           dashArray: [0, 2]
         },
         xaxis: {
@@ -92,7 +91,7 @@ chartOptions.value = {
                 "<span>" +
                 "<li>" +
                 // w.globals.labels[dataPointIndex] +
-                `${props.type}: ` +
+                `${props.value.type}: ` +
                 (series[0][dataPointIndex]).toLocaleString() +
                 "</li>" +
                 "</span>" +
@@ -131,7 +130,7 @@ chartOptions.value = {
             }
           },
         ],
-        colors: props.colors,
+        colors: props.value.colors,
         grid: {
           show: false
         }
@@ -139,20 +138,21 @@ chartOptions.value = {
 
 const getData = async () => {
     loadingBar.value = true
-    const data = await axios.get(props.fetchURL, {setTimeout: 10000})
-    follower.value = data.data[props.fetchFollowerType]
-    index_number.value = follower.value[follower.value.length - 1][props.followerDataType]
+    const data = await axios.get(props.value.fetchURL, {setTimeout: 10000})
+    console.log(data);
+    follower.value = data.data[props.value.fetchFollowerType]
+    index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
 
     let formattedData = follower.value.map((e, i) => {
         return {
-            x: e[props.fetchDateType],
-            y: e[props.followerDataType],
+            x: e[props.value.fetchDateType],
+            y: e[props.value.followerDataType],
         };
     });
     // update the series with axios data
     series.value = [
         {
-            name: props.type,
+            name: props.value.type,
             data: formattedData,
         }
     ]
@@ -169,13 +169,13 @@ fetchAll()
 </script>
 
 <template>
-    <v-card :loading="loadingBar" hover :width="300" :height="250" rounded="20" >
+    <v-card :loading="loadingBar" hover :width="300" :height="250">
         <template v-slot:title >
             <v-row>
                 <v-col class="flex-grow-1">
-                    <a :href="props.iconHref">
+                    <a :href="props.value.iconHref">
                         <v-img
-                        :src="props.iconSrc"
+                        :src="props.value.iconSrc"
                         max-height="30px"
                         max-width="30px"
                         class="mr-3"
@@ -187,13 +187,13 @@ fetchAll()
                         {{ formatNumber }}
                     </span>
                     <span style="font-size: 12px;">
-                        {{ $t(props.type) }}
+                        {{ $t(props.value.type) }}
                     </span>
                 </v-col>
             </v-row>
         </template>
         <v-card-text :class="['pa-0']">
-            <AreaCharts :series="series" :chartOptions="chartOptions" ></AreaCharts>
+            <AreaCharts width="100%" height="100%" :series="series" :chartOptions="chartOptions" ></AreaCharts>
         </v-card-text>
     </v-card>
     

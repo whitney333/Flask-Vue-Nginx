@@ -7,7 +7,8 @@ const props = defineProps({
     chartOptions: Object,
     series: Object,
     width: String,
-    height: String
+    height: String,
+    refItem: Object
 })
 
 
@@ -15,6 +16,6 @@ const props = defineProps({
 
 <template>
     <div id="chart">
-        <apexchart :width="props.width" :height="props.height" type="area" :options="props.chartOptions" :series="props.series"></apexchart>
+        <apexchart :ref="props.refItem" :width="props.width" :height="props.height" type="line" :options="props.chartOptions" :series="props.series"></apexchart>
     </div>
 </template>
