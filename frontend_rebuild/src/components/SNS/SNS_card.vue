@@ -2,7 +2,9 @@
     import { computed, onMounted, ref } from 'vue';
     import axios from '@/axios';
     const props = defineProps({
-        value: Object
+        value: Object,
+        colors: Object,
+        iconSrc: String,
     })
     const series = ref([])
     const latest_date = ref("")
@@ -99,27 +101,6 @@
                 enabled: false
             }
         },
-        // tooltip: {
-        // theme: 'light',
-        // custom: function ({series, seriesIndex, dataPointIndex, w}) {
-        //     var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
-        //     return (
-        //         `<div class="arrow_box">\n
-        //             ${new Date(data.x).toDateString()}\n
-        //             <ul>\n
-        //                 <span>\n
-        //                     <li>\n
-        //                         ${props.value.type}: ${(series[0][dataPointIndex]).toLocaleString()}\n
-        //                     </li>\n
-        //                     <li v-if="props.value.secondChat">\n
-        //                         ${props.value.secondChat.type}: ${(series[1][dataPointIndex]).toLocaleString()}\n
-        //                     </li>\n
-        //                 </span>\n
-        //             </ul>\n
-        //         </div>`
-        //         );
-        //     }
-        // },
         legend: {
             fontSize: '12px',
             fontWeight: '400',
@@ -139,7 +120,7 @@
                 }
             },
         ],
-        colors: props.value.colors,
+        colors: props.colors,
     }
 
     if (props.value.secondChat) {
@@ -180,7 +161,8 @@
             one_month.value = data.value[data.value.length - 30][props.value.fetchDateType]
             three_months.value = data.value[data.value.length - 90][props.value.fetchDateType]
             six_months.value = data.value[data.value.length - 180][props.value.fetchDateType]
-
+            console.log(res);
+            
             index_number.value = data.value[data.value.length - 1][props.value.followerDataType]
             last_month_data.value = data.value[data.value.length - 30][props.value.followerDataType]
 
@@ -279,7 +261,7 @@
         <template v-slot:title>
             <div :class="['d-flex', 'align-center']">
                 <v-img
-                :src="props.value.iconSrc"
+                :src="props.iconSrc"
                 max-height="30px"
                 max-width="30px"
                 :class="['mr-3']"

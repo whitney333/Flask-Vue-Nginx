@@ -4,7 +4,8 @@
     import SNSHashtagMostUsedCard from './SNS_Hashtag_MostUsedCard.vue';
     import SNSHashtagMostEngagedCard from './SNS_Hashtag_MostEngagedCard.vue';
     const props = defineProps({
-        value: Object
+        value: Object,
+        iconSrc: String,
     })
 
 </script>
@@ -27,12 +28,12 @@
                     <v-col
                     cols="12"
                     lg="6">
-                        <SNSHashtagMostUsedCard :value="props.value"></SNSHashtagMostUsedCard>
+                        <SNSHashtagMostUsedCard :iconSrc="iconSrc" :value="props.value"></SNSHashtagMostUsedCard>
                     </v-col>
                     <v-col
                     cols="12"
                     lg="6">
-                        <SNSHashtagMostEngagedCard :value="props.value"></SNSHashtagMostEngagedCard>
+                        <SNSHashtagMostEngagedCard :iconSrc="iconSrc" :value="props.value"></SNSHashtagMostEngagedCard>
                     </v-col>
                 </v-row>
 

@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '../views/Dashboard.vue'
+import DashboardView from '@/views/DashboardView.vue'
 import AboutView from '@/views/AboutView.vue'
+import TrendingArtistsView from '@/views/TrendingArtistsView.vue'
+import ArtistView from '@/views/ArtistView.vue'
+import SNS_InstaView from '@/views/SNS/SNS_InstaView.vue'
+import SNS_TiktokView from '@/views/SNS/SNS_TiktokView.vue'
+import SNS_YoutubeView from '@/views/SNS/SNS_YoutubeView.vue'
+import SNS_BilibiliView from '@/views/SNS/SNS_BilibiliView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -8,7 +14,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'Dashboard',
-      component: Dashboard
+      component: DashboardView
     },
     {
       path: '/about',
@@ -16,42 +22,72 @@ const router = createRouter({
       component: AboutView
     },
     {
-      path: '/sns/instagram',
-      name: 'Instagram',
-      component: AboutView
+      path: '/sns',
+      name: 'Sns',
+      children: [
+        
+        {
+          path: 'instagram',
+          name: 'Instagram',
+          component: SNS_InstaView
+        },
+        {
+        path: 'youtube',
+        name: 'Youtube',
+        component: SNS_YoutubeView,
+        },
+        {
+          path: 'tiktok',
+          name: 'TikTok',
+          component: SNS_TiktokView,
+        },  
+        {
+          path: 'bilibili',
+          name: 'Bilibili',
+          component: SNS_BilibiliView,
+          meta: {
+            requireAuth: true,
+            keepAlive: true
+          }
+        }
+      ]
+
     },
     {
-    path: '/sns/youtube',
-    name: 'Youtube',
-    component: AboutView,
+      path: '/works',
+      name: 'Works',
+      children: [
+        {
+          path: 'music',
+          name: 'Music',
+          component: AboutView,
+          meta: {
+            requireAuth: true,
+            keepAlive: true
+          }
+        },
+      ]
     },
     {
-      path: '/sns/tiktok',
-      name: 'TikTok',
-      component: AboutView,
-    },  
-    {
-      path: '/sns/bilibili',
-      name: 'Bilibili',
-      component: AboutView,
-      meta: {
-        requireAuth: true,
-        keepAlive: true
-      }
+      path: '/campaign',
+      name: 'Campaign',
+      children: [
+        {
+          path: 'analytics',
+          name: 'Campaign Analytics',
+          component: AboutView,
+        },
+      ]
     },
     {
-      path: '/works/music',
-      name: 'Music',
-      component: AboutView,
-      meta: {
-        requireAuth: true,
-        keepAlive: true
-      }
+      path: '/trending-artists',
+      name: 'Trending Artists',
+      component: TrendingArtistsView,
     },
     {
-      path: '/campaign/analytics',
-      name: 'Campaign Analytics',
-      component: AboutView,
+      path: '/artist/:artistId/:artistName',
+      name: 'Artist',
+      component: ArtistView
     }
   ]
 })

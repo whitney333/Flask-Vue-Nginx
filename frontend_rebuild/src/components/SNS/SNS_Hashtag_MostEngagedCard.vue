@@ -3,7 +3,8 @@
     import { reactive, ref } from 'vue';
 
     const props = defineProps({
-        value: Object
+        value: Object,
+        iconSrc: String
     })
 
     const loadingCard = ref(true)
@@ -188,7 +189,7 @@
         <template v-slot:title>
             <div :class="['d-flex', 'align-center']">
                 <v-img
-                :src="props.value.iconSrc"
+                :src="props.iconSrc"
                 max-height="30px"
                 max-width="30px"
                 :class="['mr-3']"
