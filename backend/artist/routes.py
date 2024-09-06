@@ -482,6 +482,7 @@ class ArtistPopularity(Resource):
             {"$unwind": "$yt_charts"},
             # return expand yt
             {"$project": {
+                "mid": "$mid",
                 "artist": "$artist",
                 "datetime": "$datetime",
                 "year": "$year",
@@ -498,26 +499,160 @@ class ArtistPopularity(Resource):
             }},
             {"$group": {
                 "_id": "$yt_charts_artist",
-                #         "_all": {"$addToSet": "$$ROOT"},
-                #             "mid": {"$addToSet": "$mid"},
-                #             "artist": {"$addToSet": "$artist"},
-                #             "sp_total_score": {"$addToSet": "$sp_total_score"},
-                #         "mid": {"$push": "$mid"},
-                #         # artist should be separated
-                #         "artist": {"$push": "$artist"},
-                #         "datetime": {"$first": "$datetime"},
-                #         "year": {"$first": "$year"},
-                #         "month": {"$first": "$month"},
-                #         "day": {"$first": "$day"},
-                #         "week": {"$first": "$week"},
-                #         "country": {"$first": "$country"},
-                #         # spotify score
-                #         "sp_total_score": {"$first": "$sp_total_score"},
-                #         "platforms": {"$first": "$platforms"},
-                #         "youtube_week": {"$first": "$youtube_week"},
-                #         "youtube_country": {"$first": "$youtube_country"},
-                "yt_score": {"$addToSet": "$yt_score"},
+                "_all": {"$addToSet": "$$ROOT"},
+                "yt_score_list": {"$addToSet": "$yt_score"},
                 "yt_artist": {"$first": "$yt_charts_artist"}
+            }},
+            # calculate yt total score
+            {"$project": {
+                "_id": 0,
+                "_all": "$_all",
+                "yt_artist": "$yt_artist",
+                "yt_total_score": {
+                    "$reduce": {
+                        "input": "$yt_score_list",
+                        "initialValue": 0,
+                        "in": {
+                            "$add": [{"$toInt": "$$value"}, "$$this"]
+                        }
+                    }
+                }
+            }},
+            # match yt_artist with sp_artist, if artist name is the same, keep it; not the same, drop it
+            {"$addFields": {
+                "_artist": {
+                    "$filter": {
+                        "input": "$_all",
+                        "cond": {
+                            "$eq": ["$$this.artist", "$$this.yt_charts_artist"]
+                        }
+                    }
+                }
+            }},
+            {"$project": {
+                "yt_artist": "$yt_artist",
+                "yt_total_score": "$yt_total_score",
+                "artist": {
+                    "$arrayElemAt": ["$_artist", 0]
+                }
+            }},
+            # organize artist info
+            {"$project": {
+                "mid": "$artist.mid",
+                "artist": "$artist.artist",
+                "week": "$artist.week",
+                "country": "$youtube_country",
+                "spotify_total_score": "$artist.sp_total_score",
+                "youtube_total_score": "$artist.yt_score",
+                "platforms": "$artist.platforms"
+            }},
+            # lookup billboard global 200
+            {"$lookup": {
+                "from": "billboard_charts",
+                "localField": "week",
+                "foreignField": "week",
+                "as": "billboard_charts"
+            }},
+            # billboard ranking is global ranking
+            {"$project": {
+                "mid": "$mid",
+                "artist": "$artist",
+                "week": "$week",
+                "spotify_total_score": "$spotify_total_score",
+                "youtube_total_score": "$youtube_total_score",
+                "platforms": "$platforms",
+                "billboard_charts": {
+                    "$arrayElemAt": ["$billboard_charts.data", 0]
+                }
+            }},
+            # convert billboard rank to integer
+            {"$project": {
+                "mid": "$mid",
+                "artist": "$artist",
+                "week": "$week",
+                "spotify_total_score": "$spotify_total_score",
+                "youtube_total_score": "$youtube_total_score",
+                "platforms": "$platforms",
+                "bb_charts": {
+                    "$map": {
+                        "input": "$billboard_charts",
+                        "as": "bb_item",
+                        "in": {
+                            "rank": {"$toInt": "$$bb_item.ranking"},
+                            "artist": "$$bb_item.artist"
+                        }
+                    }
+                }
+            }},
+            # calculate billboard charts score
+            {"$addFields": {
+                "bb_charts": {
+                    "$map": {
+                        "input": "$bb_charts",
+                        "as": "bb_chart",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$bb_chart",
+                                {"bb_score": {
+                                    "$subtract": [
+                                        {"$toInt": 201},
+                                        "$$bb_chart.rank"
+                                    ]
+                                }}
+                            ]
+                        }
+                    }
+                }
+            }},
+            {"$unwind": "$bb_charts"},
+            # return expanded billboard
+            {"$project": {
+                "mid": "$mid",
+                "artist": "$artist",
+                "week": "$week",
+                "spotify_total_score": "$spotify_total_score",
+                "youtube_total_score": "$youtube_total_score",
+                "platforms": "$platforms",
+                "bb_charts_artist": "$bb_charts.artist",
+                "bb_score": "$bb_charts.bb_score"
+            }},
+            {"$group": {
+                "_id": "$bb_charts_artist",
+                "_all": {"$addToSet": "$$ROOT"},
+                "bb_score_list": {"$addToSet": "$bb_score"},
+                "bb_artist": {"$first": "$bb_charts_artist"}
+            }},
+            # calculate billboard total score
+            {"$project": {
+                "_id": 0,
+                "_all": "$_all",
+                "bb_artist": "$bb_artist",
+                "bb_total_score": {
+                    "$reduce": {
+                        "input": "$bb_score_list",
+                        "initialValue": 0,
+                        "in": {
+                            "$add": [{"$toInt": "$$value"}, "$$this"]
+                        }
+                    }
+                }
+            }},
+            # match billboard artist with artist
+            # if text contains artist name, keep the value
+            #TODO Still fixing the issues of several artists in one song
+            {"$addFields": {
+                "_artist": {
+                    "$filter": {
+                        "input": "$_all",
+                        "as": "temp",
+                        "cond": {
+                            "$regexMatch": {
+                                "input": "$$temp.artist",
+                                "regex": "$$temp.bb_charts_artist"
+                            }
+                        }
+                    }
+                }
             }}
 
             # match spotify-youtube artist with artist name
