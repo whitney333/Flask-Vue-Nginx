@@ -1,6 +1,6 @@
 <script setup>
     import axios from '@/axios';
-import { computed, ref, watch } from 'vue';
+    import { computed, ref, watch } from 'vue';
     const platforms = [
         {
             value: 'spotify',
@@ -37,7 +37,7 @@ import { computed, ref, watch } from 'vue';
     const songs = ref([])
     const selectedPlatform = ref(platforms[0])
     const loadingCard = ref(true)
-    const selectedValue = ref([])
+    const selectedValue = ref('')
     const selectedDate = ref(new Date().toISOString().slice(0, 10))
     const selectedYear = computed(() => {
         return new Date(selectedDate.value).getFullYear()
@@ -55,6 +55,9 @@ import { computed, ref, watch } from 'vue';
         d.setDate(d.getDate() + 7)
         selectedDate.value = d.toISOString().slice(0, 10)
     }
+    const displaySongs = computed(() => {
+        return songs.value.filter((s) => (s.title.toLowerCase()).includes(selectedValue.value.toLowerCase(), 0) || (s.artist.toLowerCase()).includes(selectedValue.value.toLowerCase(), 0))
+    })
 
     const getWeekNumber = (d) => {
         // Copy date so don't modify original
@@ -136,12 +139,11 @@ import { computed, ref, watch } from 'vue';
                     <template v-slot:text>
                         <v-divider></v-divider>
                         <br />
-                        <div :class="['d-flex', 'justify-space-between', 'ga-10']">
+                        <div :class="['d-md-flex', 'justify-space-between', 'ga-10', 'f']">
                             <v-select
                             variant="outlined"
                             :maxWidth="300"
-                            label="Select Platform"
-                            single-line
+                            label="Platform"
                             item-title="title"
                             return-object
                             v-model="selectedPlatform"
@@ -153,12 +155,13 @@ import { computed, ref, watch } from 'vue';
                             </v-icon>
 
                             </v-select>
-                            <div :class="['d-flex', 'justify-space-between', 'ga-5']">
+                            <div :class="['d-sm-flex', 'justify-space-between', 'ga-5']">
 
                             <v-text-field
                             label="Search for..."
                             v-model="selectedValue"
                             clearable
+                            @click:clear="() => {selectedValue = ''}"
                             single-line
                             variant="underlined"
                             prepend-inner-icon="mdi-magnify"
@@ -196,16 +199,16 @@ import { computed, ref, watch } from 'vue';
 
                         </div>
                         <v-data-table
-                        :items="songs"
+                        :height="580"
+                        :items="displaySongs"
                         :headers="headers"
-                        items-per-page="15"
+                        items-per-page="10"
                         >
                         <template v-slot:item.rank_change="{ value }">
-                            <v-chip :color="getColor(value)" variant="elevated">
+                            <v-chip :color="getColor(value)" :minWidth="20" variant="elevated">
                                 {{ value }}
                             </v-chip>
                         </template>
-
                         </v-data-table>
 
                     </template>

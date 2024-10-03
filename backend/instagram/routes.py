@@ -231,29 +231,22 @@ def get_instagram_hashtags_most_used_overall():
 @instagram_api_bp.route('/instagram/hashtags/most-engaged/recent-ten-posts', methods=['GET'])
 def get_instagram_hashtags_most_engaged_recent_ten():
     try:
-        result = main_db.display_instagram_post.aggregate([
+        result = main_db.instagram_post_info.aggregate([
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
-            {"$unwind": "$data"},
+            {"$unwind": "$post"},
             {"$addFields": {
                 "sub_total": {
-                    "$sum": ["$data.comment_count", "$data.like_count"]}
-            }},
-            {"$lookup": {
-                "from": "instagram_user_info",
-                "localField": "date",
-                "foreignField": "datetime",
-                "as": "instagram_user_info"
+                    "$sum": ["$post.comment_count", "$post.like_count"]}
             }},
             {"$project": {
                 "_id": 0,
                 "post_date": "$datetime",
                 "sub_total": "$sub_total",
-                "hashtags": "$data.hashtags",
-                "follower": {"$slice": ["$instagram_user_info.follower_count", -1]}
+                "hashtags": "$post.hashtags",
+                "follower": "$follower_count"
             }},
             {"$limit": 10},
-            {"$unwind": "$follower"},
             {"$unwind": "$hashtags"},
             {"$addFields": {
                 "_eng_rate": {"$divide": ["$sub_total", "$follower"]}
@@ -283,29 +276,22 @@ def get_instagram_hashtags_most_engaged_recent_ten():
 @instagram_api_bp.route('/instagram/hashtags/most-engaged/recent-thirty-posts', methods=['GET'])
 def get_instagram_hashtags_most_engaged_recent_thirty():
     try:
-        result = main_db.display_instagram_post.aggregate([
+        result = main_db.instagram_post_info.aggregate([
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
-            {"$unwind": "$data"},
+            {"$unwind": "$post"},
             {"$addFields": {
                 "sub_total": {
-                    "$sum": ["$data.comment_count", "$data.like_count"]}
-            }},
-            {"$lookup": {
-                "from": "instagram_user_info",
-                "localField": "date",
-                "foreignField": "datetime",
-                "as": "instagram_user_info"
+                    "$sum": ["$post.comment_count", "$post.like_count"]}
             }},
             {"$project": {
                 "_id": 0,
                 "post_date": "$datetime",
                 "sub_total": "$sub_total",
-                "hashtags": "$data.hashtags",
-                "follower": {"$slice": ["$instagram_user_info.follower_count", -1]}
+                "hashtags": "$post.hashtags",
+                "follower": "$follower_count"
             }},
             {"$limit": 30},
-            {"$unwind": "$follower"},
             {"$unwind": "$hashtags"},
             {"$addFields": {
                 "_eng_rate": {"$divide": ["$sub_total", "$follower"]}
@@ -335,28 +321,21 @@ def get_instagram_hashtags_most_engaged_recent_thirty():
 @instagram_api_bp.route('/instagram/hashtags/most-engaged/overall-posts', methods=['GET'])
 def get_instagram_hashtags_most_engaged_overall():
     try:
-        result = main_db.display_instagram_post.aggregate([
+        result = main_db.instagram_post_info.aggregate([
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
-            {"$unwind": "$data"},
+            {"$unwind": "$post"},
             {"$addFields": {
                 "sub_total": {
-                    "$sum": ["$data.comment_count", "$data.like_count"]}
-            }},
-            {"$lookup": {
-                "from": "instagram_user_info",
-                "localField": "date",
-                "foreignField": "datetime",
-                "as": "instagram_user_info"
+                    "$sum": ["$post.comment_count", "$post.like_count"]}
             }},
             {"$project": {
                 "_id": 0,
                 "post_date": "$datetime",
                 "sub_total": "$sub_total",
-                "hashtags": "$data.hashtags",
-                "follower": {"$slice": ["$instagram_user_info.follower_count", -1]}
+                "hashtags": "$post.hashtags",
+                "follower": "$follower_count"
             }},
-            {"$unwind": "$follower"},
             {"$unwind": "$hashtags"},
             {"$addFields": {
                 "_eng_rate": {"$divide": ["$sub_total", "$follower"]}

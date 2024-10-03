@@ -20,10 +20,11 @@ services:
     image: t024-frontend
     container_name: t024-frontend
     build:
-      context: ./frontend
+      context: ./frontend_rebuild
     depends_on:
         - backend
     ports:
+      # old version port: 8080; rebuild frontend version port: 5173
       - 8080:80
     restart: on-failure
 

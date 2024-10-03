@@ -1431,6 +1431,176 @@ def get_youtube_language():
     except Exception as e:
         return dumps({'err': str(e)})
 
+# youtube most-used hashtags
+@youtube_api_bp.route('/youtube/hashtags/most-used/recent-ten-posts', methods=['GET'])
+def get_youtube_hashtags_most_used_recent_ten():
+    try:
+        results = main_db.youtube_video_info.aggregate([
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$video_data"},
+                {"$limit": 10},
+                {"$project": {
+                    "_id": 0,
+                    "published_date": "$video_data.publishedAt",
+                    "title": "$video_data.title",
+                    "tags": "$video_data.tags"
+                }},
+                {"$set": {
+                    "n": {
+                        "$replaceOne": {
+                            "input": "$title",
+                            "find": "#",
+                            "replacement": " #"
+                        }
+                    }}
+                }
+            ])
+        _temp_list = []
+        for item in results:
+            _temp_list.append(item)
+
+        # flatten item in list
+        _tag = [ele.get("tags") for ele in _temp_list]
+        _title = [extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
+        # print(_title)
+        # print(_tag)
+        flat_title = [item for sublist in _title for item in sublist]
+        # print(flat_title)
+
+        # replace None value to ''
+        _switch_none = ['' if v is None else v for v in _tag]
+        # flatten tags list
+        flat_tag = [item for sublist in _switch_none for item in sublist]
+        # print(flat_tag)
+
+        # concatenate two lists, and count occurrence value
+        joined_list = flat_title + flat_tag
+        w = pd.value_counts(np.array(joined_list))
+
+        # convert list to df then dict
+        df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
+        result = df.to_dict(orient='records')[:10]
+
+        response = {'result': result}
+        # print(response)
+
+        return response
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+@youtube_api_bp.route('/youtube/hashtags/most-used/recent-thirty-posts', methods=['GET'])
+def get_youtube_hashtags_most_used_recent_thirty():
+    try:
+        results = main_db.youtube_video_info.aggregate([
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$video_data"},
+                {"$limit": 30},
+                {"$project": {
+                    "_id": 0,
+                    "published_date": "$video_data.publishedAt",
+                    "title": "$video_data.title",
+                    "tags": "$video_data.tags"
+                }},
+                {"$set": {
+                    "n": {
+                        "$replaceOne": {
+                            "input": "$title",
+                            "find": "#",
+                            "replacement": " #"
+                        }
+                    }}
+                }
+        ])
+        _temp_list = []
+        for item in results:
+            _temp_list.append(item)
+
+        # flatten item in list
+        _tag = [ele.get("tags") for ele in _temp_list]
+        _title = [extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
+        # print(_title)
+        # print(_tag)
+        flat_title = [item for sublist in _title for item in sublist]
+        # print(flat_title)
+
+        # replace None value to ''
+        _switch_none = ['' if v is None else v for v in _tag]
+        # flatten tags list
+        flat_tag = [item for sublist in _switch_none for item in sublist]
+        # print(flat_tag)
+
+        # concatenate two lists, and count occurrence value
+        joined_list = flat_title + flat_tag
+        w = pd.value_counts(np.array(joined_list))
+
+        # convert list to df then dict
+        df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
+        result = df.to_dict(orient='records')[:10]
+
+        response = {'result': result}
+
+        return response
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+@youtube_api_bp.route('/youtube/hashtags/most-used/overall-posts', methods=['GET'])
+def get_youtube_hashtags_most_used_overall():
+    try:
+        results = main_db.youtube_video_info.aggregate([
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$video_data"},
+                {"$project": {
+                    "_id": 0,
+                    "published_date": "$video_data.publishedAt",
+                    "title": "$video_data.title",
+                    "tags": "$video_data.tags"
+                }},
+                {"$set": {
+                    "n": {
+                        "$replaceOne": {
+                            "input": "$title",
+                            "find": "#",
+                            "replacement": " #"
+                        }
+                    }}
+                }
+        ])
+        _temp_list = []
+        for item in results:
+            _temp_list.append(item)
+
+        # flatten item in list
+        _tag = [ele.get("tags") for ele in _temp_list]
+        _title = [extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
+        # print(_title)
+        # print(_tag)
+        flat_title = [item for sublist in _title for item in sublist]
+        # print(flat_title)
+
+        # replace None value to ''
+        _switch_none = ['' if v is None else v for v in _tag]
+        # flatten tags list
+        flat_tag = [item for sublist in _switch_none for item in sublist]
+        # print(flat_tag)
+
+        # concatenate two lists, and count occurrence value
+        joined_list = flat_title + flat_tag
+        w = pd.value_counts(np.array(joined_list))
+
+        # convert list to df then dict
+        df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
+        result = df.to_dict(orient='records')[:10]
+
+        response = {'result': result}
+
+        return {'result': response}
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+
 class YoutubePost(Resource):
     def get(self):
         posts_data = reqparse.RequestParser()

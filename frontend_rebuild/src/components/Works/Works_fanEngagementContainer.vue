@@ -1,6 +1,6 @@
 <script setup>
     import WorksCard from './Works_card.vue';
-    import musicJSON from '@/views/json/MusicViewDetails.json'
+    import musicJSON from '@/views/Works/json/MusicViewDetails.json'
     import WorksCardTopCities from './Works_cardTopCities.vue';
     const spotifyUrl = `/api/spotify/index`
     const melonUrl = `/api/melon/follower`

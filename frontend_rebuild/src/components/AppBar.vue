@@ -4,9 +4,16 @@ import LangSwitcher from './LangSwitcher.vue'
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
 import { useI18n } from 'vue-i18n'
 import { ref, watch } from 'vue';
+
 const { t, locale } = useI18n({ useScope: 'global' })
+const props = defineProps({
+    isLoggedIn: Boolean,
+    handleSignOut: Function
+})
+
 
 const route = useRoute()
+const router = useRouter()
 const countriesFlag = {
     'Hong Kong': 'HK',
     'Japan': 'JP',
@@ -26,14 +33,18 @@ const languages = [
         value: 'kr',
         title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} 한국어`,
     }]
-watch(lang, () => {
-    locale.value = lang.value[0]
-})
 
+    const handleRegister = () => {
+        router.push('/auth/register')
+    }
+    watch(lang, () => {
+        locale.value = lang.value[0]
+    })
+    
 </script>
 <template>
     <v-app-bar :elevation="1" app :style="{ padding: '0px 20px' }">        
-        <v-app-bar-title :class="['text-h5']">{{ route.name }}</v-app-bar-title>
+        <v-app-bar-title class="text-h5">{{ route.name }}</v-app-bar-title>
         <template v-slot:append>
             <v-menu>
                 <template v-slot:activator="{ props }">
@@ -52,11 +63,24 @@ watch(lang, () => {
                 </v-list>
 
             </v-menu>
-
-            
-            <v-btn icon="mdi-magnify"></v-btn>
-            
-            <v-btn icon="mdi-dots-vertical"></v-btn>
+            <v-menu v-if="isLoggedIn">
+                <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" icon="mdi-account"></v-btn>
+                </template>
+                <v-list density="compact" >
+                    <v-list-item
+                        @click="handleSignOut()"  
+                        prepend-icon="mdi-logout">
+                        <v-list-item-title >Log out</v-list-item-title>
+                    </v-list-item>
+                </v-list>
+            </v-menu>
+            <v-tooltip v-else="isLoggedIn">
+                <template v-slot:activator="{ props }">
+                    <v-btn @click="handleRegister" v-bind="props" icon="mdi-account-plus"></v-btn>
+                </template>
+                <span>Register</span>
+            </v-tooltip>
         </template>
     </v-app-bar>
 </template>
