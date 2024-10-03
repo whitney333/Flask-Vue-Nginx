@@ -113,10 +113,7 @@ def get_youtube_channel_index():
                 "datetime": {
                     "$dateToString": {
                         "format": "%Y-%m-%d",
-                        "date": {
-                            "$dateFromString": {
-                                "dateString": "$datetime"
-                            }}
+                        "date": "$datetime"
                     }},
                 "_id": 0,
                 "subscriber": {"$toInt": "$data.subscriberCount"},
@@ -1600,6 +1597,297 @@ def get_youtube_hashtags_most_used_overall():
     except Exception as e:
         return dumps({'err': str(e)})
 
+# youtube most-engaged hashtags
+@youtube_api_bp.route('/youtube/hashtags/most-engaged/recent-ten-posts', methods=['GET'])
+def get_youtube_hashtags_most_engaged_recent_ten():
+    try:
+        result = main_db.instagram_post_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$post"},
+            {"$addFields": {
+                "sub_total": {
+                    "$sum": ["$post.comment_count", "$post.like_count"]}
+            }},
+            {"$project": {
+                "_id": 0,
+                "post_date": "$datetime",
+                "sub_total": "$sub_total",
+                "hashtags": "$post.hashtags",
+                "follower": "$follower_count"
+            }},
+            {"$limit": 10},
+            {"$unwind": "$hashtags"},
+            {"$addFields": {
+                "_eng_rate": {"$divide": ["$sub_total", "$follower"]}
+            }},
+            {"$group": {
+                "_id": "$hashtags",
+                "count": {"$sum": 1},
+                "_total_eng_rate": {"$sum": "$_eng_rate"}
+            }},
+            {"$project": {
+                "eng_rate_per_hashtag": {
+                    "$divide": ["$_total_eng_rate", "$count"]
+                }
+            }},
+            {"$project": {
+                "eng_rate_per_hashtag": {
+                    "$multiply": ["$eng_rate_per_hashtag", 100]
+                }
+            }},
+            {"$sort": {"eng_rate_per_hashtag": -1}},
+            {"$limit": 10}
+        ])
+        return dumps({'result': result})
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+@youtube_api_bp.route('/youtube/hashtags/most-engaged/recent-thirty-posts', methods=['GET'])
+def get_youtube_hashtags_most_engaged_recent_thirty():
+    try:
+        result = main_db.youtube_video_info.aggregate([
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$video_data"},
+                {"$project": {
+                    "_id": 0,
+                    "date": "$datetime",
+                    "publishedAt": "$video_data.publishedAt",
+                    "title": "$video_data.title",
+                    "tags": "$video_data.tags",
+                    "desc": "$video_data.description",
+                    "viewCount": "$video_data.viewCount",
+                    "likeCount": "$video_data.likeCount",
+                    "favoriteCount": "$video_data.favoriteCount",
+                    "commentCount": "$video_data.commentCount"
+                }},
+                {"$lookup": {
+                    "from": "youtube_index",
+                    "localField": "date",
+                    "foreignField": "datetime",
+                    "as": "y_info"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "date": "$date",
+                    "publishedAt": "$publishedAt",
+                    "title": "$title",
+                    "tags": "$tags",
+                    "viewCount": "$viewCount",
+                    "likeCount": "$likeCount",
+                    "favoriteCount": "$favoriteCount",
+                    "commentCount": "$commentCount",
+                    "subscriber": {"$slice": ["$y_info.data.subscriberCount", -1]}
+                }},
+                {"$unwind": "$subscriber"},
+                {"$set": {
+                    "n": {
+                        "$replaceOne": {
+                            "input": "$title",
+                            "find": "#",
+                            "replacement": " #"
+                        }
+                    }}
+                },
+                {"$project": {
+                    "date": "$date",
+                    "publishedAt": "$publishedAt",
+                    "title": "$title",
+                    "tags": "$tags",
+                    "viewCount": "$viewCount",
+                    "likeCount": "$likeCount",
+                    "favoriteCount": "$favoriteCount",
+                    "commentCount": "$commentCount",
+                    "subscriber": "$subscriber",
+                    "nn": {
+                        "$split": ["$n", " "]
+                    }
+                }},
+                {"$sort": {"publishedAt": -1}},
+                {"$limit": 30},
+                {"$unwind": "$nn"},
+                {"$addFields": {
+                    "_cleaned": {
+                        "$regexFindAll": {
+                            "input": "$nn",
+                            "regex": "#.*"
+                        }
+                    }
+                }},
+                # concat two arrays
+                {"$project": {
+                    "date": "$date",
+                    "publishedAt": "$publishedAt",
+                    "title": "$title",
+                    "tags": "$tags",
+                    "viewCount": {"$toInt": "$viewCount"},
+                    "likeCount": {"$toInt": "$likeCount"},
+                    "favoriteCount": {"$toInt": "$favoriteCount"},
+                    "commentCount": {"$toInt": "$commentCount"},
+                    "subscriber": "$subscriber",
+                    "_new": {
+                        "$concatArrays": [
+                            {"$ifNull": ["$_cleaned.match", []]},
+                            {"$ifNull": ["$tags", []]}
+                        ]
+                    }
+                }},
+                # add subtotal: likes+comment
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$likeCount", "$commentCount"]
+                    }
+                }},
+                {"$unwind": "$_new"},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$viewCount"]}
+                }},
+                # groupby hashtag
+                {"$group": {
+                    "_id": "$_new",
+                    "count": {"$sum": 1},
+                    "_total_eng_rate": {"$sum": "$_eng_rate"}
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$divide": ["$_total_eng_rate", "$count"]
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$multiply": ["$eng_rate_per_hashtag", 100]
+                    }
+                }},
+                {"$sort": {"eng_rate_per_hashtag": -1}},
+                {"$limit": 10}
+            ])
+        return dumps({'result': result})
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+@youtube_api_bp.route('/youtube/hashtags/most-engaged/overall-posts', methods=['GET'])
+def get_youtube_hashtags_most_engaged_overall():
+    try:
+        result = main_db.youtube_video_info.aggregate([
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$video_data"},
+                {"$project": {
+                    "_id": 0,
+                    "date": "$datetime",
+                    "publishedAt": "$video_data.publishedAt",
+                    "title": "$video_data.title",
+                    "tags": "$video_data.tags",
+                    "desc": "$video_data.description",
+                    "viewCount": "$video_data.viewCount",
+                    "likeCount": "$video_data.likeCount",
+                    "favoriteCount": "$video_data.favoriteCount",
+                    "commentCount": "$video_data.commentCount"
+                }},
+                {"$lookup": {
+                    "from": "youtube_index",
+                    "localField": "date",
+                    "foreignField": "datetime",
+                    "as": "y_info"
+                }},
+                {"$project": {
+                    "_id": 0,
+                    "date": "$date",
+                    "publishedAt": "$publishedAt",
+                    "title": "$title",
+                    "tags": "$tags",
+                    "viewCount": "$viewCount",
+                    "likeCount": "$likeCount",
+                    "favoriteCount": "$favoriteCount",
+                    "commentCount": "$commentCount",
+                    "subscriber": {"$slice": ["$y_info.data.subscriberCount", -1]}
+                }},
+                {"$unwind": "$subscriber"},
+                {"$set": {
+                    "n": {
+                        "$replaceOne": {
+                            "input": "$title",
+                            "find": "#",
+                            "replacement": " #"
+                        }
+                    }}
+                },
+                {"$project": {
+                    "date": "$date",
+                    "publishedAt": "$publishedAt",
+                    "title": "$title",
+                    "tags": "$tags",
+                    "viewCount": "$viewCount",
+                    "likeCount": "$likeCount",
+                    "favoriteCount": "$favoriteCount",
+                    "commentCount": "$commentCount",
+                    "subscriber": "$subscriber",
+                    "nn": {
+                        "$split": ["$n", " "]
+                    }
+                }},
+                {"$sort": {"publishedAt": -1}},
+                {"$unwind": "$nn"},
+                {"$addFields": {
+                    "_cleaned": {
+                        "$regexFindAll": {
+                            "input": "$nn",
+                            "regex": "#.*"
+                        }
+                    }
+                }},
+                # concat two arrays
+                {"$project": {
+                    "date": "$date",
+                    "publishedAt": "$publishedAt",
+                    "title": "$title",
+                    "tags": "$tags",
+                    "viewCount": {"$toInt": "$viewCount"},
+                    "likeCount": {"$toInt": "$likeCount"},
+                    "favoriteCount": {"$toInt": "$favoriteCount"},
+                    "commentCount": {"$toInt": "$commentCount"},
+                    "subscriber": "$subscriber",
+                    "_new": {
+                        "$concatArrays": [
+                            {"$ifNull": ["$_cleaned.match", []]},
+                            {"$ifNull": ["$tags", []]}
+                        ]
+                    }
+                }},
+                # add subtotal: likes+comment
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$likeCount", "$commentCount"]
+                    }
+                }},
+                {"$unwind": "$_new"},
+                {"$addFields": {
+                    "_eng_rate": {"$divide": ["$sub_total", "$viewCount"]}
+                }},
+                # groupby hashtag
+                {"$group": {
+                    "_id": "$_new",
+                    "count": {"$sum": 1},
+                    "_total_eng_rate": {"$sum": "$_eng_rate"}
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$divide": ["$_total_eng_rate", "$count"]
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$multiply": ["$eng_rate_per_hashtag", 100]
+                    }
+                }},
+                {"$sort": {"eng_rate_per_hashtag": -1}},
+                {"$limit": 10}
+            ])
+        return dumps({'result': result})
+    except Exception as e:
+        return dumps({'err': str(e)})
+
 
 class YoutubePost(Resource):
     def get(self):
@@ -1683,18 +1971,73 @@ class YoutubePost(Resource):
 
             return {'result': response}
         elif (sort == 'like'):
-            fetch_posts = main_db.display_youtube_post.aggregate([
+            # fetch_posts = main_db.display_youtube_post.aggregate([
+            #     {"$sort": {"datetime": -1}},
+            #     {"$limit": 1},
+            #     {"$unwind": "$data"},
+            #     {"$addFields": {
+            #         "sub_total": {
+            #             "$sum": ["$data.like_count", "$data.comment_count"]
+            #         }
+            #     }},
+            #     {"$addFields": {
+            #         "eng_rate": {
+            #             "$divide": ["$sub_total", "$data.view_count"]
+            #         }
+            #     }},
+            #     {"$addFields": {
+            #         "former_url": "https://www.youtube.com/watch?v="
+            #     }},
+            #     {"$project": {
+            #         "_id": 0,
+            #         "publish_at": {
+            #             "$dateToString": {
+            #                 "format": "%Y-%m-%d",
+            #                 "date": "$data.publish_at"
+            #             }
+            #         },
+            #         "title": "$data.title",
+            #         "code": "$data.code",
+            #         "view_count": "$data.view_count",
+            #         "like_count": "$data.like_count",
+            #         "favorite_count": "$data.favorite_count",
+            #         "comment_count": "$data.comment_count",
+            #         "tags": "$data.tags",
+            #         "eng_rate": {
+            #             "$multiply": ["$eng_rate", 100]
+            #         },
+            #         "url": {"$concat": ["$former_url", "$data.code", "/"]},
+            #         "image": "$data.new_image_url"
+            #     }},
+            #     {"$sort": {"like_count": -1}},
+            #     {"$skip": int(page_limit) * (int(page) - 1)},
+            #     {"$limit": int(page_limit)}
+            # ])
+            fetch_posts = main_db.youtube_video_info.aggregate([
                 {"$sort": {"datetime": -1}},
                 {"$limit": 1},
-                {"$unwind": "$data"},
+                {"$unwind": "$video_data"},
+                # return needed field
+                {"$project": {
+                    "publishedAt": "$video_data.publishedAt",
+                    "title": "$video_data.title",
+                    "description": "$video_data.description",
+                    "thumbnails": "$video_data.thumbnails.high.url",
+                    "categoryId": "$video_data.categoryId",
+                    "viewCount": {"$toInt": "$video_data.viewCount"},
+                    "likeCount": {"$toInt": "$video_data.likeCount"},
+                    "favoriteCount": {"$toInt": "$video_data.favoriteCount"},
+                    "commentCount": {"$toInt": "$video_data.commentCount"},
+                    "tags": "$video_data.tags"
+                }},
                 {"$addFields": {
                     "sub_total": {
-                        "$sum": ["$data.like_count", "$data.comment_count"]
+                        "$sum": ["$likeCount", "$commentCount"]
                     }
                 }},
                 {"$addFields": {
                     "eng_rate": {
-                        "$divide": ["$sub_total", "$data.view_count"]
+                        "$divide": ["$sub_total", "$viewCount"]
                     }
                 }},
                 {"$addFields": {
@@ -1705,27 +2048,57 @@ class YoutubePost(Resource):
                     "publish_at": {
                         "$dateToString": {
                             "format": "%Y-%m-%d",
-                            "date": "$data.publish_at"
-                        }
-                    },
-                    "title": "$data.title",
-                    "code": "$data.code",
-                    "view_count": "$data.view_count",
-                    "like_count": "$data.like_count",
-                    "favorite_count": "$data.favorite_count",
-                    "comment_count": "$data.comment_count",
-                    "tags": "$data.tags",
+                            "date": {
+                                "$dateFromString": {
+                                    "dateString": "$publishedAt"
+                                }}
+                        }},
+                    "title": "$title",
+                    "view_count": "$viewCount",
+                    "like_count": "$likeCount",
+                    "favorite_count": "$favoriteCount",
+                    "comment_count": "$commentCount",
+                    "tags": "$tags",
                     "eng_rate": {
                         "$multiply": ["$eng_rate", 100]
                     },
-                    "url": {"$concat": ["$former_url", "$data.code", "/"]},
-                    "image": "$data.new_image_url"
+                    "former_url": "$former_url",
+                    "image": "$thumbnails"
                 }},
-                {"$sort": {"like_count": -1}},
-                {"$skip": int(page_limit) * (int(page) - 1)},
-                {"$limit": int(page_limit)}
+                {"$addFields": {
+                    "code": {
+                        "$regexFind": {
+                            "input": "$image",
+                            "regex": "vi/([^/]+)/",
+                        }
+                    }
+                }},
+                {"$project": {
+                    "publish_at": "$publish_at",
+                    "title": "$title",
+                    "view_count": "$view_count",
+                    "like_count": "$like_count",
+                    "favorite_count": "$favorite_count",
+                    "comment_count": "$comment_count",
+                    "eng_rate": "$eng_rate",
+                    "former_url": "$former_url",
+                    "thumbnail": "$image",
+                    "code": "$code.captures"
+                }},
+                {"$unwind": "$code"},
+                {"$project": {
+                    "publish_at": "$publish_at",
+                    "title": "$title",
+                    "view_count": "$view_count",
+                    "like_count": "$like_count",
+                    "favorite_count": "$favorite_count",
+                    "comment_count": "$comment_count",
+                    "eng_rate": "$eng_rate",
+                    "url": {"$concat": ["$former_url", "$code", "/"]},
+                    "thumbnail": "$thumbnail",
+                    "code": "$code"
+                }},
             ])
-
             posts_list = []
             for post in fetch_posts:
                 posts_list.append(post)
@@ -1939,6 +2312,7 @@ class YoutubePost(Resource):
             response = {'total_posts_count': posts_count, 'page': int(page), 'perPage': int(page_limit), 'sort': sort, 'posts': posts_list}
 
             return {'result': response}
+
 
 # YouTube most-used hashtags
 class YoutubeUsedTags(Resource):
@@ -2168,6 +2542,7 @@ class YoutubeUsedTags(Resource):
             response = {'total_posts_count': posts_count, 'latest': latest, 'posts': result}
 
             return {'result': response}
+
 
 # YouTube most-engaged hashtags
 class YoutubeEngagedTags(Resource):
