@@ -3,7 +3,7 @@ import './assets/main.css'
 import App from './App.vue'
 import router from './router'
 import VueApexCharts from 'vue3-apexcharts'
-// import i18n from './i18n'
+import firebase from './firebase';
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n';
 import 'vuetify/styles'
@@ -21,6 +21,7 @@ const vuetify = createVuetify({
 })
 
     
+firebase()
 const app = createApp(App);
 
 app.use(router);

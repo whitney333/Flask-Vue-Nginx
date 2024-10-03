@@ -13,7 +13,7 @@
       {
         title:'Dashboard',
         icon:'mdi-view-dashboard',
-        to:'/',
+        to:'/dashboard',
         hasSublinks: false,
         isOpen: false,
       },
@@ -94,7 +94,7 @@
   };
 
   const handleToHomePage = () => {
-    router.push({path: "/"})
+    router.push({path: "/dashboard"})
   }
 
   const onDrawerToggle = (val) => {

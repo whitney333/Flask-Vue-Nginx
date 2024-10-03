@@ -65,7 +65,7 @@
         "chart": "instagramEngagementRate",
         "title": "Instagram Engagement Rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagment rate on Instagram",
+        "tooltipText": "Average engagement rate on Instagram",
         "fetchURL": "/api/instagram/chart",
         "fetchFollowerType": "result",
         "followerDataType": "eng_rate",

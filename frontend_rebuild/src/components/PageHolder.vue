@@ -5,7 +5,7 @@
 <template>
     <v-container
     fluid
-    :class="['fill-height', 'align-start']">
+    class="fill-height align-start">
         <!-- <v-container> -->
             <slot />
         <!-- </v-container> -->

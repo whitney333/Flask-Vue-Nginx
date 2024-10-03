@@ -70,11 +70,11 @@
 import firebaseConfig from "../firebaseConfig";
 import { FacebookAuthProvider, GoogleAuthProvider, getAuth, signInWithPopup, signOut } from "firebase/auth";
 
-// firebaseConfig
+firebaseConfig
 
-// const provider = new GoogleAuthProvider();
+const provider = new GoogleAuthProvider();
 // const fb_provider = new FacebookAuthProvider();
-// const auth = getAuth();
+const auth = getAuth();
 
 export default {
   name: "Login",
@@ -87,41 +87,41 @@ export default {
     }
   },
  methods: {
-    async login() {
-      try {
-        await this.$axios.post('http://localhost:5000/login', {
-          email: this.email,
-          password: this.password
-        })
-        this.$router.push("/protected")
-      } catch (error) {
-        console.log(error)
-      }
-    }
- //   handleSignInGoogle() {
- //      signInWithPopup(auth, provider)
- //          .then((result) => {
- //            // The signed-in user info.
- //            // const user = result.user;
- //            // console.log(result)
- //            this.user = result.user.displayName;
- //            this.isSignedIn = true;
- //            // store jwt token
- //            localStorage.setItem('token', JSON.stringify(result.user.idToken));
- //            alert("Welcome! ", this.user)
- //            this.$router.push("/");
- //          }).catch((error) => {
- //            console.log(error)
- //
- //            this.user = "demo";
- //            this.isSignedIn = true;
- //            // store jwt token
- //            localStorage.setItem('token', "demo_token");
- //            alert("Welcome! ", this.user)
- //            this.$router.push("/");
- //
- //      });
- //    },
+    // async login() {
+    //   try {
+    //     await this.$axios.post('http://localhost:5000/login', {
+    //       email: this.email,
+    //       password: this.password
+    //     })
+    //     this.$router.push("/protected")
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+    // }
+   handleSignInGoogle() {
+      signInWithPopup(auth, provider)
+          .then((result) => {
+            // The signed-in user info.
+            // const user = result.user;
+            // console.log(result)
+            // this.user = result.user.displayName;
+            // this.isSignedIn = true;
+            // store jwt token
+            // localStorage.setItem('token', JSON.stringify(result.user.idToken));
+            alert("Welcome! ", this.user)
+            this.$router.push("/");
+          }).catch((error) => {
+            console.log(error)
+
+            this.user = "demo";
+            this.isSignedIn = true;
+            // store jwt token
+            localStorage.setItem('token', "demo_token");
+            alert("Welcome! ", this.user)
+            this.$router.push("/");
+
+      });
+    },
  //   handleSignInFacebook() {
  //     signInWithPopup(auth, fb_provider)
  //         .then((result) => {

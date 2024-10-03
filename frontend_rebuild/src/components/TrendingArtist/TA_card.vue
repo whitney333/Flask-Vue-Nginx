@@ -61,24 +61,27 @@ import { useRoute, useRouter } from 'vue-router';
             },
             xaxis: {
             // categories: [],
-            type: 'datetime',
-            show: false,
+                type: 'datetime',
+                show: false,
                 labels: {
                     show: false,
                     datetimeFormatter: {
-                    year: 'yyyy',
-                    month: 'MMM \'yy',
-                    day: 'dd MMM',
-                    hour: 'HH:mm'
-                }
-
+                        year: 'yyyy',
+                        month: 'MMM \'yy',
+                        day: 'dd MMM',
+                        hour: 'HH:mm'
+                    }
                 },
                 axisBorder: {
                     show: false
                 },
                 axisTicks: {
                     show: false
+                },
+                tooltip: {
+                    enabled: false
                 }
+
             },
             legend: {
                 fontSize: '14px',
@@ -167,13 +170,18 @@ import { useRoute, useRouter } from 'vue-router';
                 <v-chip :color="props.value.type == 'Actor' ? 'blue' : 'purple'">{{ props.value.type}}</v-chip>
             </v-col>
             <v-col
-            cols="2">
+            cols="1">
             <span>{{ props.value.popularity.toLocaleString('en-US') }}</span>
             </v-col>
             <v-col
             cols="3">
             <AreaCharts width="90%" height="60%" :series="series" :chartOptions="chartOptions" ></AreaCharts>
             </v-col>
+            <v-col
+            cols="1">
+            <v-btn variant="plain" icon="mdi-chevron-right"></v-btn>
+            </v-col>
+
         </v-row>
     </v-card>
 
