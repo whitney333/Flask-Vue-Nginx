@@ -217,9 +217,10 @@ class ArtistInfo(Resource):
 class ArtistPopularity(Resource):
     """
      Calculate artist popularity
-
+    :parameter: week, country
      return
     """
+
     def get_music_charts(self, country, week):
         results = general_db.spotify_charts.aggregate([
             {"$match": {
@@ -639,55 +640,49 @@ class ArtistPopularity(Resource):
             }},
             # match billboard artist with artist
             # if text contains artist name, keep the value
-            #TODO Still fixing the issues of several artists in one song
             {"$addFields": {
                 "_artist": {
                     "$filter": {
                         "input": "$_all",
                         "as": "temp",
                         "cond": {
-                            "$regexMatch": {
-                                "input": "$$temp.artist",
-                                "regex": "$$temp.bb_charts_artist"
-                            }
+                            "$eq": ["$$temp.artist",
+                                    "$$temp.bb_charts_artist"]
                         }
                     }
                 }
+            }
+            },
+            {"$sort": {"bb_total_score": -1}},
+            # match artist
+            {"$project": {
+                "bb_artist": "$bb_artist",
+                "bb_total_score": "$bb_total_score",
+                "artist": {
+                    "$arrayElemAt": ["$_artist", 0]
+                }
+            }},
+            # return needed fields
+            {"$project": {
+                "mid": "$artist.mid",
+                "artist": "$artist.artist",
+                "week": "$artist.week",
+                "spotify_total_score": "$artist.spotify_total_score",
+                "youtube_total_score": "$artist.youtube_total_score",
+                "billboard_total_score": "$bb_total_score",
+                "platforms": "$artist.platforms"
+            }},
+            {"$match": {
+                "mid": {"$ne": None}
+            }},
+            {"$addFields": {
+                "music_performance_score": {
+                    "$multiply": [
+                        {"$add": ["$spotify_total_score", "$youtube_total_score", "$billboard_total_score"]}, 0.3
+                    ]
+                }
             }}
-
-            # match spotify-youtube artist with artist name
-            #     {"$match": {
-            #        # match artist name with youtube chart artist name
-            #        "artist": "Jimin",
-            #        "youtube_charts": {
-            #           "$elemMatch": {
-            #               "artist": "$youtube_charts.artist"
-            #           }
-            #        }
-            #     }}
-            #     {"$project": {
-            #         "spotify_weekly_top_songs":
-            #     }}
-
-            #     {"$unwind": "$spotify_weekly_top_songs"},
-            #     {"$project": {
-            #         "datetime": "$datetime",
-            #         "country": "$country",
-            #         "year": "$year",
-            #         "month": "$month",
-            #         "day": "$day",
-            #         "week": "$week",
-            #     }}
-            #     {"$project": {
-            #        "combine": {
-            #           "$concatArrays": [
-            #               "$spotify_weekly_top_songs", "$youtube_weekly_top_songs"
-            #            ]
-            #        }
-            #     }}
-            #     {"$unwind": "$youtube_weekly_top_songs"},
-
-        ])
+    ])
 
     def get_instagram_latest_twelve(self):
         pass
