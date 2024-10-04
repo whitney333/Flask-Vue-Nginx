@@ -142,10 +142,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "bilibili",
         "usedCol": {
-            "tooltipText": "Daily trend of Tiktok Hashtags"
+            "tooltipText": "Most-used Bilibili Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Daily trend of Tiktok Hashtags"
+            "tooltipText": "Most-engaged Bilibili Hashtags"
         }
         
     }

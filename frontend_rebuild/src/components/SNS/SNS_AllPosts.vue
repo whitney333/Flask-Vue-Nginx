@@ -24,7 +24,7 @@
             const res = await axios.get(`/api/instagram/post?page=${page.value}&limit=${perPage.value}&sort=${sort.value}`, {setTimeout: 10000})
             posts.value = res.data["result"]["posts"]
             postsCount.value = res.data["result"]["total_posts_count"]
-
+            console.log(res)
         } catch (e) {
             console.error(e);
         }
