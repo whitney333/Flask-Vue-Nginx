@@ -25,7 +25,7 @@ services:
 
   # generates frontend
   frontend:
-    image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:$($frontend_version)"
+    image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend_v1:$($frontend_version)"
     depends_on:
         - backend
     ports:
