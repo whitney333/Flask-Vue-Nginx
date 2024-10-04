@@ -77,10 +77,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "instagram",
         "usedCol": {
-            "tooltipText": "Daily trend of Instagram Hashtags"
+            "tooltipText": "Most-used Instagram Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Daily trend of Instagram Hashtags"
+            "tooltipText": "Most-engaged Instagram Hashtags"
         }
         
     },
