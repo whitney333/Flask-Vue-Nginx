@@ -54,7 +54,7 @@ music_api.add_resource(InkigayoMusicBroadcast, '/music-broadcast/inkigayo/chart'
 artist_api.add_resource(CampaignPackageDetail, '/campaign')
 artist_api.add_resource(ArtistInfo, '/artist/info')
 #Trending Artist
-a
+
 # Tiktok
 tiktok_api.add_resource(TiktokPost, '/tiktok/post')
 # News
