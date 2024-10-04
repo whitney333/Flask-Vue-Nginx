@@ -49,7 +49,7 @@ echo "Executing build_and_push.sh in the backend directory with version $backend
 
 # 執行子目錄中的腳本並傳遞後端版本號作為參數
 echo "Executing build_and_push.sh in the backend directory with version $frontend_version..."
-(cd frontend_v1 && ./build_and_push.sh "$frontend_version")
+(cd frontend_rebuild && ./build_and_push.sh "$frontend_version")
 
 echo "Complete deployment prepairing. All images were sent to AWS ECR. Next step: use Github Action to trigger final update."
 
