@@ -362,6 +362,29 @@ def get_instagram_hashtags_most_engaged_overall():
     except Exception as e:
         return dumps({'err': str(e)})
 
+@instagram_api_bp.route('/instagram/posts', methods=['GET'])
+def get_instagram_post():
+    try:
+        results = main_db.instagram_post_info.aggregate([
+            {"$sort": {"date": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "date": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$date"
+                    }
+                },
+                "media_count": "$media_count",
+                "follower_count": "$follower_count",
+                "posts": "$post"
+            }}
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'error': str(e)})
+
 class InstagramPost(Resource):
     def get(self):
         posts_data = reqparse.RequestParser()
