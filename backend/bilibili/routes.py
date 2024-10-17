@@ -91,6 +91,31 @@ def get_bilibili_index():
     except Exception as e:
         return dumps({'error': str(e)})
 
+@bilibili_api_bp.route('/bilibili/posts', methods=['GET'])
+def get_bilibili_posts():
+    '''
+    Get bilibili all videos
+    :return: videos
+    '''
+    try:
+        results = main_db.bilibili_video_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$datetime"
+                    }
+                },
+                "data": "$data"
+            }}
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'error': str(e)})
+
 
 class BilibiliPost(Resource):
     def get(self):
