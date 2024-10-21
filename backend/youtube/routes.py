@@ -2080,7 +2080,7 @@ class YoutubePost(Resource):
                     "like_count": "$like_count",
                     "favorite_count": "$favorite_count",
                     "comment_count": "$comment_count",
-                    "eng_rate": "$eng_rate",
+                    "eng_rate": {"$round": ["$eng_rate", 2]},
                     "former_url": "$former_url",
                     "thumbnail": "$image",
                     "code": "$code.captures"
