@@ -166,6 +166,7 @@ def get_tiktok_index():
     except Exception as e:
         return dumps({'error': str(e)})
 
+# most-used hashtags
 @tiktok_api_bp.route('/tiktok/hashtags/most-used/recent-ten-posts', methods=['GET'])
 def get_hashtags_recent_ten():
     try:
@@ -234,6 +235,7 @@ def get_hashtags_most_used_overall():
     except Exception as e:
         return dumps({'err': str(e)})
 
+# most-engaged hashtags
 @tiktok_api_bp.route('/tiktok/hashtags/most-engaged/recent-ten-posts', methods=['GET'])
 def get_most_engaged_hashtags_recent_ten():
     try:
@@ -367,6 +369,39 @@ def get_most_engaged_hashtags_overall():
         return dumps({'result': result})
     except Exception as e:
         return dumps({'err': str(e)})
+
+@tiktok_api_bp.route('/tiktok/posts', methods=['GET'])
+def get_tiktok_posts():
+    try:
+        results = main_db.tiktok_video_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$data"},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$datetime"
+                    }
+                },
+                "title": "$data.title",
+                "upload_date": "$data.new_show_date",
+                "views": "$data.views",
+                "like": "$data.like",
+                "comment": "$data.comment",
+                "share": "$data.new_share",
+                "save": "$data.save",
+                "hashtags": "$data.hashtags",
+                "url": "$data.url",
+                "thumbnail": "$data.new_image_url",
+                "music_url": "$data.music_url",
+                "music_title": "$data.music_title"
+            }}
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'error': str(e)})
 
 class TiktokPost(Resource):
     def get(self):
