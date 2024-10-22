@@ -379,6 +379,43 @@ def get_instagram_post():
                 "media_count": "$media_count",
                 "follower_count": "$follower_count",
                 "posts": "$post"
+            }},
+            {"$unwind": "$posts"},
+            # add url
+            {"$addFields": {
+                "former_url": "https://instagram.com/p/"
+            }},
+            # return frontend fields
+            {"$project": {
+                "date": "$date",
+                "media_count": "$media_count",
+                "follower_count": "$follower_count",
+                "username": "$posts.username",
+                "posts_code": "$posts.code",
+                "taken_at": "$posts.taken_at",
+                "media_type": "$posts.media_type",
+                "product_type": "$posts.product_type",
+                "user_pk": "$posts.user.pk",
+                "comment_count": "$posts.comment_count",
+                "like_count": "$posts.like_count",
+                "caption_text": "$posts.caption_text",
+                "view_count": "$posts.view_count",
+                "music_id": "$posts.music_canonical_id",
+                "hashtags": "$posts.hashtags",
+                "cat": "$posts.cat",
+                "image": "$posts.thumbnail_url"
+            }},
+            # calculate eng rate, and round to 2 decimal points
+            {"$addFields": {
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                {"$sum": ["$comment_count", "$like_count"]}, "$follower_count"
+                            ]}, 100
+                        ]
+                    }, 3]
+                }
             }}
         ])
         return dumps({'result': results})
@@ -945,6 +982,7 @@ class InstagramPost(Resource):
             response = {'total_posts_count': posts_count, 'page': int(page), 'perPage': int(page_limit), 'sort': sort, 'posts': posts_list}
 
             return {'result': response}
+
 
 class InstagramPostCategory(Resource):
     def get(self):
