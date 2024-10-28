@@ -399,11 +399,11 @@ def get_instagram_post():
                 "comment_count": "$posts.comment_count",
                 "like_count": "$posts.like_count",
                 "caption_text": "$posts.caption_text",
-                "view_count": "$posts.view_count",
                 "music_id": "$posts.music_canonical_id",
                 "hashtags": "$posts.hashtags",
                 "cat": "$posts.cat",
-                "image": "$posts.thumbnail_url"
+                "image": "$posts.thumbnail_url",
+                "former_url": "$former_url"
             }},
             # calculate eng rate, and round to 2 decimal points
             {"$addFields": {
@@ -416,6 +416,26 @@ def get_instagram_post():
                         ]
                     }, 3]
                 }
+            }},
+            # add post url
+            {"$project": {
+                "date": "$date",
+                "media_count": "$media_count",
+                "follower_count": "$follower_count",
+                "username": "$username",
+                "taken_at": "$taken_at",
+                "media_type": "$media_type",
+                "product_type": "$product_type",
+                "user_pk": "$user_pk",
+                "comment_count": "$comment_count",
+                "like_count": "$like_count",
+                "caption_text": "$caption_text",
+                "music_id": "$music_id",
+                "hashtags": "$hashtags",
+                "cat": "$cat",
+                "image": "$image",
+                "eng_rate": "$eng_rate",
+                "url": {"$concat": ["$former_url", "$posts_code", "/"]}
             }}
         ])
         return dumps({'result': results})
