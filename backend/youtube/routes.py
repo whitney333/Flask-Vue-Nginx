@@ -1890,6 +1890,10 @@ def get_youtube_hashtags_most_engaged_overall():
 
 @youtube_api_bp.route('/youtube/posts')
 def get_youtube_posts():
+    '''
+    Get YouTube all videos of certain artist
+    :return: videos
+    '''
     try:
         results = main_db.youtube_video_info.aggregate([
             {"$sort": {"datetime": -1}},
@@ -1967,21 +1971,41 @@ def get_youtube_posts():
                 "eng_rate": {"$round": ["$eng_rate", 2]},
                 "former_url": "$former_url",
                 "thumbnail": "$image",
-                "code": "$code.captures"
+                "code": "$code.captures",
+                "hashtags": "$tags",
             }},
             {"$unwind": "$code"},
             {"$project": {
-                "publish_at": "$publish_at",
+                "upload_date": "$publish_at",
                 "title": "$title",
                 "view_count": "$view_count",
                 "like_count": "$like_count",
                 "favorite_count": "$favorite_count",
                 "comment_count": "$comment_count",
-                "eng_rate": "$eng_rate",
+                "eng_rate": {"$toString": "$eng_rate"},
                 "url": {"$concat": ["$former_url", "$code", "/"]},
                 "thumbnail": "$thumbnail",
-                "code": "$code"
+                "hashtags": "$hashtags"
             }},
+            {"$group": {
+                "_id": None,
+                "posts": {"$push": "$$ROOT"},
+                "media_count": {"$sum": 1}
+            }},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "_id": 0,
+                "title": "$posts.title",
+                "like_count": "$posts.like_count",
+                "favorite_count": "$posts.favorite_count",
+                "thumbnail": "$posts.thumbnail",
+                "view_count": "$posts.view_count",
+                "media_count": {"$toInt": "$media_count"},
+                "eng_rate": "$posts.eng_rate",
+                "upload_date": "$posts.upload_date",
+                "hashtags": "$posts.hashtags",
+                "url": "$posts.url"
+            }}
         ])
         return dumps({'result': results})
     except Exception as e:
