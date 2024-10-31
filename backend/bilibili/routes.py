@@ -110,6 +110,92 @@ def get_bilibili_posts():
                     }
                 },
                 "data": "$data"
+            }},
+            {"$unwind": "$data"},
+            {"$project": {
+                "title": "$data.title",
+                "upload_date": "$data.upload_date",
+                "view_count": "$data.view",
+                "danmaku_count": "$data.danmu",
+                "comment_count": "$data.comment",
+                "collect_count": "$data.collect",
+                "coin_count": "$data.coin",
+                "share_count": "$data.share",
+                "like_count": "$data.like",
+                "url": "$data.url",
+                "thumbnail": "$data.new_image_url"
+            }},
+            {"$addFields": {
+                "subtotal": {
+                    "$sum": ["$danmaku_count", "$comment_count", "$collect_count", "$coin_count", "$share_count",
+                             "$like_count"]
+                }
+            }},
+            # subtotal divide view count -> eng_rate
+            {"$project": {
+                "_id": 0,
+                "title": "$title",
+                "upload_date": "$upload_date",
+                "view_count": "$view_count",
+                "danmaku_count": "$danmaku_count",
+                "comment_count": "$comment_count",
+                "collect_count": "$collect_count",
+                "coin_count": "$coin_count",
+                "share_count": "$share_count",
+                "like_count": "$like_count",
+                "url": "$url",
+                "thumbnail": "$thumbnail",
+                "eng_rate": {
+                    "$cond": [
+                        {"$eq": ["$view_count", 0]},
+                        0,
+                        {"$divide": ["$subtotal", "$view_count"]}
+                    ]
+                }
+            }},
+            # round to 2
+            {"$project": {
+                "title": "$title",
+                "upload_date": "$upload_date",
+                "view_count": "$view_count",
+                "danmaku_count": "$danmaku_count",
+                "comment_count": "$comment_count",
+                "collect_count": "$collect_count",
+                "coin_count": "$coin_count",
+                "share_count": "$share_count",
+                "like_count": "$like_count",
+                "url": "$url",
+                "thumbnail": "$thumbnail",
+                "eng_rate": {
+                    "$toString": {
+                        "$round": [{
+                            "$multiply": [
+                                "$eng_rate", 100
+                            ]
+                        }, 3]
+                    }}
+            }},
+            # count all media
+            {"$group": {
+                "_id": None,
+                "posts": {"$push": "$$ROOT"},
+                "media_count": {"$sum": {"$toInt": 1}}
+            }},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "title": "$posts.title",
+                "upload_date": "$posts.upload_date",
+                "view_count": "$posts.view_count",
+                "danmaku_count": "$posts.danmaku_count",
+                "comment_count": "$posts.comment_count",
+                "collect_count": "$posts.collect_count",
+                "coin_count": "$posts.coin_count",
+                "share_count": "$posts.share_count",
+                "like_count": "$posts.like_count",
+                "url": "$posts.url",
+                "thumbnail": "$posts.thumbnail",
+                "eng_rate": "$posts.eng_rate",
+                "media_count": "$media_count"
             }}
         ])
         return dumps({'result': results})
