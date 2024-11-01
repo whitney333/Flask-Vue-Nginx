@@ -387,16 +387,51 @@ def get_tiktok_posts():
                 },
                 "title": "$data.title",
                 "upload_date": "$data.new_show_date",
-                "views": "$data.views",
-                "like": "$data.like",
-                "comment": "$data.comment",
-                "share": "$data.new_share",
-                "save": "$data.save",
+                "view_count": "$data.views",
+                "like_count": "$data.like",
+                "comment_count": "$data.comment",
+                "share_count": "$data.new_share",
+                "save_count": "$data.save",
                 "hashtags": "$data.hashtags",
                 "url": "$data.url",
                 "thumbnail": "$data.new_image_url",
                 "music_url": "$data.music_url",
                 "music_title": "$data.music_title"
+            }},
+            {"$addFields": {
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [{
+                            "$divide": [
+                                {"$sum": ["$like_count", "$comment_count", "$share_count", "$save_count"]},
+                                "$view_count"
+                            ]
+                        }, 100]
+                    }, 3]
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "posts": {"$push": "$$ROOT"},
+                "media_count": {"$sum": {"$toInt": 1}}
+            }},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "_id": 0,
+                "title": "$posts.title",
+                "upload_date": "$posts.upload_date",
+                "like_count": "$posts.like_count",
+                "save_count": "$posts.save_count",
+                "share_count": "$posts.share_count",
+                "comment_count": "$posts.comment_count",
+                "view_count": "$posts.view_count",
+                "hashtags": "$posts.hashtags",
+                "url": "$posts.url",
+                "thumbnail": "$posts.thumbnail",
+                "music_url": "$posts.music_url",
+                "music_title": "$posts.music_title",
+                "eng_rate": "$posts.eng_rate",
+                "media_count": "$media_count"
             }}
         ])
         return dumps({'result': results})
