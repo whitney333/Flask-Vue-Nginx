@@ -381,18 +381,25 @@ def get_instagram_post():
                 "posts": "$post"
             }},
             {"$unwind": "$posts"},
-            # add url
             {"$addFields": {
-                "former_url": "https://instagram.com/p/"
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                {"$sum": ["$posts.comment_count", "$posts.like_count"]}, "$follower_count"
+                            ]}, 100
+                        ]
+                    }, 3]
+                }
             }},
             # return frontend fields
             {"$project": {
-                "date": "$date",
+                "_id": "$posts.id",
+                "datetime": "$date",
                 "media_count": "$media_count",
                 "follower_count": "$follower_count",
                 "username": "$posts.username",
-                "posts_code": "$posts.code",
-                "taken_at": "$posts.taken_at",
+                "upload_date": "$posts.taken_at",
                 "media_type": "$posts.media_type",
                 "product_type": "$posts.product_type",
                 "user_pk": "$posts.user.pk",
@@ -402,41 +409,12 @@ def get_instagram_post():
                 "music_id": "$posts.music_canonical_id",
                 "hashtags": "$posts.hashtags",
                 "cat": "$posts.cat",
-                "image": "$posts.thumbnail_url",
-                "former_url": "$former_url"
+                "thumbnail": "$posts.thumbnail_url",
+                "eng_rate": "$eng_rate",
+                "url": {"$concat": ["https://instagram.com/p/", "$posts.code", "/"]}
             }},
             # calculate eng rate, and round to 2 decimal points
-            {"$addFields": {
-                "eng_rate": {
-                    "$round": [{
-                        "$multiply": [
-                            {"$divide": [
-                                {"$sum": ["$comment_count", "$like_count"]}, "$follower_count"
-                            ]}, 100
-                        ]
-                    }, 3]
-                }
-            }},
             # add post url
-            {"$project": {
-                "date": "$date",
-                "media_count": "$media_count",
-                "follower_count": "$follower_count",
-                "username": "$username",
-                "taken_at": "$taken_at",
-                "media_type": "$media_type",
-                "product_type": "$product_type",
-                "user_pk": "$user_pk",
-                "comment_count": "$comment_count",
-                "like_count": "$like_count",
-                "caption_text": "$caption_text",
-                "music_id": "$music_id",
-                "hashtags": "$hashtags",
-                "cat": "$cat",
-                "image": "$image",
-                "eng_rate": "$eng_rate",
-                "url": {"$concat": ["$former_url", "$posts_code", "/"]}
-            }}
         ])
         return dumps({'result': results})
     except Exception as e:

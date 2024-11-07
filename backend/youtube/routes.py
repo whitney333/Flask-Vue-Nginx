@@ -1934,13 +1934,10 @@ def get_youtube_posts():
             {"$project": {
                 "_id": 0,
                 "publish_at": {
-                    "$dateToString": {
-                        "format": "%Y-%m-%d",
-                        "date": {
-                            "$dateFromString": {
-                                "dateString": "$publishedAt"
-                            }}
-                    }},
+                    "$dateFromString": {
+                        "dateString": "$publishedAt"
+                    }
+                },
                 "title": "$title",
                 "view_count": "$viewCount",
                 "like_count": "$likeCount",
@@ -1962,6 +1959,7 @@ def get_youtube_posts():
                 }
             }},
             {"$project": {
+                "id": "$code",
                 "publish_at": "$publish_at",
                 "title": "$title",
                 "view_count": "$view_count",
@@ -1976,13 +1974,14 @@ def get_youtube_posts():
             }},
             {"$unwind": "$code"},
             {"$project": {
+                "id": "$code",
                 "upload_date": "$publish_at",
                 "title": "$title",
                 "view_count": "$view_count",
                 "like_count": "$like_count",
                 "favorite_count": "$favorite_count",
                 "comment_count": "$comment_count",
-                "eng_rate": {"$toString": "$eng_rate"},
+                "eng_rate": "$eng_rate",
                 "url": {"$concat": ["$former_url", "$code", "/"]},
                 "thumbnail": "$thumbnail",
                 "hashtags": "$hashtags"
@@ -1994,9 +1993,10 @@ def get_youtube_posts():
             }},
             {"$unwind": "$posts"},
             {"$project": {
-                "_id": 0,
+                "id": "$code",
                 "title": "$posts.title",
                 "like_count": "$posts.like_count",
+                "comment_count": "$posts.comment_count",
                 "favorite_count": "$posts.favorite_count",
                 "thumbnail": "$posts.thumbnail",
                 "view_count": "$posts.view_count",
@@ -2005,8 +2005,34 @@ def get_youtube_posts():
                 "upload_date": "$posts.upload_date",
                 "hashtags": "$posts.hashtags",
                 "url": "$posts.url"
+            }},  
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+
+@youtube_api_bp.route('/v1/youtube/posts')
+def get_youtube_posts_v1():
+    '''
+    Get YouTube all videos of certain artist
+    :return: videos
+    '''
+    try:
+        results = main_db.youtube_video_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "datetime": "$datetime"
+                    }
+                },
             }}
         ])
+
         return dumps({'result': results})
     except Exception as e:
         return dumps({'err': str(e)})

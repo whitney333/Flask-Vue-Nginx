@@ -373,10 +373,27 @@ def get_most_engaged_hashtags_overall():
 @tiktok_api_bp.route('/tiktok/posts', methods=['GET'])
 def get_tiktok_posts():
     try:
+        latest_tiktok_index = list(main_db["tiktok_index"].find().sort("datetime", -1).limit(1))
+        follower_count = int(latest_tiktok_index[0]['tiktok_follower'])
+        # print("///////// follower_count", type(int(follower_count)))
         results = main_db.tiktok_video_info.aggregate([
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
+            {"$addFields": {
+                "media_count": {"$size": "$data"}
+            }},
             {"$unwind": "$data"},
+            {"$addFields": {
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                {"$sum": ["$data.comment", "$data.like"]}, follower_count
+                            ]}, 100
+                        ]
+                    }, 3]
+                }
+            }},
             {"$project": {
                 "_id": 0,
                 "datetime": {
@@ -387,16 +404,18 @@ def get_tiktok_posts():
                 },
                 "title": "$data.title",
                 "upload_date": "$data.new_show_date",
-                "views": "$data.views",
-                "like": "$data.like",
-                "comment": "$data.comment",
-                "share": "$data.new_share",
-                "save": "$data.save",
+                "view_count": "$data.views",
+                "like_count": "$data.like",
+                "comment_count": "$data.comment",
+                "share_count": "$data.new_share",
+                "save_count": "$data.save",
                 "hashtags": "$data.hashtags",
                 "url": "$data.url",
                 "thumbnail": "$data.new_image_url",
                 "music_url": "$data.music_url",
-                "music_title": "$data.music_title"
+                "music_title": "$data.music_title",
+                "media_count": "$media_count",
+                "eng_rate": "$eng_rate"
             }}
         ])
         return dumps({'result': results})
