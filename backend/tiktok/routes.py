@@ -334,7 +334,7 @@ def get_most_engaged_hashtags_overall():
             {"$limit": 1},
             {"$unwind": "$data"},
             {"$addFields": {
-                 "sub_total": {
+                "sub_total": {
                     "$sum": ["$data.comment", "$data.like", "$data.new_share"]}
             }},
             {"$project": {
@@ -373,9 +373,6 @@ def get_most_engaged_hashtags_overall():
 @tiktok_api_bp.route('/tiktok/posts', methods=['GET'])
 def get_tiktok_posts():
     try:
-        latest_tiktok_index = list(main_db["tiktok_index"].find().sort("datetime", -1).limit(1))
-        follower_count = int(latest_tiktok_index[0]['tiktok_follower'])
-        # print("///////// follower_count", type(int(follower_count)))
         results = main_db.tiktok_video_info.aggregate([
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
@@ -383,17 +380,6 @@ def get_tiktok_posts():
                 "media_count": {"$size": "$data"}
             }},
             {"$unwind": "$data"},
-            {"$addFields": {
-                "eng_rate": {
-                    "$round": [{
-                        "$multiply": [
-                            {"$divide": [
-                                {"$sum": ["$data.comment", "$data.like"]}, follower_count
-                            ]}, 100
-                        ]
-                    }, 3]
-                }
-            }},
             {"$project": {
                 "_id": 0,
                 "datetime": {
@@ -413,9 +399,42 @@ def get_tiktok_posts():
                 "url": "$data.url",
                 "thumbnail": "$data.new_image_url",
                 "music_url": "$data.music_url",
-                "music_title": "$data.music_title",
-                "media_count": "$media_count",
-                "eng_rate": "$eng_rate"
+                "music_title": "$data.music_title"
+            }},
+            {"$addFields": {
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [{
+                            "$divide": [
+                                {"$sum": ["$like_count", "$comment_count", "$share_count", "$save_count"]},
+                                "$view_count"
+                            ]
+                        }, 100]
+                    }, 3]
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "posts": {"$push": "$$ROOT"},
+                "media_count": {"$sum": {"$toInt": 1}}
+            }},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "_id": 0,
+                "title": "$posts.title",
+                "upload_date": "$posts.upload_date",
+                "like_count": "$posts.like_count",
+                "save_count": "$posts.save_count",
+                "share_count": "$posts.share_count",
+                "comment_count": "$posts.comment_count",
+                "view_count": "$posts.view_count",
+                "hashtags": "$posts.hashtags",
+                "url": "$posts.url",
+                "thumbnail": "$posts.thumbnail",
+                "music_url": "$posts.music_url",
+                "music_title": "$posts.music_title",
+                "eng_rate": "$posts.eng_rate",
+                "media_count": "$media_count"
             }}
         ])
         return dumps({'result': results})
