@@ -11,6 +11,8 @@ from artist.routes import *
 from tiktok.routes import *
 from news.routes import *
 from twitter.routes import *
+from user.routes import *
+
 
 
 app = Flask(__name__)
@@ -25,6 +27,8 @@ app.register_blueprint(artist_api_bp)
 app.register_blueprint(tiktok_api_bp)
 app.register_blueprint(news_api_bp)
 app.register_blueprint(twitter_api_bp)
+app.register_blueprint(user_api_bp)
+
 
 # add resource endpoint
 # Instagram
@@ -61,7 +65,6 @@ tiktok_api.add_resource(TiktokPost, '/tiktok/post')
 news_api.add_resource(TheQooHot, '/theqoo/hot')
 # Twitter
 twitter_api.add_resource(TwitterIndex, '/twitter/index')
-
 
 @app.route('/', methods=['GET'])
 def root():
