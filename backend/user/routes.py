@@ -58,8 +58,6 @@ def register():
         "email": email,
     }
 
-    print("\n //////// /v1/auth/register: ", obj, "\n")
-
     try:
         result = user_db.users.insert_one(obj)
         return jsonify({"status": "success"})
@@ -71,9 +69,9 @@ def register():
 def getUser(firebaseId):
     try:
         result = user_db.users.find_one({"firebaseId": firebaseId})
-        print("\n ///////////result", result, firebaseId, "\n")
+
         if result:
-            result["_id"] = str(result["_id"])  # Convert _id to string
+            result["_id"] = str(result["_id"])
 
         return jsonify({"status": "success", "result": result})
     except Exception as e:
