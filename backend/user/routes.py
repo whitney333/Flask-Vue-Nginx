@@ -1,6 +1,5 @@
 from flask import jsonify, Blueprint, request
 from flask_restful import Resource, reqparse, Api
-import bcrypt
 import uuid
 
 from pymongo import MongoClient
