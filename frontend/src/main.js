@@ -1,29 +1,46 @@
-import Vue from 'vue'
+import { createApp } from 'vue';
+import './assets/main.css'
 import App from './App.vue'
 import router from './router'
-import store from './store'
-import vuetify from './plugins/vuetify'
-import 'vuetify/dist/vuetify.min.css'
-import './assets/css/bootstrap.min.css'
-import './assets/css/styles.min.css'
-import axios from 'axios'
-import VueApexCharts from 'vue-apexcharts'
-import i18n from './i18n'
+import VueApexCharts from 'vue3-apexcharts'
+import firebase from './firebase';
+import { createPinia } from 'pinia'
+import { createI18n } from 'vue-i18n';
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import '@mdi/font/css/materialdesignicons.css'
+import i18n from './i18n'; // Path to your i18n setup file
+import PrimeVue from 'primevue/config';
+import Aura from '@primevue/themes/aura';
+import 'primeicons/primeicons.css';
+
+// window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
+
+const vuetify = createVuetify({
+    components,
+    directives,
+})
+
+await firebase()
+const app = createApp(App);
+
+app.use(PrimeVue, {
+    theme: {
+        preset: Aura,
+        options: {
+            prefix: 'p',
+            darkModeSelector: 'light',
+            cssLayer: false
+        }
+    }
+});
+app.use(router);
+app.use(vuetify);
+app.use(VueApexCharts);
+app.use(i18n);
+app.use(createPinia())
+app.mount('#app');
 
 
-
-Vue.config.productionTip = false
-Vue.prototype.axios = axios;
-
-Vue.use(VueApexCharts)
-
-Vue.component('apexchart', VueApexCharts)
-window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
-
-new Vue({
-  router,
-  store,
-  vuetify,
-  i18n,
-  render: h => h(App)
-}).$mount('#app')
