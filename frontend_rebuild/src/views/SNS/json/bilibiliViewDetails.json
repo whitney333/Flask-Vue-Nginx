@@ -4,7 +4,7 @@
         "title": "Bilibili Total Videos",
         "type": "Video",
         "tooltipText": "Number of Videos on Bilibili",
-        "fetchURL": "/api/bilibili/chart",
+        "fetchURL": "/bilibili/chart",
         "fetchFollowerType": "result",
         "followerDataType": "video_num",
         "fetchDateType": "datetime"
@@ -14,7 +14,7 @@
         "title": "Bilibili Total Views",
         "type": "Views",
         "tooltipText": "Number of Views on Bilibili",
-        "fetchURL": "/api/bilibili/chart",
+        "fetchURL": "/bilibili/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_views",
         "fetchDateType": "datetime",
@@ -30,7 +30,7 @@
         "title": "Bilibili Total Likes",
         "type": "Likes",
         "tooltipText": "Number of Likes on Bilibili",
-        "fetchURL": "/api/bilibili/chart",
+        "fetchURL": "/bilibili/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_like",
         "fetchDateType": "datetime",
@@ -46,7 +46,7 @@
         "title": "Bilibili Total Comments",
         "type": "Comments",
         "tooltipText": "Number of comments on Bilibili",
-        "fetchURL": "/api/bilibili/chart",
+        "fetchURL": "/bilibili/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_comment",
         "fetchDateType": "datetime",
@@ -62,7 +62,7 @@
         "title": "Bilibili Total Shares",
         "type": "Shares",
         "tooltipText": "Number of shares on Bilibili",
-        "fetchURL": "/api/bilibili/chart",
+        "fetchURL": "/bilibili/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_share",
         "fetchDateType": "datetime",
@@ -78,7 +78,7 @@
         "title": "Bilibili Total Bullet Chats",
         "type": "Danmus",
         "tooltipText": "Number of Bullet Chats on Bilibili",
-        "fetchURL": "/api/bilibili/chart",
+        "fetchURL": "/bilibili/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_danmu",
         "fetchDateType": "datetime",
@@ -94,7 +94,7 @@
         "title": "Bilibili Total Coins",
         "type": "Saves",
         "tooltipText": "Number of saves on TikTok",
-        "fetchURL": "/api/tiktok/chart",
+        "fetchURL": "/tiktok/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_save",
         "fetchDateType": "datetime",
@@ -110,7 +110,7 @@
         "title": "Bilibili Total Collects",
         "type": "Saves",
         "tooltipText": "Number of saves on TikTok",
-        "fetchURL": "/api/tiktok/chart",
+        "fetchURL": "/tiktok/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_save",
         "fetchDateType": "datetime",
@@ -126,7 +126,7 @@
         "title": "Bilibili Engagement Rate",
         "type": "Engagement Rate",
         "tooltipText": "Average engagment rate on Tiktok",
-        "fetchURL": "/api/tiktok/chart",
+        "fetchURL": "/tiktok/chart",
         "fetchFollowerType": "result",
         "followerDataType": "eng_rate",
         "fetchDateType": "datetime",
@@ -142,10 +142,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "bilibili",
         "usedCol": {
-            "tooltipText": "Most-used Bilibili Hashtags"
+            "tooltipText": "Daily trend of Tiktok Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Most-engaged Bilibili Hashtags"
+            "tooltipText": "Daily trend of Tiktok Hashtags"
         }
         
     }

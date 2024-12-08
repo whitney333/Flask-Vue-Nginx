@@ -1,12 +1,18 @@
 <script setup>
     import PageHolder from '@/components/PageHolder.vue'
-    import SNSCard from '@/components/SNS/SNS_card.vue'
-    import SNSCardHolder from '@/components/SNS/SNS_card_holder.vue'
-    import SNSHashtagAnalytics from '@/components/SNS/SNS_HashtagAnalytics.vue';
-    import SNSTopicAnalytics from '@/components/SNS/SNS_TopicAnalytics.vue';
+    import SNSCard from '@/views/SNS/components/SNS_card.vue'
+    import SNSCardHolder from '@/views/SNS/components/SNS_card_holder.vue'
+    import SNSHashtagAnalytics from '@/views/SNS/components/SNS_HashtagAnalytics.vue';
+    import SNSTopicAnalytics from '@/views/SNS/components/SNS_TopicAnalytics.vue';
     import tiktokJSON from './json/tiktokViewDetails.json'
+    import { ref } from 'vue';
+    import SNSAllPosts from '@/views/SNS/components/SNS_AllPosts.vue';
+    import axios from '@/axios';
+
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg"
     const colors = ["#000000", "#000000"]
+    const posts = ref([])
+    const platform = "tiktok"
 
     const cardValueLists = [
         tiktokJSON.tiktokFollowerValue,
@@ -17,12 +23,6 @@
         tiktokJSON.tiktokTotalSavesValue,
         tiktokJSON.tiktokEngagementRateValue,
     ]
-    
-    const allPostsValue = {
-        
-    }
-
-
 </script>
 
 <template>
@@ -42,5 +42,5 @@
     <v-divider></v-divider>
         <SNSHashtagAnalytics :iconSrc="iconSrc" :value="tiktokJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics>
     <v-divider></v-divider>
-        <SNSAllPosts :value="allPostsValue"></SNSAllPosts>
+        <SNSAllPosts :platform="platform"></SNSAllPosts>
 </template>
