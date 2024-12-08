@@ -4,7 +4,7 @@
         "title": "Instagram Follower",
         "type": "Followers",
         "tooltipText": "Number of followers on Instagram",
-        "fetchURL": "/api/instagram/chart/follower",
+        "fetchURL": "/instagram/chart/follower",
         "fetchFollowerType": "result",
         "followerDataType": "follower_count",
         "fetchDateType": "datetime"
@@ -14,7 +14,7 @@
         "title": "Instagram Threads Follower",
         "type": "Threads Followers",
         "tooltipText": "Number of followers on Instagram Threads",
-        "fetchURL": "/api/instagram/threads/follower",
+        "fetchURL": "/instagram/threads/follower",
         "fetchFollowerType": "result",
         "followerDataType": "threads_followers",
         "fetchDateType": "datetime"
@@ -24,7 +24,7 @@
         "title": "Instagram Posts",
         "type": "Posts",
         "tooltipText": "Number of posts on Instagram",
-        "fetchURL": "/api/instagram/chart/follower",
+        "fetchURL": "/instagram/chart/follower",
         "fetchFollowerType": "result",
         "followerDataType": "media_count",
         "fetchDateType": "datetime"
@@ -34,7 +34,7 @@
         "title": "Instagram Likes",
         "type": "Likes",
         "tooltipText": "Number of Likes on Instagram",
-        "fetchURL": "/api/instagram/chart",
+        "fetchURL": "/instagram/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_like",
         "fetchDateType": "datetime",
@@ -50,7 +50,7 @@
         "title": "Instagram Comments",
         "type": "Comments",
         "tooltipText": "Number of comments on Instagram",
-        "fetchURL": "/api/instagram/chart",
+        "fetchURL": "/instagram/chart",
         "fetchFollowerType": "result",
         "followerDataType": "total_comment",
         "fetchDateType": "datetime",
@@ -65,8 +65,8 @@
         "chart": "instagramEngagementRate",
         "title": "Instagram Engagement Rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagement rate on Instagram",
-        "fetchURL": "/api/instagram/chart",
+        "tooltipText": "Average engagment rate on Instagram",
+        "fetchURL": "/instagram/chart",
         "fetchFollowerType": "result",
         "followerDataType": "eng_rate",
         "fetchDateType": "datetime",
@@ -77,10 +77,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "instagram",
         "usedCol": {
-            "tooltipText": "Most-used Instagram Hashtags"
+            "tooltipText": "Daily trend of Instagram Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Most-engaged Instagram Hashtags"
+            "tooltipText": "Daily trend of Instagram Hashtags"
         }
         
     },
