@@ -1,0 +1,95 @@
+<script setup>
+
+  import { Captions, CaptionsOff, Eye, Heart, MessageCircle, Send, Tag } from 'lucide-vue-next';
+  import Button from 'primevue/button';
+  import Card from 'primevue/card';
+  import Image from 'primevue/image';
+  import ScrollPanel from 'primevue/scrollpanel';
+  import { ref } from 'vue';
+  const { post } = defineProps({
+    post: Object
+  })
+  const showMore = ref(false)
+
+
+  const handleVisit = () => {
+    window.open(post.url)
+  }
+
+  const handleShowMore = () => {
+    showMore.value = !showMore.value
+  }
+
+  console.log("//Post Card", post);
+
+
+</script>
+
+
+<template>
+    <div class="max-w-sm xl:w-2/5 w-96 xl:min-w-2/5 xl:max-w-full xl:h-96 xl:flex">
+      <Image class="h-48 w-96 xl:h-auto xl:w-64 flex-none rounded-t xl:rounded-t-none xl:rounded-l text-center overflow-hidden" preview>
+        <template #image>
+          <img class="object-cover w-full h-full" :src="post.thumbnail" alt="image" />
+          <!-- <img class="object-cover w-full h-full" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" alt="image" /> -->
+        </template>
+        <template #original="preview">
+          <img class="object-cover w-full h-full" :src="post.thumbnail" alt="image" />
+        </template>
+      </Image>
+      <div class="border-r border-b border-l -mt-2 xl:-mt-0 border-gray-300 xl:border-l-0 w-full xl:border-t xl:border-gray-300 shadow bg-white rounded-b xl:rounded-b-none xl:rounded-r p-4 flex flex-col justify-between leading-normal">
+        <div class="mb-2 flex flex-col gap-3">
+          <div class="flex">
+            <div class="text-gray-700 flex gap-2 w-full">
+              <Heart />
+              <span>
+                {{ post.like_count }}
+              </span>
+            </div>
+            <div class="text-gray-700 flex gap-2 w-full">
+              <MessageCircle />
+              <span>
+                {{ post.comment_count }}
+              </span>
+            </div>
+          </div>
+          <div class="flex">
+            <div class="text-gray-700 flex gap-2 w-full">
+              <Send />
+              <span>
+                {{ post.share_count }}
+              </span>
+            </div>
+            <div class="text-gray-700 flex gap-2 w-full">
+              <Eye />
+              <span>
+                {{ post.likes_count }}
+              </span>
+            </div>
+          </div>
+          <div class="text-gray-700 flex gap-2 w-full">
+            <Tag />
+            <span class="text-balance"> {{ post?.hashtags?.slice(0,5)?.map((h) => `#${h}`)?.join(", ") }} </span>
+          </div>
+        </div>
+        <ScrollPanel v-if="showMore" class="text-gray-900 shadow-md  mt-2 xl:mt-auto mb-2 rounded-lg leading-none h-32">{{ post.caption_text }}</ScrollPanel>
+          <!-- <img class="w-10 h-10 rounded-full mr-4" src="/img/jonathan.jpg" alt="Avatar of Jonathan Reinink"> -->
+        <div class="text-sm flex items-center gap-1">
+          <!-- <Button class=" w-32" @click="handleShowMore"> {{ showMore ? "Hide Caption" : "Show Caption" }}</Button> -->
+          <div class="w-full">
+            <p class="text-gray-600">{{ post?.upload_date?.$date.split("T")[0] }}</p>
+          </div>
+          <div class=" items-center gap-5 w-full flex justify-end">
+            <Button severity="secondary" label="" @click="handleShowMore" raised>
+              <template #icon>
+                <CaptionsOff v-if="showMore" />
+                <Captions v-else="showMore" />
+              </template>
+            </Button>
+            <Button icon="pi pi-angle-right" severity="primary" @click="handleVisit" raised />
+          </div>
+        </div>
+
+    </div>
+  </div>
+</template>
