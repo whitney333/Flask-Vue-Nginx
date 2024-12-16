@@ -218,10 +218,14 @@ class ArtistPopularity(Resource):
     """
      Calculate artist popularity
     :parameter: week, country
+        (global, australia, brazil, canada, france, germany,
+        hongkong, india, indonesia, italy, japan, malaysia,
+        mexico, philippines, singapore, southkorea, spain,
+        taiwan, thailand, unitedkingdom, usa, vietnam)
      return
     """
 
-    def get_music_charts(self, country, week):
+    def get_music_score(self, country, week):
         results = general_db.spotify_charts.aggregate([
             {"$match": {
                 "country": "southkorea"
@@ -684,7 +688,198 @@ class ArtistPopularity(Resource):
             }}
     ])
 
-    def get_instagram_latest_twelve(self):
+    def get_sns_score(self):
         pass
 
+    def get_drama_score(self):
+        results = general_db.Drama.aggregate([
+            # match drama in 2024
+            {"$match": {"BROADCAST_YEAR": 2024}},
+            # return needed fields
+            {"$project": {
+                "korean_name": "$NAME_IN_KOREAN",
+                "english_name": "$NAME",
+                "mid": "$STARRING.MID"
+            }},
+            #     {"$unwind": "$mid"},
+            # get spotify ost
+            {"$lookup": {
+                "from": "spotify_ost",
+                "let": {"english_name": "$english_name"},
+                "pipeline": [
+                    {"$match": {
+                        "$expr": {
+                            "$regexMatch": {
+                                "input": {"$toString": "$$english_name"},
+                                "regex": ".*"
+                            }
+                        }
+                    }}
+                ],
+                "as": "spotify_ost"
+            }},
+            # match country
+            {"$unwind": "$spotify_ost"},
+            {"$match": {"spotify_ost.country": "southkorea"}},
+            # return needed fields
+            {"$project": {
+                "drama_korean_name": "$korean_name",
+                "drama_english_name": "$english_name",
+                "mid": "$mid",
+                "week": "$spotify_ost.week",
+                "datetime": "$spotify_ost.datetime",
+                "country": "$spotify_ost.country",
+                "album": "$spotify_ost.album",
+                "artist": "$spotify_ost.artist",
+                "artist_spotify_code": "$spotify_ost.artist_code",
+                "popularity": "$spotify_ost.popularity",
+                "play_counts": "$spotify_ost.play_counts"
+            }},
+            # match drama name with album name
+            {"$addFields": {
+                "is_match": {
+                    "$regexMatch": {
+                        "input": "$album",
+                        "regex": {
+                            "$concat": [".*", {"$toString": "$drama_english_name"}, ".*"]
+                        },
+                        "options": "i"
+                    }
+                }
+            }},
+            # match drama with album name
+            {"$match": {"is_match": True}},
+            # return needed fields
+            {"$project": {
+                "drama_korean_name": "$drama_korean_name",
+                "drama_english_name": "$drama_english_name",
+                "mid": "$mid",
+                "week": "$week",
+                "datetime": "$datetime",
+                "country": "$country",
+                "album": "$album",
+                "artist": "$artist",
+                "artist_spotify_code": "$artist_spotify_code",
+                "popularity": "$popularity",
+                "play_counts": "$play_counts",
+                #         "is_match": "$is_match"
+            }},
+            # match week date
+            {"$match": {"week": 40}},
+            # group by drama
+            # keep artist mid, play counts of songs, week, datetime, country
+            {"$group": {
+                "_id": "$drama_english_name",
+                "drama_korean_name": {"$first": "$drama_korean_name"},
+                "mid": {"$first": "$mid"},
+                "week": {"$first": "$week"},
+                "datetime": {"$first": "$datetime"},
+                "country": {"$addToSet": "$country"},
+                "play_counts": {"$push": {"$toInt": "$play_counts"}}
+            }},
+            # calculate total streams each drama
+            {"$project": {
+                "_id": 1,
+                "drama_korean_name": "$drama_korean_name",
+                "mid": "$mid",
+                "week": "$week",
+                "datetime": "$datetime",
+                "country": "$country",
+                "total_streams": {"$sum": "$play_counts"}
+            }},
+            {"$unwind": "$country"},
+            {"$sort": {"total_streams": -1}},
+            # lookup netflix chary matching: week
+            {"$lookup": {
+                "from": "netflix_charts",
+                "localField": "week",
+                "foreignField": "week",
+                "as": "netflix_chart"
+            }},
+            # match netflix drama name with the original drama name
+            {"$addFields": {
+                "_drama": {
+                    "$filter": {
+                        "input": "$netflix_chart",
+                        "as": "netflix",
+                        "cond": {
+                            "$regexMatch": {
+                                "input": {"$toString": "$$netflix.name"},
+                                "regex": {
+                                    "$concat": [".*", "$_id", ".*"]
+                                },
+                                "options": "i"
+                            }
+                        }
+                    }
+                }
+            }},
+            # return field
+            {"$project": {
+                "_id": 1,
+                "drama_korean_name": "$drama_korean_name",
+                "mid": "$mid",
+                "week": "$week",
+                "datetime": "$datetime",
+                "sp_country": "$country",
+                "total_streams": "$total_streams",
+                "netflix_chart": "$_drama"
+            }},
+            {"$addFields": {
+                "netflix_chart": {
+                    "$map": {
+                        "input": "$netflix_chart",
+                        "as": "netflix_chart",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$netflix_chart",
+                                {"rank_score": {
+                                    "$subtract": [
+                                        {"$toInt": 201},
+                                        {"$toInt": "$$netflix_chart.rank"}
+                                    ]
+                                }}
+                            ]
+                        }
+                    }
+                }
+            }},
+            # calculate weeks on chart score
+            {"$addFields": {
+                "netflix_chart": {
+                    "$map": {
+                        "input": "$netflix_chart",
+                        "as": "netflix_chart",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$netflix_chart",
+                                {"wkc_score": {
+                                    "$multiply": [
+                                        {"$toInt": "$$netflix_chart.weeks_on_chart"}, 10
+                                    ]
+                                }}
+                            ]
+                        }
+                    }
+                }
+            }},
+            # match country: south-korea
+            {"$unwind": "$netflix_chart"},
+            #     {"$match": {"_drama.country": "south-korea"}},
+            # return needed field
+            {"$project": {
+                "_id": 1,
+                "drama_korean_name": "$drama_korean_name",
+                "mid": "$mid",
+                "week": "$week",
+                "datetime": "$datetime",
+                "sp_country": "$sp_country",
+                "total_streams": "$total_streams",
+                "nf_country": "$netflix_chart.country",
+                "nf_score":
+                    {"$sum": [
+                        {"$toInt": "$netflix_chart.rank_score"}, {"$toInt": "$netflix_chart.wkc_score"}
+                    ]}
+            }}
 
+        ])
