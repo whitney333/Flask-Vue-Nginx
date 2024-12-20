@@ -1,3 +1,5 @@
+import datetime
+
 from flask import Flask, jsonify, request, Blueprint
 from flask_cors import CORS
 from random import randint
@@ -689,19 +691,211 @@ class ArtistPopularity(Resource):
     ])
 
     def get_sns_score(self):
-        pass
+        results = general_db.tiktok_index.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "datetime": "$datetime",
+                "tiktok_hashtag_count": "$hashtag_count"
+            }},
+            # lookup youtube index collection with: date
+            {"$lookup": {
+                "from": "youtube_index",
+                "let": {
+                    "foreign_datetime": {
+                        "$dateToString": {
+                            "date": "$datetime",
+                            "format": "%Y-%m-%d"
+                        }
+                    }},
+                "pipeline": [
+                    {"$match": {
+                        "$expr": {
+                            "$eq": [
+                                "$$foreign_datetime",
+                                {"$dateToString": {
+                                    "date": "$datetime",
+                                    "format": "%Y-%m-%d"
+                                }}
+                            ]
+                        }
+                    }}
+                ],
+                "as": "youtube_index"
+            }},
+            {"$unwind": "$youtube_index"},
+            # return youtube needed fields
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "tiktok_hashtag_count": "$tiktok_hashtag_count",
+                "youtube_channel_id": "$youtube_index.channel_id",
+                "youtube_channel_hashtag_count": "$youtube_index.channel_hashtag",
+                "youtube_video_hashtag_count": "$youtube_index.video_hashtag"
+            }},
+            # lookup instagram latest 12 posts
+            {"$lookup": {
+                "from": "instagram_latest",
+                "let": {
+                    "foreign_datetime": {
+                        "$dateToString": {
+                            "date": "$date",
+                            "format": "%Y-%m-%d"
+                        }
+                    }},
+                "pipeline": [
+                    {"$match": {
+                        "$expr": {
+                            "$eq": [
+                                "$$foreign_datetime",
+                                {"$dateToString": {
+                                    "date": "$datetime",
+                                    "format": "%Y-%m-%d"
+                                }}
+                            ]
+                        }
+                    }}
+                ],
+                "as": "instagram_latest"
+            }},
+            {"$unwind": "$instagram_latest"},
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "tiktok_hashtag_count": "$tiktok_hashtag_count",
+                "youtube_channel_id": "$youtube_channel_id",
+                "youtube_channel_hashtag_count": "$youtube_channel_hashtag_count",
+                "youtube_video_hashtag_count": "$youtube_video_hashtag_count",
+                "instagram_datetime": "$instagram_latest.date",
+                "instagram_follower_count": "$instagram_latest.follower_count",
+                "instagram_latest_posts": "$instagram_latest.post",
+            }},
+            # group up by date
+            {"$group": {
+                "_id": "$datetime",
+                "tiktok_hashtag_count": {"$first": "$tiktok_hashtag_count"},
+                "youtube_channel_id": {"$first": "$youtube_channel_id"},
+                "youtube_channel_hashtag_count": {"$first": "$youtube_channel_hashtag_count"},
+                "youtube_video_hashtag_count": {"$first": "$youtube_video_hashtag_count"},
+                "instagram_datetime": {"$push": "$instagram_datetime"},
+                "instagram_follower_count": {"$push": "$instagram_follower_count"},
+                "instagram_latest_posts": {"$last": "$instagram_latest_posts"}
+            }},
+            # return the first and the last element of follower count
+            # calculate instagram 7-day follower change
+            {"$project": {
+                "tiktok_hashtag_count": "$tiktok_hashtag_count",
+                "youtube_channel_id": "$youtube_channel_id",
+                "youtube_channel_hashtag_count": "$youtube_channel_hashtag_count",
+                "youtube_video_hashtag_count": "$youtube_video_hashtag_count",
+                "instagram_the_first_follower_count": {
+                    "$arrayElemAt": ["$instagram_follower_count", 0]
+                },
+                "instagram_the_last_follower_count": {
+                    "$arrayElemAt": ["$instagram_follower_count", -1]
+                },
+                "instagram_latest_posts": "$instagram_latest_posts"
+            }},
+            {"$project": {
+                "tiktok_hashtag_count": "$tiktok_hashtag_count",
+                "youtube_channel_id": "$youtube_channel_id",
+                "youtube_channel_hashtag_count": "$youtube_channel_hashtag_count",
+                "youtube_video_hashtag_count": "$youtube_video_hashtag_count",
+                "instagram_follower_growth": {
+                    #             "$round": [
+                    #                 {"$multiply": [
+                    #                     {"$divide": [
+                    "$subtract": ["$instagram_the_last_follower_count", "$instagram_the_first_follower_count"],
+                    #                         "$instagram_the_first_follower_count"
+                    #                     ]},
+                    #                     100
+                    #                 ]}, 3
+                    #             ]
+                },
+                "instagram_latest_posts": "$instagram_latest_posts"
+            }},
+            # flatten array, and preprocess values
+            {"$unwind": "$instagram_latest_posts"},
+            {"$project": {
+                "tiktok_hashtag_count": {"$toInt": "$tiktok_hashtag_count"},
+                "youtube_channel_id": "$youtube_channel_id",
+                "youtube_channel_hashtag_count": {
+                    "$cond": {
+                        "if": {
+                            "$eq": ["$youtube_channel_hashtag_count", "< 100"]
+                        },
+                        "then": {"$toInt": 100},
+                        "else": "$youtube_channel_hashtag_count"
+                    }
+                },
+                "youtube_video_hashtag_count": {
+                    "$cond": {
+                        "if": {
+                            "$eq": ["$youtube_video_hashtag_count", "< 100"]
+                        },
+                        "then": {"$toInt": 100},
+                        "else": "$youtube_video_hashtag_count"
+                    }
+                },
+                "instagram_follower_growth": "$instagram_follower_growth",
+                "ig_like_count": {
+                    "$cond": {
+                        "if": {
+                            "$lt": ["$instagram_latest_posts.like_count", 0]
+                        },
+                        "then": {"$toInt": 0},
+                        "else": "$instagram_latest_posts.like_count"
+                    }
+                },
+                "ig_comment_count": "$instagram_latest_posts.comment_count"
+            }},
+            # group by datetime, and sum up instagram likes & comments
+            {"$group": {
+                "_id": "$_id",
+                "tiktok_hashtag_count": {"$first": "$tiktok_hashtag_count"},
+                "youtube_channel_id": {"$first": "$youtube_channel_id"},
+                "youtube_channel_hashtag_count": {"$first": "$youtube_channel_hashtag_count"},
+                "youtube_video_hashtag_count": {"$first": "$youtube_video_hashtag_count"},
+                "instagram_follower_growth": {"$first": "$instagram_follower_growth"},
+                "instagram_total_likes": {"$sum": "$ig_like_count"},
+                "instagram_total_comments": {"$sum": "$ig_comment_count"}
+            }},
+            {"$project": {
+                "datetime": "$_id",
+                "youtube_channel_id": "$youtube_channel_id",
+                "sns_score": {
+                    "$sum": ["$tiktok_hashtag_count",
+                             "$youtube_channel_hashtag_count",
+                             "$youtube_video_hashtag_count",
+                             "$instagram_follower_count",
+                             "$instagram_total_likes",
+                             "$instagram_total_comments"]
+                }
+            }}
+        ])
 
     def get_drama_score(self):
+        this_year = '{:02d}'.format(datetime.datetime.now().year)
+        # str('{:02d}'.format(12))
+        this_month = '{:02d}'.format(datetime.datetime.now().month)
+        today = '{:02d}'.format(datetime.datetime.now().day)
+        week = datetime.date(int(this_year), int(this_month), int(today)).isocalendar()[1]-1
+
         results = general_db.Drama.aggregate([
-            # match drama in 2024
-            {"$match": {"BROADCAST_YEAR": 2024}},
+            # match drama which are greater or equal than last year
+            # and less or equal than next year
+            {"$match": {
+                "BROADCAST_YEAR": {
+                    "$gte": int(this_year) - 1,
+                    "$lte": int(this_year) + 1
+                }
+            }},
             # return needed fields
             {"$project": {
                 "korean_name": "$NAME_IN_KOREAN",
                 "english_name": "$NAME",
                 "mid": "$STARRING.MID"
             }},
-            #     {"$unwind": "$mid"},
             # get spotify ost
             {"$lookup": {
                 "from": "spotify_ost",
@@ -765,7 +959,7 @@ class ArtistPopularity(Resource):
                 #         "is_match": "$is_match"
             }},
             # match week date
-            {"$match": {"week": 40}},
+            {"$match": {"week": week}},
             # group by drama
             # keep artist mid, play counts of songs, week, datetime, country
             {"$group": {
