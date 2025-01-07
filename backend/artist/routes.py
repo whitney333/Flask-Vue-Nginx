@@ -256,17 +256,21 @@ class ArtistPopularity(Resource):
         except Exception as e:
             return dumps({'err': str(e)})
 
-    def get_music_score(self):
+    def get_music_score(self, country, week):
         try:
-            music_results = general_db.spotify_charts.aggregate([
-                {"$match": {
-                    "country": "southkorea"
-                }},
-                {"$match": {"week": 48}},
-                #     {"$unwind": "$weekly_top_songs"},
-                {"$project": {
+            # stage 1: spotify charts
+            # match country & week
+            match_spotify = {
+                "$match": {
+                    "country": country,
+                    "week": week
+                }
+            }
+
+            # return fields
+            project_spotify = {
+                "$project": {
                     "_id": 0,
-                    # spotify
                     "datetime": "$datetime",
                     "country": "$country",
                     "year": "$year",
@@ -274,13 +278,16 @@ class ArtistPopularity(Resource):
                     "day": "$day",
                     "week": "$week",
                     "spotify_weekly_top_songs": "$weekly_top_songs",
-                    #         "youtube_charts_id": "$youtube_charts._id",
-                    #         "youtube_week": "$youtube_charts.week",
-                    #         "youtube_weekly_top_songs": "$youtube_charts.weekly_top_songs"
-                }},
-                {"$unwind": "$spotify_weekly_top_songs"},
-                # calculate spotify score
-                {"$project": {
+                }}
+
+            # flatten weekly top songs
+            unwind_spotify = {
+                "$unwind": "$spotify_weekly_top_songs"
+            }
+
+            # preprocess fields and calculate spotify score
+            calculate_score_spotify = {
+                "$project": {
                     "datetime": "$datetime",
                     "year": "$year",
                     "month": "$month",
@@ -297,17 +304,24 @@ class ArtistPopularity(Resource):
                             "chars": ","
                         }
                     }
-                }},
-                {"$addFields": {
+                }
+            }
+
+            # add field of spotify score
+            add_score_spotify = {
+                "$addFields": {
                     "sp_score": {
                         "$subtract": [
                             {"$toInt": 201},
                             {"$toInt": "$sp_rank"}
                         ]
                     }
-                }},
-                # group by artist, get total score
-                {"$group": {
+                }
+            }
+
+            # group artist
+            group_spotify = {
+                "$group": {
                     "_id": "$sp_artist_id",
                     "datetime": {"$first": "$datetime"},
                     "year": {"$first": "$year"},
@@ -317,8 +331,12 @@ class ArtistPopularity(Resource):
                     "country": {"$first": "$country"},
                     "artist": {"$first": "$artist"},
                     "sp_score_list": {"$addToSet": "$sp_score"}
-                }},
-                {"$project": {
+                }
+            }
+
+            # return final fields
+            get_final_spotify = {
+                "$project": {
                     "sp_id": "$_id",
                     "datetime": "$datetime",
                     "year": "$year",
@@ -334,16 +352,22 @@ class ArtistPopularity(Resource):
                             "in": {"$add": [{"$toInt": "$$value"}, "$$this"]}
                         }
                     }
-                }},
-                # lookup artist
-                {"$lookup": {
+                }
+            }
+
+            # stage 2
+            # lookup Artist collcetion to integrate artist basic info: music platforms & social media accounts
+            lookup_artist = {
+                "$lookup": {
                     "from": "Artist",
                     "localField": "sp_id",
                     "foreignField": "MUSIC_PLATFORMS.ID",
                     "as": "artist_info"
-                }},
-                # return needed fields
-                {"$project": {
+                }
+            }
+
+            first_project_artist = {
+                "$project": {
                     "sp_id": "$sp_id",
                     "datetime": "$datetime",
                     "year": "$year",
@@ -362,9 +386,12 @@ class ArtistPopularity(Resource):
                     "social_medias": {
                         "$arrayElemAt": ["$artist_info.SOCIAL_MEDIAS", 0]
                     }
-                }},
-                # concat music_platforms & social_medias
-                {"$project": {
+                }
+            }
+
+            # concat music platforms & social media accounts
+            concat_artist = {
+                "$project": {
                     "sp_id": "$sp_id",
                     "datetime": "$datetime",
                     "year": "$year",
@@ -378,8 +405,12 @@ class ArtistPopularity(Resource):
                     "all": {
                         "$concatArrays": ["$music_platforms", "$social_medias"]
                     }
-                }},
-                {"$project": {
+                }
+            }
+
+            # project final results of Artist info
+            get_final_artist = {
+                "$project": {
                     "mid": "$mid",
                     "artist": "$artist",
                     "datetime": "$datetime",
@@ -443,17 +474,33 @@ class ArtistPopularity(Resource):
                                         }}]
                             }}
                     }
-                }},
-                # lookup youtube charts
-                {"$lookup": {
+                }
+            }
+
+            # stage 3
+            # lookup youtube charts
+            lookup_youtube = {
+                "$lookup": {
                     "from": "youtube_charts",
                     "localField": "week",
                     "foreignField": "week",
                     "as": "youtube_charts"
-                }},
-                {"$unwind": "$youtube_charts"},
-                {"$match": {"youtube_charts.country": "south korea"}},
-                {"$project": {
+                }
+            }
+
+            # unwind youtube chart
+            unwind_youtube = {
+                "$unwind": "$youtube_charts"
+            }
+
+            # match relevant country
+            match_country_youtube = {
+                "$match": {"youtube_charts.country": "south korea"}
+            }
+
+            # return fields
+            first_project_youtube = {
+                "$project": {
                     "mid": "$mid",
                     "artist": "$artist",
                     "datetime": "$datetime",
@@ -467,9 +514,12 @@ class ArtistPopularity(Resource):
                     "youtube_week": "$youtube_charts.week",
                     "youtube_country": "$youtube_charts.country",
                     "youtube_charts": "$youtube_charts.weekly_top_songs"
-                }},
-                # convert yt_rank to integer
-                {"$project": {
+                }
+            }
+
+            # convert youtube rank to integer
+            second_project_youtube = {
+                "$project": {
                     "_id": 0,
                     "mid": "$mid",
                     "artist": "$artist",
@@ -496,9 +546,12 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                # calculate youtube charts score by artists first
-                {"$addFields": {
+                }
+            }
+
+            # add new field, and calculate score of youtube chart by artist
+            calculate_score_youtube = {
+                "$addFields": {
                     "yt_charts": {
                         "$map": {
                             "input": "$yt_charts",
@@ -515,10 +568,17 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                {"$unwind": "$yt_charts"},
-                # return expand yt
-                {"$project": {
+                }
+            }
+
+            # unwind youtube chart
+            second_unwind_youtube = {
+                "$unwind": "$yt_charts"
+            }
+
+            # return expanded fields
+            expand_value_youtube = {
+                "$project": {
                     "mid": "$mid",
                     "artist": "$artist",
                     "datetime": "$datetime",
@@ -533,15 +593,22 @@ class ArtistPopularity(Resource):
                     "youtube_country": "$youtube_country",
                     "yt_charts_artist": "$yt_charts.artist",
                     "yt_score": "$yt_charts.yt_score"
-                }},
-                {"$group": {
+                }
+            }
+
+            # group by artist
+            group_youtube = {
+                "$group": {
                     "_id": "$yt_charts_artist",
                     "_all": {"$addToSet": "$$ROOT"},
                     "yt_score_list": {"$addToSet": "$yt_score"},
                     "yt_artist": {"$first": "$yt_charts_artist"}
-                }},
-                # calculate yt total score
-                {"$project": {
+                }
+            }
+
+            # calculate youtube total score
+            calculate_total_score_youtube = {
+                "$project": {
                     "_id": 0,
                     "_all": "$_all",
                     "yt_artist": "$yt_artist",
@@ -554,9 +621,12 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                # match yt_artist with sp_artist, if artist name is the same, keep it; not the same, drop it
-                {"$addFields": {
+                }
+            }
+
+            # match youtube artist with spotify artist, if artist name is the same, keep it; not the same, drop it
+            match_artist_youtube_with_spotify = {
+                "$addFields": {
                     "_artist": {
                         "$filter": {
                             "input": "$_all",
@@ -565,16 +635,24 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                {"$project": {
+                }
+            }
+
+            # return fields
+            third_project_youtube = {
+                "$project": {
                     "yt_artist": "$yt_artist",
                     "yt_total_score": "$yt_total_score",
                     "artist": {
                         "$arrayElemAt": ["$_artist", 0]
                     }
-                }},
+                }
+            }
+
+            # reutrn final reuslt of youtube
+            get_final_youtube = {
                 # organize artist info
-                {"$project": {
+                "$project": {
                     "mid": "$artist.mid",
                     "artist": "$artist.artist",
                     "week": "$artist.week",
@@ -582,16 +660,23 @@ class ArtistPopularity(Resource):
                     "spotify_total_score": "$artist.sp_total_score",
                     "youtube_total_score": "$artist.yt_score",
                     "platforms": "$artist.platforms"
-                }},
-                # lookup billboard global 200
-                {"$lookup": {
+                }
+            }
+
+            # stage 4
+            # lookup billboard global 200 chart
+            lookup_billboard = {
+                "$lookup": {
                     "from": "billboard_charts",
                     "localField": "week",
                     "foreignField": "week",
                     "as": "billboard_charts"
-                }},
-                # billboard ranking is global ranking
-                {"$project": {
+                }
+            }
+
+            # get billboard chart rank
+            get_rank_billboard = {
+                "$project": {
                     "mid": "$mid",
                     "artist": "$artist",
                     "week": "$week",
@@ -601,9 +686,12 @@ class ArtistPopularity(Resource):
                     "billboard_charts": {
                         "$arrayElemAt": ["$billboard_charts.data", 0]
                     }
-                }},
-                # convert billboard rank to integer
-                {"$project": {
+                }
+            }
+
+            # convert billboard rank from string to integer
+            convert_rank_billboard = {
+                "$project": {
                     "mid": "$mid",
                     "artist": "$artist",
                     "week": "$week",
@@ -620,9 +708,12 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                # calculate billboard charts score
-                {"$addFields": {
+                }
+            }
+
+            # calculate billboard chart score
+            calculate_score_billboard = {
+                "$addFields": {
                     "bb_charts": {
                         "$map": {
                             "input": "$bb_charts",
@@ -640,10 +731,17 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                {"$unwind": "$bb_charts"},
-                # return expanded billboard
-                {"$project": {
+                }
+            }
+
+            # flatter array
+            flatten_billboard = {
+                "$unwind": "$bb_charts"
+            }
+
+            # return expanded array
+            first_project_billboard = {
+                "$project": {
                     "mid": "$mid",
                     "artist": "$artist",
                     "week": "$week",
@@ -652,15 +750,22 @@ class ArtistPopularity(Resource):
                     "platforms": "$platforms",
                     "bb_charts_artist": "$bb_charts.artist",
                     "bb_score": "$bb_charts.bb_score"
-                }},
-                {"$group": {
+                }
+            }
+
+            # group billboard artist
+            group_billboard = {
+                "$group": {
                     "_id": "$bb_charts_artist",
                     "_all": {"$addToSet": "$$ROOT"},
                     "bb_score_list": {"$addToSet": "$bb_score"},
                     "bb_artist": {"$first": "$bb_charts_artist"}
-                }},
-                # calculate billboard total score
-                {"$project": {
+                }
+            }
+
+            # calculate billboard total score
+            calculate_total_score_billboard = {
+                "$project": {
                     "_id": 0,
                     "_all": "$_all",
                     "bb_artist": "$bb_artist",
@@ -673,10 +778,13 @@ class ArtistPopularity(Resource):
                             }
                         }
                     }
-                }},
-                # match billboard artist with artist
-                # if text contains artist name, keep the value
-                {"$addFields": {
+                }
+            }
+
+            # match billboard artist with artist
+            # if text contains artist name, keep the value
+            match_artist_billboard = {
+                "$addFields": {
                     "_artist": {
                         "$filter": {
                             "input": "$_all",
@@ -688,18 +796,26 @@ class ArtistPopularity(Resource):
                         }
                     }
                 }
-                },
-                {"$sort": {"bb_total_score": -1}},
-                # match artist
-                {"$project": {
+            }
+
+            # sort score descending
+            sort_score_billboard = {
+                "$sort": {"bb_total_score": -1}
+            }
+
+            # return fields
+            second_project_billboard = {
+                "$project": {
                     "bb_artist": "$bb_artist",
                     "bb_total_score": "$bb_total_score",
                     "artist": {
                         "$arrayElemAt": ["$_artist", 0]
                     }
-                }},
-                # return needed fields
-                {"$project": {
+                }
+            }
+
+            third_project_billboard = {
+                "$project": {
                     "mid": "$artist.mid",
                     "artist": "$artist.artist",
                     "week": "$artist.week",
@@ -707,23 +823,72 @@ class ArtistPopularity(Resource):
                     "youtube_total_score": "$artist.youtube_total_score",
                     "billboard_total_score": "$bb_total_score",
                     "platforms": "$artist.platforms"
-                }},
-                {"$match": {
+                }
+            }
+
+            # match artist id
+            match_artist_id_billboard = {
+                "$match": {
                     "mid": {"$ne": None}
-                }},
-                {"$addFields": {
+                }
+            }
+
+            # aggregate music score
+            aggregate_music_score = {
+                "$addFields": {
                     "music_performance_score": {
                         "$multiply": [
                             {"$add": ["$spotify_total_score", "$youtube_total_score", "$billboard_total_score"]}, 0.3
                         ]
                     }
-                }}
-            ])
-            obj_list = []
-            for item in music_results:
-                obj_list.append(item)
+                }
+            }
 
-            return obj_list
+            drama_pipeline = [
+                match_spotify,
+                project_spotify,
+                unwind_spotify,
+                calculate_score_spotify,
+                add_score_spotify,
+                group_spotify,
+                get_final_spotify,
+                lookup_artist,
+                first_project_artist,
+                concat_artist,
+                get_final_artist,
+                lookup_youtube,
+                unwind_youtube,
+                match_country_youtube,
+                first_project_youtube,
+                second_project_youtube,
+                calculate_score_youtube,
+                second_unwind_youtube,
+                expand_value_youtube,
+                group_youtube,
+                calculate_total_score_youtube,
+                match_artist_youtube_with_spotify,
+                third_project_youtube,
+                get_final_youtube,
+                lookup_billboard,
+                get_rank_billboard,
+                convert_rank_billboard,
+                calculate_score_billboard,
+                flatten_billboard,
+                first_project_billboard,
+                group_billboard,
+                calculate_total_score_billboard,
+                match_artist_billboard,
+                sort_score_billboard,
+                second_project_billboard,
+                third_project_billboard,
+                match_artist_id_billboard,
+                aggregate_music_score
+            ]
+
+            results = general_db.spotify_charts.aggregate(drama_pipeline)
+            result = [item for item in results]
+
+            return result
         except Exception as e:
             return dumps({'err': str(e)})
 
@@ -1423,3 +1588,5 @@ class DramaScore(Resource):
         except Exception as e:
             return dumps({'err': str(e)})
 
+class CalculateSnsScore(Resource):
+    pass
