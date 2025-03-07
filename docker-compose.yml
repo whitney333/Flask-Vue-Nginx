@@ -20,7 +20,7 @@ services:
     image: t024-frontend
     container_name: t024-frontend
     build:
-      context: ./frontend_rebuild
+      context: frontend
     depends_on:
         - backend
     ports:

@@ -13,3 +13,4 @@ cloud_client = pymongo.MongoClient(os.environ["DB_HOST"],
 main_db = cloud_client["user"]
 music_db = cloud_client["music"]
 general_db = cloud_client["general"]
+user_db = cloud_client["user"]

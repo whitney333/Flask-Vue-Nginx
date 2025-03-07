@@ -35,7 +35,7 @@ user_api = Api(user_api_bp)
 #     else:
 #         return jsonify({"msg": "Invalid email or password"}), 401
 
-@user_api_bp.route("/v1/auth/register", methods=["POST"])
+@user_api_bp.route("/v1/auth/register", methods=["POST", "OPTIONS"])
 def register():
     
     data = request.get_json()
