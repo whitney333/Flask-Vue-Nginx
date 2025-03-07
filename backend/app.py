@@ -12,7 +12,7 @@ from tiktok.routes import *
 from news.routes import *
 from twitter.routes import *
 from user.routes import *
-
+from campaign.routes import *
 
 
 app = Flask(__name__)
@@ -28,6 +28,7 @@ app.register_blueprint(tiktok_api_bp)
 app.register_blueprint(news_api_bp)
 app.register_blueprint(twitter_api_bp)
 app.register_blueprint(user_api_bp)
+app.register_blueprint(campaign_api_bp)
 
 
 # add resource endpoint
@@ -77,6 +78,21 @@ def get_rand():
         'randomNum': randint(1,100)
     }
     return jsonify(response)
+
+@app.route('/protected-route')
+def protected():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    token = auth_header.split(" ")[1]
+    decoded_token = verify_firebase_token(token)
+    
+    if not decoded_token:
+        return jsonify({"error": "Invalid token"}), 401
+
+    return jsonify({"message": "Access granted", "user": decoded_token}), 200
+
 
 
 if __name__ == '__main__':

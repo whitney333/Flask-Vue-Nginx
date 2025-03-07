@@ -40,7 +40,6 @@ def register():
     
     data = request.get_json()
 
-    userId = str(uuid.uuid4())
     firebase_id = data.get('firebaseId')
     name = data.get('name')
     company_name = data.get('companyName')
@@ -48,7 +47,6 @@ def register():
     image_url = data.get('imageUrl')
     email = data.get('email')
     obj = {
-        "userId": userId,
         "firebaseId": firebase_id,
         "name": name,
         "companyName": company_name,
