@@ -31,7 +31,7 @@
     },
     "instagramLikesValue": {
         "chart": "instagramLikes",
-        "title": "Instagram Latest 50 Posts Likes",
+        "title": "Instagram Total Posts Likes",
         "type": "Likes",
         "tooltipText": "Number of latest 50 posts likes on Instagram",
         "fetchURL": "/instagram/chart",
@@ -47,7 +47,7 @@
     },
     "instagramCommentsValue": {
         "chart": "instagramComments",
-        "title": "Instagram Latest 50 Posts Comments",
+        "title": "Instagram Total Posts Comments",
         "type": "Comments",
         "tooltipText": "Number of latest 50 posts comments on Instagram",
         "fetchURL": "/instagram/chart",

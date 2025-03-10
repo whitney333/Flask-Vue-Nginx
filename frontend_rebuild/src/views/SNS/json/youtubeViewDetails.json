@@ -37,7 +37,7 @@
     },
     "youtubeTotalVideoViewsValue": {
         "chart": "youtubeTotalVideoViews",
-        "title": "YouTube Latest 50 Videos Views",
+        "title": "YouTube Total Videos Views",
         "type": "Views",
         "tooltipText": "Number of latest 50 video views on YouTube",
         "fetchURL": "/youtube/stats/video",
@@ -47,7 +47,7 @@
     },
     "youtubeTotalVideoLikesValue": {
         "chart": "youtubeTotalVideoLikes",
-        "title": "YouTube Latest 50 Videos Likes",
+        "title": "YouTube Total Videos Likes",
         "type": "Total Likes",
         "tooltipText": "Number of latest 50 video likes on YouTube",
         "fetchURL": "/youtube/stats/video",
@@ -63,7 +63,7 @@
     },
     "youtubeTotalVideoCommentsValue": {
         "chart": "youtubeTotalVideoComments",
-        "title": "YouTube Latest 50 Videos Comments",
+        "title": "YouTube Total Videos Comments",
         "type": "Total Comments",
         "tooltipText": "Number of latest 50 video comments on YouTube",
         "fetchURL": "/youtube/stats/video",
