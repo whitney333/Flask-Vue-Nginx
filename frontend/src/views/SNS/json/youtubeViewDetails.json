@@ -1,0 +1,92 @@
+{
+    "youtubeSubscribersValue": {
+        "chart": "youtubeSubscribers",
+        "title": "YouTube Subscribers",
+        "type": "Subscribers",
+        "tooltipText": "Number of Subscribers on YouTube",
+        "fetchURL": "/youtube/stats/channel",
+        "fetchFollowerType": "result",
+        "followerDataType": "subscriber",
+        "fetchDateType": "datetime"
+    },
+    "youtubeTotalChannelVideosValue": {
+        "chart": "youtubeTotalChannelVideos",
+        "title": "YouTube Total Channel Videos",
+        "type": "Views",
+        "tooltipText": "Number of videos on YouTube",
+        "fetchURL": "/youtube/stats/channel",
+        "fetchFollowerType": "result",
+        "followerDataType": "video_num",
+        "fetchDateType": "datetime"
+    },
+    "youtubeTotalChannelViewsValue": {
+        "chart": "youtubeTotalChannelViews",
+        "title": "YouTube Total Channel Views",
+        "type": "Total Channel Views",
+        "tooltipText": "Number of views on YouTube",
+        "fetchURL": "/youtube/stats/channel",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_channel_view",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "channel_view_difference",
+            "followerDataType": "channel_view_difference",
+            "fetchDateType": "datetime",
+            "type": "Daily Change"
+        }
+    },
+    "youtubeTotalVideoViewsValue": {
+        "chart": "youtubeTotalVideoViews",
+        "title": "YouTube Total Video Views",
+        "type": "Views",
+        "tooltipText": "Number of views on YouTube",
+        "fetchURL": "/youtube/stats/video",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_view",
+        "fetchDateType": "datetime"
+    },
+    "youtubeTotalVideoLikesValue": {
+        "chart": "youtubeTotalVideoLikes",
+        "title": "YouTube Total Video Likes",
+        "type": "Total Likes",
+        "tooltipText": "Number of Likes on YouTube",
+        "fetchURL": "/youtube/stats/video",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_like",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "youtubeAvgLike",
+            "followerDataType": "avg_like",
+            "fetchDateType": "datetime",
+            "type": "Likes per video"
+        }
+    },
+    "youtubeTotalVideoCommentsValue": {
+        "chart": "youtubeTotalVideoComments",
+        "title": "YouTube Total Video Comments",
+        "type": "Total Comments",
+        "tooltipText": "Number of Comments on YouTube",
+        "fetchURL": "/youtube/stats/video",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_comment",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "tiktokAvgSaves",
+            "followerDataType": "avg_comment",
+            "fetchDateType": "datetime",
+            "type": "Comments per video"
+        }
+    },
+
+    "hashtagAnalyticsValue": {
+        "apiType": "youtube",
+        "usedCol": {
+            "tooltipText": "Daily trend of Instagram Hashtags"
+        },
+        "engagedCol": {
+            "tooltipText": "Daily trend of Instagram Hashtags"
+        }
+        
+    }
+
+}

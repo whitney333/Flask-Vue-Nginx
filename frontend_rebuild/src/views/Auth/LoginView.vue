@@ -38,6 +38,18 @@
         try {
             const auth = getAuth()
             const data = await signInWithEmailAndPassword(auth , email.value, password.value)
+            const id_token = await data.user.getIdToken();
+            // pass ID token to flask
+            const response = await fetch("/verify-token",
+                {method: "POST",
+                     headers: {
+                       'Content-Type': 'application/json',
+                       'Authorization': `Bearer ${id_token}` // 將 Token 放在 Authorization Header
+                     },
+                  body: JSON.stringify({ someData: 'example' })
+                });
+            const user_id = await response.json();
+            console.log(user_id)
             router.push('/dashboard')
             
         } catch (e) {
@@ -93,26 +105,26 @@
 <template>
     <v-container
         fluid
-        :class="['fill-height', 'align-start', 'bg-grey-lighten-4']">
+        class='fill-height align-start bg-grey-lighten-4'>
         
         <v-card
             :loading="loadingBar"
-            :class="['ma-auto', 'pb-10', 'pt-5']"
+            class='ma-auto pb-10 pt-5'
             :width="450"
             rounded="xl"
         >
             <template v-slot:text>
-                <div :class="['flex-column', 'd-flex','justify-center', 'align-center']">
+                <div class='flex-col flex justify-center align-center'>
 
                     <img :src='mishkanLogo' alt="Mishkan"/>
-                    <span :class="['text-h5']">{{ $t('Log in')}}</span>
+                    <span class='text-h5'>{{ $t('Log in')}}</span>
                     <br />
                     <v-form ref="form" v-model="valid" @submit.prevent class="mb-2">
-                        <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
+                        <div class='flex-col flex justify-center ga-3'>
                             <div>
                             <v-text-field
                                 v-model="email"
-                                :class="['mb-1']"
+                                class='mb-1'
                                 :width="350"
                                 :rules="emailRules"
                                 :label="$t('Email')"
@@ -124,7 +136,7 @@
                             ></v-text-field>
                             <v-text-field
                                 v-model="password"
-                                :class="['mb-1']"
+                                class='mb-1'
                                 :width="350"
                                 :rules="passwordRules"
                                 type="password"
@@ -146,17 +158,17 @@
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
                             <v-btn @click="handleLogin" color="warning" block :disabled="loadingBar">{{ $t('Login') }}</v-btn>
-                            <v-divider :class="['my-4']">
+                            <v-divider class='my-4'>
                                 <span style="color: #757575;">{{ $t('or continue with') }}</span>
                             </v-divider>
                         </div>
                     </v-form>
-                        <div class="d-flex justify-space-around ga-3">
+                        <div class="flex justify-space-around ga-3">
                             <v-btn size="large" color="#DB4437" :width="170" prepend-icon="mdi-google" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Google')" type="submit">Google</v-btn>
                             <v-btn size="large" color="#1877F2" :width="170" prepend-icon="mdi-facebook" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Facebook')" type="submit">Facebook</v-btn>
                         </div>
                         <br />
-                        <div class="d-flex flex-row align-center justify-center">
+                        <div class="flex flex-row align-center justify-center">
                             <span class="text-caption inline">{{ $t("Don't have an account?") }}</span>
                             <v-btn @click="handleRegister" color="#FF6F00" class="text-caption inline" slim density="compact" variant="plain">
                                 <span class="font-weight-bold">Sign up</span>
