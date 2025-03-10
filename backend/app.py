@@ -12,6 +12,9 @@ from tiktok.routes import *
 from news.routes import *
 from twitter.routes import *
 from user.routes import *
+from campaign.routes import *
+import firebase_admin
+from firebase_admin import credentials, auth
 
 
 app = Flask(__name__)
@@ -27,6 +30,11 @@ app.register_blueprint(tiktok_api_bp)
 app.register_blueprint(news_api_bp)
 app.register_blueprint(twitter_api_bp)
 app.register_blueprint(user_api_bp)
+app.register_blueprint(campaign_api_bp)
+
+#initialize firebase admin SDK
+# cred = credentials.Certificate('path/to/your/serviceAccountKey.json')
+# firebase_admin.initialize_app(cred)
 
 # add resource endpoint
 # Instagram
@@ -56,13 +64,57 @@ music_api.add_resource(InkigayoMusicBroadcast, '/music-broadcast/inkigayo/chart'
 artist_api.add_resource(CampaignPackageDetail, '/campaign')
 artist_api.add_resource(ArtistInfo, '/artist/info')
 #Trending Artist
-
+artist_api.add_resource(ArtistPopularity, '/trending-artist/rank/southkorea')
+artist_api.add_resource(DramaScore, '/trending-artist/drama')
 # Tiktok
 tiktok_api.add_resource(TiktokPost, '/tiktok/post')
 # News
 news_api.add_resource(TheQooHot, '/theqoo/hot')
 # Twitter
 twitter_api.add_resource(TwitterIndex, '/twitter/index')
+#Campaign
+campaign_api.add_resource(Campaign, '/campaign')
+
+
+@app.route('/verify-token', methods=['POST'])
+def verify_token():
+    # Get token from Authorization Header
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({'error': 'Authorization header is missing or invalid'}), 401
+
+    id_token = auth_header.split('Bearer ')[1]  # Get token
+
+    try:
+        # Authenticate Firebase ID Token
+        decoded_token = auth.verify_id_token(id_token)
+        uid = decoded_token['uid']  #get user ID
+        email = decoded_token.get('email')  #get user email
+
+        # return success
+        return jsonify({
+            'message': 'Token is valid',
+            'uid': uid,
+            'email': email
+        }), 200
+    except Exception as e:
+        # error
+        return jsonify({'error': str(e)}), 401
+
+@app.route('/protected', methods=['GET'])
+def protected_route():
+    # Get the ID token from the request header
+    id_token = request.headers.get('Authorization')
+    if not id_token:
+        return jsonify({'error': 'Authorization token is missing'}), 401
+
+    try:
+        # Verify the ID token
+        decoded_token = auth.verify_id_token(id_token)
+        uid = decoded_token['uid']
+        return jsonify({'message': f'Authenticated user: {uid}'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 401
 
 
 @app.route('/', methods=['GET'])

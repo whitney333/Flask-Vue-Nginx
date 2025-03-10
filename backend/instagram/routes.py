@@ -415,6 +415,7 @@ def get_instagram_post():
             }},
             # calculate eng rate, and round to 2 decimal points
             # add post url
+            {"$sort": {"upload_date": -1}}
         ])
         return dumps({'result': results})
     except Exception as e:

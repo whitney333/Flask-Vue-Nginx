@@ -30,17 +30,17 @@
     fluid
     :class="['bg-grey-lighten-4']">
         <div
-        :class="['justify-center', 'd-flex', 'align-center']">
+        class="flex w-full justify-center my-10">
             <div
-            :class="['justify-center','ga-4', 'd-flex', 'flex-wrap', 'align-center']">
+            class="ga-4 justify-center flex flex-wrap ">
                 <div v-for="(card, index) in cardValueLists" :key="index">
                     <SNSCard :iconSrc="iconSrc" :colors="colors" :value="card" ></SNSCard>
                 </div>
             </div>
         </div>
-    </v-container>
-    <v-divider></v-divider>
+        <v-divider></v-divider>
         <SNSHashtagAnalytics :iconSrc="iconSrc" :colors="colors" :value="youtubeJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics>
-    <v-divider></v-divider>
+        <v-divider></v-divider>
         <SNSAllPosts :platform="platform"></SNSAllPosts>
+    </v-container>
 </template>

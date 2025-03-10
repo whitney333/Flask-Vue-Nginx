@@ -1,5 +1,6 @@
 import datetime
-
+import os
+from pymongo import MongoClient
 from flask import Flask, jsonify, request, Blueprint
 from flask_cors import CORS
 from random import randint
@@ -229,11 +230,19 @@ class ArtistPopularity(Resource):
     """
 
     def get(self):
+        posts_data = reqparse.RequestParser()
+        posts_data.add_argument('country', type=str, required=True, location='args')
+        posts_data.add_argument('week', type=int, required=True, location='args')
+
+        data = posts_data.parse_args()
+        country = data['country']
+        week = data['week']
+
         # get music, drama, sns score
         try:
             # test week:48, region: south korea
-            drama_data = self.get_drama_score()
-            music_data = self.get_music_score()
+            drama_data = self.get_drama_score(country, week)
+            music_data = self.get_music_score(country, week)
             sns_data = self.get_sns_score()
 
             return jsonify({'drama': drama_data,
@@ -356,7 +365,7 @@ class ArtistPopularity(Resource):
             }
 
             # stage 2
-            # lookup Artist collcetion to integrate artist basic info: music platforms & social media accounts
+            # lookup Artist collection to integrate artist basic info: music platforms & social media accounts
             lookup_artist = {
                 "$lookup": {
                     "from": "Artist",
@@ -844,7 +853,7 @@ class ArtistPopularity(Resource):
                 }
             }
 
-            drama_pipeline = [
+            pipeline = [
                 match_spotify,
                 project_spotify,
                 unwind_spotify,
@@ -885,18 +894,15 @@ class ArtistPopularity(Resource):
                 aggregate_music_score
             ]
 
-            results = general_db.spotify_charts.aggregate(drama_pipeline)
+            results = general_db.spotify_charts.aggregate(pipeline)
             result = [item for item in results]
 
             return result
         except Exception as e:
             return dumps({'err': str(e)})
 
-    ##TODO Question
-    ## sns_score data is not shared, and is under each artist db
-    def get_sns_score(self):
+    def _get_sns_score(self):
         try:
-
             # stage 1
             # get tiktok index
             sort_tiktok = {"$sort": {"datetime": -1}}
@@ -1351,6 +1357,16 @@ class ArtistPopularity(Resource):
         except Exception as e:
             return dumps({'err': str(e)})
 
+    def get_sns_score(self):
+        try:
+            #fetch artist_sns_score collection
+            #stage 1
+            get_data = {
+                ""
+            }
+
+        except Exception as e:
+            return dumps({'err': str(e)})
 
 # Trending Artist
 # trending-artist/rank/taiwan
