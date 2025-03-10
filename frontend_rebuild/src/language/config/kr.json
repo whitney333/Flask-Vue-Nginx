@@ -142,5 +142,9 @@
   "United States": "미국",
   "Latin America": "라틴 아메리카",
   "Australia": "호주",
-  "Japan": "일본"
+  "Japan": "일본",
+  "Asia": "아시아",
+  "North America": "북아메리카",
+  "South America": "남아메리카",
+  "Oceania": "오세아니아"
 }

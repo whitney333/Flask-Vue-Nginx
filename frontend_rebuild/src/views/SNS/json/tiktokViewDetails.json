@@ -11,7 +11,7 @@
     },
     "tiktokTotalLikesValue": {
         "chart": "tiktokTotalLikes",
-        "title": "Tiktok Latest 12 Posts Likes",
+        "title": "Tiktok Total Posts Likes",
         "type": "Likes",
         "tooltipText": "Number of latest 12 posts likes on Tiktok",
         "fetchURL": "/tiktok/chart",
@@ -27,7 +27,7 @@
     },
     "tiktokTotalViewsValue": {
         "chart": "tiktokTotalViews",
-        "title": "Tiktok Latest 12 Posts Views",
+        "title": "Tiktok Total Posts Views",
         "type": "Views",
         "tooltipText": "Number of latest 12 posts views on Tiktok",
         "fetchURL": "/tiktok/chart",
@@ -43,7 +43,7 @@
     },
     "tiktokTotalCommentsValue": {
         "chart": "tiktokTotalComments",
-        "title": "Tiktok Latest 12 Posts Comments",
+        "title": "Tiktok Total Posts Comments",
         "type": "Comments",
         "tooltipText": "Number of latest 12 posts comments on TikTok",
         "fetchURL": "/tiktok/chart",
@@ -59,7 +59,7 @@
     },
     "tiktokTotalSharesValue": {
         "chart": "tiktokTotalShares",
-        "title": "Tiktok Latest 12 Posts Shares",
+        "title": "Tiktok Total Posts Shares",
         "type": "Shares",
         "tooltipText": "Number of latest 12 posts shares on TikTok",
         "fetchURL": "/tiktok/chart",
@@ -75,7 +75,7 @@
     },
     "tiktokTotalSavesValue": {
         "chart": "tiktokTotalSaves",
-        "title": "Tiktok Latest 12 Posts Saves",
+        "title": "Tiktok Total Posts Saves",
         "type": "Saves",
         "tooltipText": "Number of latest 12 posts saves on TikTok",
         "fetchURL": "/tiktok/chart",
