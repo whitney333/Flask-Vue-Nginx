@@ -241,9 +241,9 @@ class ArtistPopularity(Resource):
         # get music, drama, sns score
         try:
             # test week:48, region: south korea
-            drama_data = self.get_drama_score(country, week)
+            drama_data = self.get_drama_score()
             music_data = self.get_music_score(country, week)
-            sns_data = self.get_sns_score()
+            sns_data = self._get_sns_score()
 
             return jsonify({'drama': drama_data,
                             'music': music_data,
@@ -1376,7 +1376,7 @@ class ArtistPopularity(Resource):
 
 
 # shows top 100 drama
-class DramaScore(Resource):
+class CalculateDramaScore(Resource):
     def get(self):
         posts_data = reqparse.RequestParser()
         posts_data.add_argument('region', type=str, required=True, location='args')

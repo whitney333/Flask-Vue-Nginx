@@ -12,7 +12,6 @@ from tiktok.routes import *
 from news.routes import *
 from twitter.routes import *
 from user.routes import *
-from campaign.routes import *
 import firebase_admin
 from firebase_admin import credentials, auth
 
@@ -30,7 +29,6 @@ app.register_blueprint(tiktok_api_bp)
 app.register_blueprint(news_api_bp)
 app.register_blueprint(twitter_api_bp)
 app.register_blueprint(user_api_bp)
-app.register_blueprint(campaign_api_bp)
 
 #initialize firebase admin SDK
 # cred = credentials.Certificate('path/to/your/serviceAccountKey.json')
@@ -64,8 +62,8 @@ music_api.add_resource(InkigayoMusicBroadcast, '/music-broadcast/inkigayo/chart'
 artist_api.add_resource(CampaignPackageDetail, '/campaign')
 artist_api.add_resource(ArtistInfo, '/artist/info')
 #Trending Artist
-artist_api.add_resource(ArtistPopularity, '/trending-artist/rank/southkorea')
-artist_api.add_resource(DramaScore, '/trending-artist/drama')
+artist_api.add_resource(ArtistPopularity, '/trending-artist/rank')
+artist_api.add_resource(CalculateDramaScore, '/trending-artist/drama')
 # Tiktok
 tiktok_api.add_resource(TiktokPost, '/tiktok/post')
 # News
@@ -73,7 +71,7 @@ news_api.add_resource(TheQooHot, '/theqoo/hot')
 # Twitter
 twitter_api.add_resource(TwitterIndex, '/twitter/index')
 #Campaign
-campaign_api.add_resource(Campaign, '/campaign')
+
 
 
 @app.route('/verify-token', methods=['POST'])
