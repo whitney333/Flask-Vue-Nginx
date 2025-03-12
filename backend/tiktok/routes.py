@@ -166,6 +166,7 @@ def get_tiktok_index():
     except Exception as e:
         return dumps({'error': str(e)})
 
+# most-used hashtags
 @tiktok_api_bp.route('/tiktok/hashtags/most-used/recent-ten-posts', methods=['GET'])
 def get_hashtags_recent_ten():
     try:
@@ -234,6 +235,7 @@ def get_hashtags_most_used_overall():
     except Exception as e:
         return dumps({'err': str(e)})
 
+# most-engaged hashtags
 @tiktok_api_bp.route('/tiktok/hashtags/most-engaged/recent-ten-posts', methods=['GET'])
 def get_most_engaged_hashtags_recent_ten():
     try:
@@ -332,7 +334,7 @@ def get_most_engaged_hashtags_overall():
             {"$limit": 1},
             {"$unwind": "$data"},
             {"$addFields": {
-                 "sub_total": {
+                "sub_total": {
                     "$sum": ["$data.comment", "$data.like", "$data.new_share"]}
             }},
             {"$project": {
@@ -367,6 +369,77 @@ def get_most_engaged_hashtags_overall():
         return dumps({'result': result})
     except Exception as e:
         return dumps({'err': str(e)})
+
+@tiktok_api_bp.route('/tiktok/posts', methods=['GET'])
+def get_tiktok_posts():
+    try:
+        results = main_db.tiktok_video_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$addFields": {
+                "media_count": {"$size": "$data"}
+            }},
+            {"$unwind": "$data"},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$datetime"
+                    }
+                },
+                "title": "$data.title",
+                "upload_date": "$data.new_show_date",
+                "view_count": "$data.views",
+                "like_count": "$data.like",
+                "comment_count": "$data.comment",
+                "share_count": "$data.new_share",
+                "save_count": "$data.save",
+                "hashtags": "$data.hashtags",
+                "url": "$data.url",
+                "thumbnail": "$data.new_image_url",
+                "music_url": "$data.music_url",
+                "music_title": "$data.music_title"
+            }},
+            {"$addFields": {
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [{
+                            "$divide": [
+                                {"$sum": ["$like_count", "$comment_count", "$share_count", "$save_count"]},
+                                "$view_count"
+                            ]
+                        }, 100]
+                    }, 3]
+                }
+            }},
+            {"$group": {
+                "_id": None,
+                "posts": {"$push": "$$ROOT"},
+                "media_count": {"$sum": {"$toInt": 1}}
+            }},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "_id": 0,
+                "title": "$posts.title",
+                "upload_date": "$posts.upload_date",
+                "like_count": "$posts.like_count",
+                "save_count": "$posts.save_count",
+                "share_count": "$posts.share_count",
+                "comment_count": "$posts.comment_count",
+                "view_count": "$posts.view_count",
+                "hashtags": "$posts.hashtags",
+                "url": "$posts.url",
+                "thumbnail": "$posts.thumbnail",
+                "music_url": "$posts.music_url",
+                "music_title": "$posts.music_title",
+                "eng_rate": "$posts.eng_rate",
+                "media_count": "$media_count"
+            }}
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'error': str(e)})
 
 class TiktokPost(Resource):
     def get(self):

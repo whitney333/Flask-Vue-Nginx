@@ -362,6 +362,65 @@ def get_instagram_hashtags_most_engaged_overall():
     except Exception as e:
         return dumps({'err': str(e)})
 
+@instagram_api_bp.route('/instagram/posts', methods=['GET'])
+def get_instagram_post():
+    try:
+        results = main_db.instagram_post_info.aggregate([
+            {"$sort": {"date": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "date": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$date"
+                    }
+                },
+                "media_count": "$media_count",
+                "follower_count": "$follower_count",
+                "posts": "$post"
+            }},
+            {"$unwind": "$posts"},
+            {"$addFields": {
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                {"$sum": ["$posts.comment_count", "$posts.like_count"]}, "$follower_count"
+                            ]}, 100
+                        ]
+                    }, 3]
+                }
+            }},
+            # return frontend fields
+            {"$project": {
+                "_id": "$posts.id",
+                "datetime": "$date",
+                "media_count": "$media_count",
+                "follower_count": "$follower_count",
+                "username": "$posts.username",
+                "upload_date": "$posts.taken_at",
+                "media_type": "$posts.media_type",
+                "product_type": "$posts.product_type",
+                "user_pk": "$posts.user.pk",
+                "comment_count": "$posts.comment_count",
+                "like_count": "$posts.like_count",
+                "caption_text": "$posts.caption_text",
+                "music_id": "$posts.music_canonical_id",
+                "hashtags": "$posts.hashtags",
+                "cat": "$posts.cat",
+                "thumbnail": "$posts.thumbnail_url",
+                "eng_rate": "$eng_rate",
+                "url": {"$concat": ["https://instagram.com/p/", "$posts.code", "/"]}
+            }},
+            # calculate eng rate, and round to 2 decimal points
+            # add post url
+            {"$sort": {"upload_date": -1}}
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'error': str(e)})
+
 class InstagramPost(Resource):
     def get(self):
         posts_data = reqparse.RequestParser()
@@ -922,6 +981,7 @@ class InstagramPost(Resource):
             response = {'total_posts_count': posts_count, 'page': int(page), 'perPage': int(page_limit), 'sort': sort, 'posts': posts_list}
 
             return {'result': response}
+
 
 class InstagramPostCategory(Resource):
     def get(self):

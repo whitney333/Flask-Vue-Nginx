@@ -1888,6 +1888,154 @@ def get_youtube_hashtags_most_engaged_overall():
     except Exception as e:
         return dumps({'err': str(e)})
 
+@youtube_api_bp.route('/youtube/posts')
+def get_youtube_posts():
+    '''
+    Get YouTube all videos of certain artist
+    :return: videos
+    '''
+    try:
+        results = main_db.youtube_video_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$video_data"},
+            # return needed field
+            {"$project": {
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$datetime"
+                    }
+                },
+                "publishedAt": "$video_data.publishedAt",
+                "title": "$video_data.title",
+                "description": "$video_data.description",
+                "thumbnails": "$video_data.thumbnails.high.url",
+                "categoryId": "$video_data.categoryId",
+                "viewCount": {"$toInt": "$video_data.viewCount"},
+                "likeCount": {"$toInt": "$video_data.likeCount"},
+                "favoriteCount": {"$toInt": "$video_data.favoriteCount"},
+                "commentCount": {"$toInt": "$video_data.commentCount"},
+                "tags": "$video_data.tags"
+            }},
+            {"$addFields": {
+                "sub_total": {
+                    "$sum": ["$likeCount", "$commentCount"]
+                }
+            }},
+            {"$addFields": {
+                "eng_rate": {
+                    "$divide": ["$sub_total", "$viewCount"]
+                }
+            }},
+            {"$addFields": {
+                "former_url": "https://www.youtube.com/watch?v="
+            }},
+            {"$project": {
+                "_id": 0,
+                "publish_at": {
+                    "$dateFromString": {
+                        "dateString": "$publishedAt"
+                    }
+                },
+                "title": "$title",
+                "view_count": "$viewCount",
+                "like_count": "$likeCount",
+                "favorite_count": "$favoriteCount",
+                "comment_count": "$commentCount",
+                "tags": "$tags",
+                "eng_rate": {
+                    "$multiply": ["$eng_rate", 100]
+                },
+                "former_url": "$former_url",
+                "image": "$thumbnails"
+            }},
+            {"$addFields": {
+                "code": {
+                    "$regexFind": {
+                        "input": "$image",
+                        "regex": "vi/([^/]+)/",
+                    }
+                }
+            }},
+            {"$project": {
+                "id": "$code",
+                "publish_at": "$publish_at",
+                "title": "$title",
+                "view_count": "$view_count",
+                "like_count": "$like_count",
+                "favorite_count": "$favorite_count",
+                "comment_count": "$comment_count",
+                "eng_rate": {"$round": ["$eng_rate", 2]},
+                "former_url": "$former_url",
+                "thumbnail": "$image",
+                "code": "$code.captures",
+                "hashtags": "$tags",
+            }},
+            {"$unwind": "$code"},
+            {"$project": {
+                "id": "$code",
+                "upload_date": "$publish_at",
+                "title": "$title",
+                "view_count": "$view_count",
+                "like_count": "$like_count",
+                "favorite_count": "$favorite_count",
+                "comment_count": "$comment_count",
+                "eng_rate": "$eng_rate",
+                "url": {"$concat": ["$former_url", "$code", "/"]},
+                "thumbnail": "$thumbnail",
+                "hashtags": "$hashtags"
+            }},
+            {"$group": {
+                "_id": None,
+                "posts": {"$push": "$$ROOT"},
+                "media_count": {"$sum": 1}
+            }},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "id": "$code",
+                "title": "$posts.title",
+                "like_count": "$posts.like_count",
+                "comment_count": "$posts.comment_count",
+                "favorite_count": "$posts.favorite_count",
+                "thumbnail": "$posts.thumbnail",
+                "view_count": "$posts.view_count",
+                "media_count": {"$toInt": "$media_count"},
+                "eng_rate": "$posts.eng_rate",
+                "upload_date": "$posts.upload_date",
+                "hashtags": "$posts.hashtags",
+                "url": "$posts.url"
+            }},  
+        ])
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'err': str(e)})
+
+
+@youtube_api_bp.route('/v1/youtube/posts')
+def get_youtube_posts_v1():
+    '''
+    Get YouTube all videos of certain artist
+    :return: videos
+    '''
+    try:
+        results = main_db.youtube_video_info.aggregate([
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "datetime": "$datetime"
+                    }
+                },
+            }}
+        ])
+
+        return dumps({'result': results})
+    except Exception as e:
+        return dumps({'err': str(e)})
 
 class YoutubePost(Resource):
     def get(self):
@@ -2080,7 +2228,7 @@ class YoutubePost(Resource):
                     "like_count": "$like_count",
                     "favorite_count": "$favorite_count",
                     "comment_count": "$comment_count",
-                    "eng_rate": "$eng_rate",
+                    "eng_rate": {"$round": ["$eng_rate", 2]},
                     "former_url": "$former_url",
                     "thumbnail": "$image",
                     "code": "$code.captures"
