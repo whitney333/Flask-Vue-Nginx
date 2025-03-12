@@ -3,6 +3,7 @@ from flask_cors import CORS
 from random import randint
 from config import Config
 from models import main_db, general_db
+from firebase.firebase_auth import verify_firebase_token
 from instagram.routes import *
 from youtube.routes import *
 from bilibili.routes import *
@@ -12,6 +13,7 @@ from tiktok.routes import *
 from news.routes import *
 from twitter.routes import *
 from user.routes import *
+from campaign.routes import *
 import firebase_admin
 from firebase_admin import credentials, auth
 
@@ -99,20 +101,20 @@ def verify_token():
         # error
         return jsonify({'error': str(e)}), 401
 
-@app.route('/protected', methods=['GET'])
-def protected_route():
-    # Get the ID token from the request header
-    id_token = request.headers.get('Authorization')
-    if not id_token:
-        return jsonify({'error': 'Authorization token is missing'}), 401
 
-    try:
-        # Verify the ID token
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token['uid']
-        return jsonify({'message': f'Authenticated user: {uid}'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 401
+@app.route('/protected-route')
+def protected():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    token = auth_header.split(" ")[1]
+    decoded_token = verify_firebase_token(token)
+
+    if not decoded_token:
+        return jsonify({"error": "Invalid token"}), 401
+
+    return jsonify({"message": "Access granted", "user": decoded_token}), 200
 
 
 @app.route('/', methods=['GET'])
