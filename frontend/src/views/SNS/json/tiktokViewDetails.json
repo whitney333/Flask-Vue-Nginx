@@ -1,0 +1,120 @@
+{
+    "tiktokFollowerValue": {
+        "chart": "tiktokFollower",
+        "title": "Tiktok Follower",
+        "type": "Followers",
+        "tooltipText": "Number of followers on Tiktok",
+        "fetchURL": "/tiktok/chart/follower",
+        "fetchFollowerType": "result",
+        "followerDataType": "tiktok_follower",
+        "fetchDateType": "datetime"
+    },
+    "tiktokTotalLikesValue": {
+        "chart": "tiktokTotalLikes",
+        "title": "Tiktok Total Likes",
+        "type": "Likes",
+        "tooltipText": "Number of likes on Tiktok",
+        "fetchURL": "/tiktok/chart",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_like",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "tiktokAvgLikes",
+            "followerDataType": "avg_like",
+            "fetchDateType": "datetime",
+            "type": "Likes per video"
+        }
+    },
+    "tiktokTotalViewsValue": {
+        "chart": "tiktokTotalViews",
+        "title": "Tiktok Total Views",
+        "type": "Views",
+        "tooltipText": "Number of views on Tiktok",
+        "fetchURL": "/tiktok/chart",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_views",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "tiktokAvgViews",
+            "followerDataType": "avg_view",
+            "fetchDateType": "datetime",
+            "type": "Views per video"
+        }
+    },
+    "tiktokTotalCommentsValue": {
+        "chart": "tiktokTotalComments",
+        "title": "Tiktok Total Comments",
+        "type": "Comments",
+        "tooltipText": "Number of comments on TikTok",
+        "fetchURL": "/tiktok/chart",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_comment",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "tiktokAvgComments",
+            "followerDataType": "avg_comment",
+            "fetchDateType": "datetime",
+            "type": "Comments per video"
+        }
+    },
+    "tiktokTotalSharesValue": {
+        "chart": "tiktokTotalShares",
+        "title": "Tiktok Total Shares",
+        "type": "Shares",
+        "tooltipText": "Number of shares on TikTok",
+        "fetchURL": "/tiktok/chart",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_share",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "tiktokAvgShares",
+            "followerDataType": "avg_share",
+            "fetchDateType": "datetime",
+            "type": "Shares per video"
+        }
+    },
+    "tiktokTotalSavesValue": {
+        "chart": "tiktokTotalSaves",
+        "title": "Tiktok Total Saves",
+        "type": "Saves",
+        "tooltipText": "Number of saves on TikTok",
+        "fetchURL": "/tiktok/chart",
+        "fetchFollowerType": "result",
+        "followerDataType": "total_save",
+        "fetchDateType": "datetime",
+        "secondChat": {
+            "chart": "tiktokAvgSaves",
+            "followerDataType": "avg_save",
+            "fetchDateType": "datetime",
+            "type": "Saves per video"
+        }
+    },
+    "tiktokEngagementRateValue": {
+        "chart": "tiktokEngagementRate",
+        "title": "Tiktok Engagement Rate",
+        "type": "Engagement Rate",
+        "tooltipText": "Average engagment rate on Tiktok",
+        "fetchURL": "/tiktok/chart",
+        "fetchFollowerType": "result",
+        "followerDataType": "eng_rate",
+        "fetchDateType": "datetime",
+        "percentageData": true
+    },
+
+
+
+
+
+
+
+    "hashtagAnalyticsValue": {
+        "apiType": "tiktok",
+        "usedCol": {
+            "tooltipText": "Daily trend of Tiktok Hashtags"
+        },
+        "engagedCol": {
+            "tooltipText": "Daily trend of Tiktok Hashtags"
+        }
+        
+    }
+}

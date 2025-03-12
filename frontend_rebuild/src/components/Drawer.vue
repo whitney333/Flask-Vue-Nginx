@@ -73,6 +73,12 @@
             to: '/campaign/analytics',
             active: true
           },
+          {
+            title: 'Posts',
+            icon: 'mdi-post',
+            to: '/campaign/posts',
+            active: true
+          }
         ]
       },
       {

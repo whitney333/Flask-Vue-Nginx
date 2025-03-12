@@ -1,0 +1,63 @@
+{
+    "spotifyFollowersValue": {
+        "chart": "spotifyFollowers",
+        "title": "Spotify Followers",
+        "type": "Followers",
+        "tooltipText": "Number of followers on Spotify",
+        "fetchFollowerType": "posts",
+        "followerDataType": "follower",
+        "range": "three_month",
+        "fetchDateType": "date"
+    },
+    "spotifyMonthlyListenersValue": {
+        "chart": "spotifyMonthlyListeners",
+        "title": "Spotify Monthly Listeners",
+        "type": "Monthly Listeners",
+        "tooltipText": "Number of Listeners on Spotify",
+        "fetchFollowerType": "posts",
+        "followerDataType": "listener",
+        "range": "year",
+        "fetchDateType": "date"
+    },
+    "spotifyFanConversionRateValue": {
+        "chart": "spotifyFanConversionRate",
+        "title": "Spotify Fan Conversion Rate",
+        "type": "Fan Conversion Rate",
+        "tooltipText": "Number of Fan Conversion on Spotify",
+        "fetchFollowerType": "posts",
+        "followerDataType": "conversion_rate",
+        "range": "year",
+        "fetchDateType": "date",
+        "percentageData": true
+    },
+    "spotifyTopCitiesValue": {
+        "chart": "spotifyTopCities",
+        "title": "Spotify Top Cities",
+        "type": "Likes",
+        "tooltipText": "Number of Likes on Instagram",
+        "fetchFollowerType": "posts",
+        "followerDataType": "total_like",
+        "range": "year",
+        "fetchDateType": "date"
+    },
+    "spotifyPopularityIndexValue": {
+        "chart": "spotifyPopularityIndex",
+        "title": "Spotify Popularity Index",
+        "type": "Popularity",
+        "tooltipText": "Number of Popularity on Spotify",
+        "fetchFollowerType": "posts",
+        "followerDataType": "popularity",
+        "range": "year",
+        "fetchDateType": "date"
+    },
+    "melonFollowerValue": {
+        "chart": "melonFollower",
+        "title": "Melon Follower",
+        "type": "Follower",
+        "tooltipText": "Number of Follower on Melon",
+        "fetchFollowerType": "posts",
+        "followerDataType": "follower",
+        "range": "year",
+        "fetchDateType": "date"
+    }
+}

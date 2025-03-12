@@ -4,7 +4,7 @@
         "title": "YouTube Subscribers",
         "type": "Subscribers",
         "tooltipText": "Number of Subscribers on YouTube",
-        "fetchURL": "/api/youtube/stats/channel",
+        "fetchURL": "/youtube/stats/channel",
         "fetchFollowerType": "result",
         "followerDataType": "subscriber",
         "fetchDateType": "datetime"
@@ -14,7 +14,7 @@
         "title": "YouTube Total Channel Videos",
         "type": "Views",
         "tooltipText": "Number of videos on YouTube",
-        "fetchURL": "/api/youtube/stats/channel",
+        "fetchURL": "/youtube/stats/channel",
         "fetchFollowerType": "result",
         "followerDataType": "video_num",
         "fetchDateType": "datetime"
@@ -23,8 +23,8 @@
         "chart": "youtubeTotalChannelViews",
         "title": "YouTube Total Channel Views",
         "type": "Total Channel Views",
-        "tooltipText": "Number of views on YouTube",
-        "fetchURL": "/api/youtube/stats/channel",
+        "tooltipText": "Number of channel views on YouTube",
+        "fetchURL": "/youtube/stats/channel",
         "fetchFollowerType": "result",
         "followerDataType": "total_channel_view",
         "fetchDateType": "datetime",
@@ -37,20 +37,20 @@
     },
     "youtubeTotalVideoViewsValue": {
         "chart": "youtubeTotalVideoViews",
-        "title": "YouTube Total Video Views",
+        "title": "YouTube Total Videos Views",
         "type": "Views",
-        "tooltipText": "Number of views on YouTube",
-        "fetchURL": "/api/youtube/stats/video",
+        "tooltipText": "Number of latest 50 video views on YouTube",
+        "fetchURL": "/youtube/stats/video",
         "fetchFollowerType": "result",
         "followerDataType": "total_view",
         "fetchDateType": "datetime"
     },
     "youtubeTotalVideoLikesValue": {
         "chart": "youtubeTotalVideoLikes",
-        "title": "YouTube Total Video Likes",
+        "title": "YouTube Total Videos Likes",
         "type": "Total Likes",
-        "tooltipText": "Number of Likes on YouTube",
-        "fetchURL": "/api/youtube/stats/video",
+        "tooltipText": "Number of latest 50 video likes on YouTube",
+        "fetchURL": "/youtube/stats/video",
         "fetchFollowerType": "result",
         "followerDataType": "total_like",
         "fetchDateType": "datetime",
@@ -63,10 +63,10 @@
     },
     "youtubeTotalVideoCommentsValue": {
         "chart": "youtubeTotalVideoComments",
-        "title": "YouTube Total Video Comments",
+        "title": "YouTube Total Videos Comments",
         "type": "Total Comments",
-        "tooltipText": "Number of Comments on YouTube",
-        "fetchURL": "/api/youtube/stats/video",
+        "tooltipText": "Number of latest 50 video comments on YouTube",
+        "fetchURL": "/youtube/stats/video",
         "fetchFollowerType": "result",
         "followerDataType": "total_comment",
         "fetchDateType": "datetime",
@@ -81,10 +81,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "youtube",
         "usedCol": {
-            "tooltipText": "Most-used YouTube Hashtags"
+            "tooltipText": "Daily trend of Instagram Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Most-engaged YouTube Hashtags"
+            "tooltipText": "Daily trend of Instagram Hashtags"
         }
         
     }
