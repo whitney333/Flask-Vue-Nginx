@@ -14,7 +14,6 @@ from news.routes import *
 from twitter.routes import *
 from user.routes import *
 from campaign.routes import *
-import firebase_admin
 from firebase_admin import credentials, auth
 
 
@@ -121,13 +120,6 @@ def protected():
 def root():
     text = "Welcome Flask"
     return text
-
-@app.route('/rand', methods=['GET'])
-def get_rand():
-    response = {
-        'randomNum': randint(1,100)
-    }
-    return jsonify(response)
 
 
 if __name__ == '__main__':
