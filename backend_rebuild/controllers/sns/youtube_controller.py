@@ -559,25 +559,453 @@ class YoutubeController:
 
             return result
 
-    @staticmethod
-    def get_youtube_video_view():
+    def get_youtube_video_index(artist_id, range):
         """
-        get the latest 50 videos total views & avg views
+        get the latest 50 videos total views,
+        & total likes, avg likes,
+        & total comments, avg comments
         :return:
+        total views, total likes, total comments,
+        avg likes, avg comments
         """
-        pass
 
-    @staticmethod
-    def get_youtube_video_like():
-        """
-        get the latest 50 videos total likes & avg likes
-        :return:
-        """
-        pass
 
-    @staticmethod
-    def get_youtube_video_comment():
-        pass
+        if (range == "7d"):
+            # calculate the date 7 days ago from today
+            # seven_days_ago = date_end - datetime.timedelta(days=7)
+
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": 1}},
+                # match date range
+                # {"$match": {
+                #     "datetime": {
+                #         "$lte": date_end,
+                #         "$gt": seven_days_ago
+                #     }
+                # }},
+                {"$limit": 7},
+                # unwind video
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "published_at": "$video.published_at",
+                    "view_count": {"$toInt": "$video.view_count"},
+                    "like_count": {"$toInt": "$video.like_count"},
+                    "favorite_count": {"$toInt": "$video.favorite_count"},
+                    "comment_count": {"$toInt": "$video.comment_count"}
+                }},
+                # group videos by date
+                {"$group": {
+                    "_id": "$datetime",
+                    "video": {"$sum": {"$toInt": 1}},
+                    "total_view": {"$sum": "$view_count"},
+                    "total_like": {"$sum": "$like_count"},
+                    "total_favorite": {"$sum": "$favorite_count"},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
+                # calculate subtotal
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
+                    }
+                }},
+                # calculate engagement rate & avg
+                {"$project": {
+                    "datetime": "$_id",
+                    "video": "$video",
+                    "total_view": "$total_view",
+                    "total_like": "$total_like",
+                    "avg_like": {
+                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                    },
+                    "total_comment": "$total_comment",
+                    "avg_comment": {
+                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                    },
+                    "eng_rate": {
+                        "$round": [{
+                            "$multiply": [{
+                                "$divide": ["$sub_total", "$total_view"]
+                            }, 100]
+                        }, 2]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+
+        elif (range == "28d"):
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": 1}},
+                # match date range
+                # {"$match": {
+                #     "datetime": {
+                #         "$lte": date_end,
+                #         "$gt": seven_days_ago
+                #     }
+                # }},
+                {"$limit": 28},
+                # unwind video
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "published_at": "$video.published_at",
+                    "view_count": {"$toInt": "$video.view_count"},
+                    "like_count": {"$toInt": "$video.like_count"},
+                    "favorite_count": {"$toInt": "$video.favorite_count"},
+                    "comment_count": {"$toInt": "$video.comment_count"}
+                }},
+                # group videos by date
+                {"$group": {
+                    "_id": "$datetime",
+                    "video": {"$sum": {"$toInt": 1}},
+                    "total_view": {"$sum": "$view_count"},
+                    "total_like": {"$sum": "$like_count"},
+                    "total_favorite": {"$sum": "$favorite_count"},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
+                # calculate subtotal
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
+                    }
+                }},
+                # calculate engagement rate & avg
+                {"$project": {
+                    "datetime": "$_id",
+                    "video": "$video",
+                    "total_view": "$total_view",
+                    "total_like": "$total_like",
+                    "avg_like": {
+                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                    },
+                    "total_comment": "$total_comment",
+                    "avg_comment": {
+                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                    },
+                    "eng_rate": {
+                        "$round": [{
+                            "$multiply": [{
+                                "$divide": ["$sub_total", "$total_view"]
+                            }, 100]
+                        }, 2]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "90d"):
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": 1}},
+                # match date range
+                # {"$match": {
+                #     "datetime": {
+                #         "$lte": date_end,
+                #         "$gt": seven_days_ago
+                #     }
+                # }},
+                {"$limit": 90},
+                # unwind video
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "published_at": "$video.published_at",
+                    "view_count": {"$toInt": "$video.view_count"},
+                    "like_count": {"$toInt": "$video.like_count"},
+                    "favorite_count": {"$toInt": "$video.favorite_count"},
+                    "comment_count": {"$toInt": "$video.comment_count"}
+                }},
+                # group videos by date
+                {"$group": {
+                    "_id": "$datetime",
+                    "video": {"$sum": {"$toInt": 1}},
+                    "total_view": {"$sum": "$view_count"},
+                    "total_like": {"$sum": "$like_count"},
+                    "total_favorite": {"$sum": "$favorite_count"},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
+                # calculate subtotal
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
+                    }
+                }},
+                # calculate engagement rate & avg
+                {"$project": {
+                    "datetime": "$_id",
+                    "video": "$video",
+                    "total_view": "$total_view",
+                    "total_like": "$total_like",
+                    "avg_like": {
+                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                    },
+                    "total_comment": "$total_comment",
+                    "avg_comment": {
+                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                    },
+                    "eng_rate": {
+                        "$round": [{
+                            "$multiply": [{
+                                "$divide": ["$sub_total", "$total_view"]
+                            }, 100]
+                        }, 2]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "180d"):
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": 1}},
+                # match date range
+                # {"$match": {
+                #     "datetime": {
+                #         "$lte": date_end,
+                #         "$gt": seven_days_ago
+                #     }
+                # }},
+                {"$limit": 180},
+                # unwind video
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "published_at": "$video.published_at",
+                    "view_count": {"$toInt": "$video.view_count"},
+                    "like_count": {"$toInt": "$video.like_count"},
+                    "favorite_count": {"$toInt": "$video.favorite_count"},
+                    "comment_count": {"$toInt": "$video.comment_count"}
+                }},
+                # group videos by date
+                {"$group": {
+                    "_id": "$datetime",
+                    "video": {"$sum": {"$toInt": 1}},
+                    "total_view": {"$sum": "$view_count"},
+                    "total_like": {"$sum": "$like_count"},
+                    "total_favorite": {"$sum": "$favorite_count"},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
+                # calculate subtotal
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
+                    }
+                }},
+                # calculate engagement rate & avg
+                {"$project": {
+                    "datetime": "$_id",
+                    "video": "$video",
+                    "total_view": "$total_view",
+                    "total_like": "$total_like",
+                    "avg_like": {
+                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                    },
+                    "total_comment": "$total_comment",
+                    "avg_comment": {
+                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                    },
+                    "eng_rate": {
+                        "$round": [{
+                            "$multiply": [{
+                                "$divide": ["$sub_total", "$total_view"]
+                            }, 100]
+                        }, 2]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "365d"):
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": 1}},
+                # match date range
+                # {"$match": {
+                #     "datetime": {
+                #         "$lte": date_end,
+                #         "$gt": seven_days_ago
+                #     }
+                # }},
+                {"$limit": 365},
+                # unwind video
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "published_at": "$video.published_at",
+                    "view_count": {"$toInt": "$video.view_count"},
+                    "like_count": {"$toInt": "$video.like_count"},
+                    "favorite_count": {"$toInt": "$video.favorite_count"},
+                    "comment_count": {"$toInt": "$video.comment_count"}
+                }},
+                # group videos by date
+                {"$group": {
+                    "_id": "$datetime",
+                    "video": {"$sum": {"$toInt": 1}},
+                    "total_view": {"$sum": "$view_count"},
+                    "total_like": {"$sum": "$like_count"},
+                    "total_favorite": {"$sum": "$favorite_count"},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
+                # calculate subtotal
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
+                    }
+                }},
+                # calculate engagement rate & avg
+                {"$project": {
+                    "datetime": "$_id",
+                    "video": "$video",
+                    "total_view": "$total_view",
+                    "total_like": "$total_like",
+                    "avg_like": {
+                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                    },
+                    "total_comment": "$total_comment",
+                    "avg_comment": {
+                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                    },
+                    "eng_rate": {
+                        "$round": [{
+                            "$multiply": [{
+                                "$divide": ["$sub_total", "$total_view"]
+                            }, 100]
+                        }, 2]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        else:
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": 1}},
+                # match date range
+                # {"$match": {
+                #     "datetime": {
+                #         "$lte": date_end,
+                #         "$gt": seven_days_ago
+                #     }
+                # }},
+                {"$limit": 7},
+                # unwind video
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "published_at": "$video.published_at",
+                    "view_count": {"$toInt": "$video.view_count"},
+                    "like_count": {"$toInt": "$video.like_count"},
+                    "favorite_count": {"$toInt": "$video.favorite_count"},
+                    "comment_count": {"$toInt": "$video.comment_count"}
+                }},
+                # group videos by date
+                {"$group": {
+                    "_id": "$datetime",
+                    "video": {"$sum": {"$toInt": 1}},
+                    "total_view": {"$sum": "$view_count"},
+                    "total_like": {"$sum": "$like_count"},
+                    "total_favorite": {"$sum": "$favorite_count"},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
+                # calculate subtotal
+                {"$addFields": {
+                    "sub_total": {
+                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
+                    }
+                }},
+                # calculate engagement rate & avg
+                {"$project": {
+                    "datetime": "$_id",
+                    "video": "$video",
+                    "total_view": "$total_view",
+                    "total_like": "$total_like",
+                    "avg_like": {
+                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                    },
+                    "total_comment": "$total_comment",
+                    "avg_comment": {
+                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                    },
+                    "eng_rate": {
+                        "$round": [{
+                            "$multiply": [{
+                                "$divide": ["$sub_total", "$total_view"]
+                            }, 100]
+                        }, 2]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
 
     def get_youtube_channel_hashtag(artist_id, date_end, range):
         format = "%Y-%m-%d"
