@@ -11,7 +11,7 @@ class TiktokController:
     def get_hashtags_most_engaged_recent_ten(self):
         pass
 
-    def get_tiktok_follower(artist_id, date_end, range):
+    def get_follower(artist_id, date_end, range):
         format = "%Y-%m-%d"
         date_end = datetime.datetime.strptime(date_end, format)
 
@@ -249,7 +249,7 @@ class TiktokController:
 
             return result
 
-    def get_tiktok_hashtag(artist_id, date_end, range):
+    def get_hashtag(artist_id, date_end, range):
         format = "%Y-%m-%d"
         date_end = datetime.datetime.strptime(date_end, format)
 
@@ -483,7 +483,7 @@ class TiktokController:
 
             return result
 
-    def get_tiktok_like(artist_id, date_end, range):
+    def get_like(artist_id, date_end, range):
         format = "%Y-%m-%d"
         date_end = datetime.datetime.strptime(date_end, format)
 
