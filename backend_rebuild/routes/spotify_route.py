@@ -7,13 +7,12 @@ spotify_api = Api(spotify_bp)
 
 # spotify follower route
 @spotify_bp.route('/spotify/follower/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
-def spotify_follower(artist_id, date_end, filter):
+def get_spotify_follower(artist_id, date_end, filter):
     try:
         follower = SpotifyController.get_follower(artist_id, date_end, filter)
         return jsonify(follower), 200
     except Exception as e:
         return jsonify({'err': str(e)}), 500
-
 
 # spotify monthly_listener route
 @spotify_bp.route('/spotify/monthly_listener/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])

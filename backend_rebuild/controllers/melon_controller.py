@@ -1,4 +1,4 @@
-from backend_rebuild.models.melon_model import Melon
+from models.melon_model import Melon
 import datetime
 
 

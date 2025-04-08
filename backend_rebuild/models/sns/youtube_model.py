@@ -8,7 +8,7 @@ class YoutubeVideo(EmbeddedDocument):
     published_at = DateTimeField(default=datetime.now())
     title = StringField(required=True)
     thumbnail = URLField(required=True)
-    code = StringField(required=True, unique=True)
+    code = StringField(required=True)
     tags = ListField(required=True)
     category_id = StringField(required=True)
     view_count = StringField(required=True)

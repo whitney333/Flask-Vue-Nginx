@@ -483,7 +483,7 @@ class SpotifyController:
 
 
     # Get spotify popularity
-    def get_popularity_last_7_days(artist_id, date_end, range):
+    def get_popularity(artist_id, date_end, range):
         format = "%Y-%m-%d"
         date_end = datetime.datetime.strptime(date_end, format)
 
