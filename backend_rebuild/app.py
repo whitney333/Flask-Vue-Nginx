@@ -1,5 +1,7 @@
 from flask import Flask
 from routes.melon_route import *
+from routes.spotify_route import *
+from routes.youtube_route import *
 from config import Config
 from mongoengine import *
 
@@ -19,6 +21,8 @@ def create_app(config_class=Config):
 
     # register blueprints
     app.register_blueprint(melon_bp, url_prefix="/api")
+    app.register_blueprint(spotify_bp, url_prefix="/api")
+    app.register_blueprint(youtube_bp, url_prefix="/api")
 
 
     return app

@@ -28,3 +28,4 @@ class Spotify(Document):
     top_track = ListField(EmbeddedDocumentField(SpotifyRegionTopTrack))
     popular_track = DictField(required=True)
     image = URLField(required=True)
+

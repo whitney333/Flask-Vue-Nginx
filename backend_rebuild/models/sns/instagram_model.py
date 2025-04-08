@@ -10,3 +10,6 @@ class Instagram(Document):
     following_count = IntField(required=True),
     profile_pic = URLField(required=True),
     thread_follower = IntField(required=True)
+
+class InstagramPost(Document):
+    pass

@@ -2,7 +2,7 @@ from models.sns.tiktok_model import Tiktok, TiktokVideo
 import datetime
 
 class TiktokController:
-
+    # TODO Tiktok scraping method fix
     # get most-used hashtags
     def get_hashtags_most_used_recent_ten(self):
         pass

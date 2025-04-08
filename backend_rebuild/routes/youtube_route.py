@@ -36,7 +36,7 @@ def get_youtube_channel_hashtag(artist_id, date_end, filter):
 @youtube_bp.route('/youtube/video-hashtag/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
 def get_youtube_video_hashtag(artist_id, date_end, filter):
     try:
-        video_hashtag = YoutubeController.get_youtube_channel_hashtag(artist_id, date_end, filter)
+        video_hashtag = YoutubeController.get_youtube_video_hashtag(artist_id, date_end, filter)
         return jsonify(video_hashtag), 200
     except Exception as e:
         return jsonify({'err': str(e)}), 500

@@ -88,7 +88,7 @@ class YoutubeController:
         return response
 
     @classmethod
-    def get_hashtags_mose_engaged_recent_ten(self):
+    def get_hashtags_most_engaged_recent_ten(self):
         pass
 
     def get_subscribers(artist_id, date_end, range):
