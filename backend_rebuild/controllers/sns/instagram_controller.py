@@ -1113,21 +1113,96 @@ class InstagramController:
 
             return result
 
-    def get_posts_index(self):
+    def get_posts_index(artist_id):
         """
-        get instagram latest 12 posts:
-        total likes, avg likes,
-        & total comments, avg comments
+        get instagram latest 12 posts index
+        :param: artist_id
         :return:
 
-            total likes, total comments,
-            avg likes, avg comments,
-            engagement rate
         """
-
         pipeline = [
-
+            # match artist
+            {"$match": {
+                "user_id": artist_id
+            }},
+            # sort by datetime
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$posts"},
+            # project
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "user_id": "$user_id",
+                "pk": "$posts.pk",
+                "username": "$posts.username",
+                "code": "$posts.code",
+                "taken_at": "$posts.taken_at",
+                "media_type": "$posts.media_type",
+                "product_type": "$posts.product_type",
+                "comment_count": "$posts.comment_count",
+                "like_count": "$posts.like_count",
+                "play_count": "$posts.play_count",
+                "view_count": "$posts.view_count",
+                "caption_text": "$posts.caption_text",
+                "thumbnail": "$posts.thumbnail",
+                "video_url": "$posts.video_url"
+            }},
+            # lookup artist follower Number(
+            {"$lookup": {
+                "from": "instagram",
+                "as": "ig_info",
+                "let": {"user_idd": "$user_id"},
+                "pipeline": [
+                    {"$match": {
+                        "$expr": {
+                            "$eq": ["$user_id", "$$user_idd"]
+                        }
+                    }},
+                    {"$sort": {"datetime": -1}},
+                    {"$limit": 1}
+                ]
+            }},
+            # unwind  ig_info
+            {"$unwind": "$ig_info"},
+            # project
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "user_id": "$user_id",
+                "username": "$username",
+                "taken_at": "$taken_at",
+                "media_type": "$media_type",
+                "product_type": "$product_type",
+                "comment_count": "$comment_count",
+                "like_count": "$like_count",
+                "play_count": "$play_count",
+                # "view_count": "$view_count",
+                "caption_text": "$caption_text",
+                "thumbnail": "$thumbnail",
+                # "follower": "$ig_info.follower_count",
+                "engagement_rate": {
+                    "$round": [{
+                        "$divide": [
+                            {"$sum": ["$like_count", "$comment_count"]}, "$ig_info.follower_count"
+                        ]}, 3]
+                },
+                "url": {
+                    "$concat": [
+                        "https://instagram.com/p/", "$code", "/"
+                    ]
+                }
+            }}
         ]
+        results = Instagram.objects().aggregate(pipeline)
+
+        result = []
+        for item in results:
+            result.append(item)
+        # print(result)
+
+        return result
+
 
     def get_hashtags_most_engaged_recent_twelve(self):
         pass
