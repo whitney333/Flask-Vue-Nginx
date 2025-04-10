@@ -17,7 +17,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -53,7 +53,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -89,7 +89,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -125,7 +125,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -161,7 +161,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -243,7 +243,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -281,7 +281,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -317,7 +317,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -353,7 +353,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -389,7 +389,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -426,7 +426,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -474,7 +474,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -511,7 +511,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -548,7 +548,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -585,7 +585,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -622,7 +622,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -659,7 +659,7 @@ class InstagramController:
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "user_id": artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
