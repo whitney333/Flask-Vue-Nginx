@@ -31,21 +31,29 @@ def get_instagram_post_count(artist_id, date_end, filter):
         return jsonify({'err': str(e)}), 500
 
 
-@instagram_bp.route()
-def get_instagram_like():
+@instagram_bp.route('/instagram/like/<string:artist_id>/<string:filter>', methods=['GET'])
+def get_instagram_like(artist_id, filter):
     """
     Get Instagram latest 12 posts total likes & likes per post
     :return:
     """
-    pass
+    try:
+        likes = InstagramController.get_likes(artist_id, filter)
+        return jsonify(likes), 200
+    except Exception as e:
+        return jsonify({'err': str(e)}), 500
 
-@instagram_bp.route()
-def get_instagram_comment():
+@instagram_bp.route('/instagram/comment/<string:artist_id>/<string:filter>', methods=['GET'])
+def get_instagram_comment(artist_id, filter):
     """
     Get Instagram latest 12 posts total comments & comments per post
     :return:
     """
-    pass
+    try:
+        comments = InstagramController.get_comments(artist_id, filter)
+        return jsonify(comments), 200
+    except Exception as e:
+        return jsonify({'err': str(e)}), 500
 
 @instagram_bp.route()
 def get_instagram_engagement_rate():
