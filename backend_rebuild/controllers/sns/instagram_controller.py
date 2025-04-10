@@ -690,17 +690,444 @@ class InstagramController:
 
             return result
 
+    def get_likes(artist_id, range):
+        """
+        Get total likes & likes per post of the latest 12 posts
+        :param range:
+        :return:
+        """
+
+        if (range == "7d"):
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sortby datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 7},
+                {"$unwind": "$posts"},
+                # return like fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "like_count": "$posts.like_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_like": {"$sum": "$like_count"}
+                }},
+                # get likes per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_likes": "$total_like",
+                    "like_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_like", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "28d"):
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sortby datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 28},
+                {"$unwind": "$posts"},
+                # return like fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "like_count": "$posts.like_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_like": {"$sum": "$like_count"}
+                }},
+                # get likes per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_likes": "$total_like",
+                    "like_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_like", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "90d"):
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sortby datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 90},
+                {"$unwind": "$posts"},
+                # return like fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "like_count": "$posts.like_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_like": {"$sum": "$like_count"}
+                }},
+                # get likes per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_likes": "$total_like",
+                    "like_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_like", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        else:
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sortby datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 7},
+                {"$unwind": "$posts"},
+                # return like fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "like_count": "$posts.like_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_like": {"$sum": "$like_count"}
+                }},
+                # get likes per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_likes": "$total_like",
+                    "like_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_like", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+
+    def get_comments(artist_id, range):
+
+        if (range == "7d"):
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sort by datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 7},
+                {"$unwind": "$posts"},
+                # return comment fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "comment_count": "$posts.comment_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                # get comments per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_comments": "$total_comment",
+                    "comment_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_comment", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "28d"):
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sort by datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 28},
+                {"$unwind": "$posts"},
+                # return comment fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "comment_count": "$posts.comment_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                # get comments per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_comments": "$total_comment",
+                    "comment_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_comment", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        elif (range == "90d"):
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sort by datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 90},
+                {"$unwind": "$posts"},
+                # return comment fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "comment_count": "$posts.comment_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                # get comments per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_comments": "$total_comment",
+                    "comment_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_comment", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+        else:
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                # sort by datetime
+                {"$sort": {"datetime": 1}},
+                # limit posts
+                {"$limit": 7},
+                {"$unwind": "$posts"},
+                # return comment fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "code": "$posts.code",
+                    "comment_count": "$posts.comment_count"
+                }},
+                # group by date,
+                # to calculate the total likes of latest 12 posts daily
+                {"$group": {
+                    "_id": "$datetime",
+                    "code_list": {"$push": "$code"},
+                    "post_count": {"$sum": 1},
+                    "total_comment": {"$sum": "$comment_count"}
+                }},
+                # get comments per post
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$_id",
+                    "total_comments": "$total_comment",
+                    "comment_per_post": {
+                        "$round": [
+                            {"$divide": ["$total_comment", "$post_count"]}, 2
+                        ]
+                    }
+                }}
+            ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+
+            return result
+
     def get_posts_index(self):
-        pass
-    """
-    get instagram latest 12 posts:
-    total likes, avg likes,
-    & total comments, avg comments
-    :return:
-        total likes, total comments,
-        avg likes, avg comments,
-        engagement rate
-    """
+        """
+        get instagram latest 12 posts:
+        total likes, avg likes,
+        & total comments, avg comments
+        :return:
+
+            total likes, total comments,
+            avg likes, avg comments,
+            engagement rate
+        """
+
+        pipeline = [
+
+        ]
 
     def get_hashtags_most_engaged_recent_twelve(self):
         pass
