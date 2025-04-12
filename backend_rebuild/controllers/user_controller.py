@@ -1,50 +1,92 @@
-from ..models.user_model import User
+from models.user_model import Users
 import datetime
 from mongoengine import ValidationError, DoesNotExist
+from flask import request, jsonify
+import uuid
+from functools import wraps
+from firebase_admin import auth
+
+
+# wrap up firebase token required
+def auth_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not request.headers.get('Authorization'):
+            return jsonify({'error': 'No token provided'}), 401
+
+        try:
+            token = request.headers['Authorization'].split(' ').pop()
+            decoded_token = auth.verify_id_token(token)
+            request.user = decoded_token
+        except Exception as e:
+            return jsonify({'error': f'Invalid token: {str(e)}'}), 401
+
+        return f(*args, **kwargs)
+
+    return wrapper
 
 class UserController:
-    @staticmethod
-    def create_user(user_data):
+
+    def get_by_firebase_id(firebase_id):
         """
-        create user
-        :return: user object
+        Get a user by Firebase ID
+        :return:
         """
+
         try:
-            user_data["created_at"] = datetime.datetime.now().isoformat()
+            # return QuerySet
+            # use to_json() method to convert
+            user = Users.objects(firebase_id__exact=firebase_id).first()
 
-            user = User(**user_data)
-            user.save()
-            return user
-        except ValidationError as e:
-            raise ValueError(f"Validation error: {str(e)}")
+            # print(user.to_json())
+            if user:
+                return {
+                    "status": "success",
+                    "data": user.to_json()
+                }, 200
+            else:
+                return {
+                    "status": "err",
+                    "message": "User not found"
+                }, 404
+
         except Exception as e:
-            raise Exception(f"Error creating user: {str(e)}")
+            return {
+                "status": "err",
+                "message": str(e)
+            }, 500
 
-    def update_user(self):
+    # @staticmethod
+    # def create_user():
+    #     """
+    #     create user
+    #     :return: user object
+    #     """
+    #     data = request.get_json()
+    #
+    #     try:
+    #         existing_user = Users.objects(firebase_id=data.get('firebase_id')).first()
+    #
+    #         # check if user exists or not
+    #         if existing_user:
+    #             return jsonify({"error": "User already exists"}), 400
+    #
+    #         # create user in mongodb
+    #         new_user = Users(
+    #             user_id = str(uuid.uuid4()),
+    #             firebase_id = data.get("firebase_id"),
+    #             name = data.get("name"),
+    #             company_name = data.get("company_name"),
+    #             artist_name = data.get("artist_name"),
+    #             image_url = data.get("image_url"),
+    #             email = data.get("email")
+    #         )
+    #         result = Users.objects().insert_one(new_user)
+    #
+    #         return jsonify({"succeeded"}), 201
+    #     except Exception as e:
+    #         return jsonify({"err": str(e)}), 400
+
+    def get_user(self):
         pass
 
-    @staticmethod
-    def get_single_user_by_firebase_id(firebase_id):
-        """
-        get user by Firebase ID
-        :return: user object
-        """
-        try:
-            return User.objects.get(firebase_id = firebase_id)
-        except DoesNotExist:
-            return None
-        except Exception as e:
-            raise Exception(f"Error fetching user: {str(e)}")
-
-    @staticmethod
-    def get_single_user_by_email(email):
-        """
-        get user by email
-        :return: user object
-        """
-        try:
-            return  User.objects.get(email=email)
-        except DoesNotExist:
-            return None
-        except Exception as e:
-            raise Exception(f"Error fetching user: {str(e)}")
