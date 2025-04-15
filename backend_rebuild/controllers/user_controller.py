@@ -32,17 +32,15 @@ class UserController:
         Get a user by Firebase ID
         :return:
         """
-
         try:
             # return QuerySet
             # use to_json() method to convert
             user = Users.objects(firebase_id__exact=firebase_id).first()
 
-            # print(user.to_json())
             if user:
                 return {
                     "status": "success",
-                    "data": user.to_json()
+                    "data": user.to_dict()
                 }, 200
             else:
                 return {
@@ -55,38 +53,42 @@ class UserController:
                 "status": "err",
                 "message": str(e)
             }, 500
+    @staticmethod
+    def create_user():
+        """
+        create new user
+        :return: user object
+        """
+        # get data
+        data = request.get_json()
 
-    # @staticmethod
-    # def create_user():
-    #     """
-    #     create user
-    #     :return: user object
-    #     """
-    #     data = request.get_json()
-    #
-    #     try:
-    #         existing_user = Users.objects(firebase_id=data.get('firebase_id')).first()
-    #
-    #         # check if user exists or not
-    #         if existing_user:
-    #             return jsonify({"error": "User already exists"}), 400
-    #
-    #         # create user in mongodb
-    #         new_user = Users(
-    #             user_id = str(uuid.uuid4()),
-    #             firebase_id = data.get("firebase_id"),
-    #             name = data.get("name"),
-    #             company_name = data.get("company_name"),
-    #             artist_name = data.get("artist_name"),
-    #             image_url = data.get("image_url"),
-    #             email = data.get("email")
-    #         )
-    #         result = Users.objects().insert_one(new_user)
-    #
-    #         return jsonify({"succeeded"}), 201
-    #     except Exception as e:
-    #         return jsonify({"err": str(e)}), 400
+        # TODO Check if user exists?
+        try:
+            firebase_id = data.get("firebase_id")
+            name = data.get("name")
+            company_name = data.get("company_name")
+            artist_name = data.get("artist_name")
+            image_url = data.get("image_url")
+            email = data.get("email")
 
-    def get_user(self):
-        pass
+            new_user = Users(
+                firebase_id = firebase_id,
+                name = name,
+                company_name = company_name,
+                artist_name = artist_name,
+                image_url = image_url,
+                email = email,
+            )
+            new_user.save()
+            return jsonify({
+                "status": "success",
+                "message": "User created successfully",
+            }), 201
+        except Exception as e:
+            return jsonify({"err": str(e)}), 404
+
+    @staticmethod
+    def update_user():
+        data = request.get_json()
+
 
