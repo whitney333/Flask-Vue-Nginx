@@ -5,7 +5,7 @@ from flask_restful import Api
 instagram_bp = Blueprint('instagram', __name__)
 instagram_api = Api(instagram_bp)
 
-@instagram_bp.route('/instagram/follower/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/follower/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
 def get_instagram_follower(artist_id, date_end, filter):
     try:
         followers = InstagramController.get_follower(artist_id, date_end, filter)
@@ -14,7 +14,7 @@ def get_instagram_follower(artist_id, date_end, filter):
         return jsonify({'err': str(e)}), 500
 
 
-@instagram_bp.route('/instagram/threads-follower/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/threads-follower/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
 def get_instagram_threads_follower(artist_id, date_end, filter):
     try:
         threads_followers = InstagramController.get_threads_follower(artist_id, date_end, filter)
@@ -22,7 +22,7 @@ def get_instagram_threads_follower(artist_id, date_end, filter):
     except Exception as e:
         return jsonify({'err': str(e)}), 500
 
-@instagram_bp.route('/instagram/post-count/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/post-count/<string:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
 def get_instagram_post_count(artist_id, date_end, filter):
     try:
         post_count = InstagramController.get_post_count(artist_id, date_end, filter)
@@ -31,7 +31,7 @@ def get_instagram_post_count(artist_id, date_end, filter):
         return jsonify({'err': str(e)}), 500
 
 
-@instagram_bp.route('/instagram/like/<string:artist_id>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/like/<string:artist_id>/<string:filter>', methods=['GET'])
 def get_instagram_like(artist_id, filter):
     """
     Get Instagram latest 12 posts total likes & likes per post
@@ -43,7 +43,7 @@ def get_instagram_like(artist_id, filter):
     except Exception as e:
         return jsonify({'err': str(e)}), 500
 
-@instagram_bp.route('/instagram/comment/<string:artist_id>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/comment/<string:artist_id>/<string:filter>', methods=['GET'])
 def get_instagram_comment(artist_id, filter):
     """
     Get Instagram latest 12 posts total comments & comments per post
@@ -55,7 +55,7 @@ def get_instagram_comment(artist_id, filter):
     except Exception as e:
         return jsonify({'err': str(e)}), 500
 
-@instagram_bp.route()
+@instagram_bp.route('/eng-rate/<string:artist_id>/<string:filter>', methods=['GET'])
 def get_instagram_engagement_rate():
     pass
 
