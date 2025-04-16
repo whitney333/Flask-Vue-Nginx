@@ -59,3 +59,18 @@ def get_instagram_comment(artist_id, filter):
 def get_instagram_engagement_rate():
     pass
 
+@instagram_bp.route('/hashtag/most-used', methods=['GET'])
+def get_instagram_most_used_hashtag():
+    try:
+        most_used_hashtags = InstagramController.get_hashtags_most_used_recent_twelve()
+        return jsonify(most_used_hashtags), 200
+    except Exception as e:
+        return jsonify({'err': str(e)}), 500
+
+@instagram_bp.route('/hashtag/most-engaged', methods=['GET'])
+def get_instagram_most_engaged_hashtag():
+    try:
+        most_engaged_hashtags = InstagramController.get_hashtags_most_engaged_recent_twelve()
+        return jsonify(most_engaged_hashtags), 200
+    except Exception as e:
+        return jsonify({'err': str(e)}), 500
