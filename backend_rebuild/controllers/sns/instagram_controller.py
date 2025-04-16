@@ -1203,9 +1203,61 @@ class InstagramController:
 
         return result
 
+    def get_hashtags_most_engaged_recent_twelve(artist_id):
+        pipeline = [
+            {"$match": {
+                "user_id": "242998577"
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            # lookup artist follower
+            {"$lookup": {
+                "from": "instagram",
+                "as": "ig_info",
+                "let": {"user_idd": "$user_id"},
+                "pipeline": [
+                    {"$match": {
+                        "$expr": {
+                            "$eq": ["$user_id", "$$user_idd"]
+                        }
+                    }},
+                    {"$sort": {"datetime": -1}},
+                    {"$limit": 1}
+                ]
+            }},
+            {"$unwind": "$ig_info"},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "_id": 0,
 
-    def get_hashtags_most_engaged_recent_twelve(self):
-        pass
+                "hashtag": "$posts.hashtag",
+                "eng_rate": {
+                    "$round": [{
+                        "$multiply": [
+                            {"$divide": [
+                                {"$sum": ["$posts.like_count", "$posts.comment_count"]}, "$ig_info.follower_count"
+                            ]}, 100
+                        ]
+                    }, 3]
+                }
+            }},
+            {"$unwind": "$hashtag"},
+            {"$group": {
+                "_id": "$hashtag",
+                "count": {"$sum": 1},
+                "eng_rate": {"$sum": "$eng_rate"}
+            }},
+            {"$project": {
+                "eng_rate_per_hashtag": {
+                    "$divide": ["$eng_rate", "$count"]
+                }
+            }},
+            {"$sort": {"eng_rate_per_hashtag": -1}},
+            {"$limit": 10}
+        ]
+
+
 
     def get_hashtags_most_used_recent_twelve(self):
         pass
+
