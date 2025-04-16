@@ -16,7 +16,7 @@ class SpotifyRegionTopTrack(EmbeddedDocument):
     tracks = ListField(EmbeddedDocumentField(Track))
 
 class Spotify(Document):
-    datetime = datetime.now()
+    datetime = DateTimeField(default=datetime.now())
     spotify_id = StringField(required=True)
     name = StringField(required=True)
     genres = ListField(required=True)
@@ -29,3 +29,37 @@ class Spotify(Document):
     popular_track = DictField(required=True)
     image = URLField(required=True)
 
+class SpotifyWeeklyTopSongs(EmbeddedDocument):
+    rank = StringField(required=True)
+    title = StringField(required=True)
+    artist_id = StringField(required=True)
+    artist = StringField(required=True)
+    rank_change = StringField(required=True)
+    peak = StringField(required=True)
+    streak = StringField(required=True)
+    stream = StringField(required=True)
+
+class SpotifyOst(Document):
+    week = IntField(required=True)
+    datetime = DateTimeField(default=datetime.now())
+    country = StringField(required=True)
+    track = StringField(required=True)
+    track_code = StringField(required=True)
+    album = StringField(required=True)
+    album_code = StringField(required=True)
+    artist = StringField(required=True)
+    artist_code = StringField(required=True)
+    release_date = StringField(required=True)
+    added_at = StringField(required=True)
+    popularity = IntField(required=True)
+    thumbnail = URLField(required=True)
+    play_counts = StringField(required=True)
+
+class SpotifyCharts(Document):
+    datetime = DateTimeField(default=datetime.now())
+    country = StringField(required=True)
+    year = StringField(required=True)
+    month = StringField(required=True)
+    day = StringField(required=True)
+    week = IntField(required=True)
+    weekly_top_songs = ListField(EmbeddedDocumentField(SpotifyWeeklyTopSongs))
