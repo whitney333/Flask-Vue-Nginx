@@ -25,4 +25,20 @@ class Youtube(Document):
     video_count = IntField(required=True)
     channel_hashtag = StringField(required=True)
     video_hashtag = StringField(required=True)
-    video = ListField(EmbeddedDocumentField("YoutubeVideo"))
+    video = ListField(EmbeddedDocumentField(YoutubeVideo))
+
+class ChartsTracks(EmbeddedDocumentField):
+    rank = StringField(required=True)
+    previous_rank = StringField(required=True)
+    rank_position = StringField(required=True)
+    title = StringField(required=True)
+    artist = StringField(required=True)
+
+class YoutubeCharts(Document):
+    datetime = DateTimeField(default=datetime.now())
+    country = StringField(required=True)
+    year = StringField(required=True)
+    month = StringField(required=True)
+    day = StringField(required=True)
+    week = IntField(required=True)
+    weekly_top_songs = ListField(EmbeddedDocumentField(ChartsTracks))
