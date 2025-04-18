@@ -1,18 +1,24 @@
 from models.spotify_model import Spotify
 import datetime
+from flask import request, jsonify
 
 class SpotifyController:
+    @staticmethod
     # Get spotify follower
     def get_follower(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        # Case 1
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            # Case 1
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -39,20 +45,23 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 2
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 2
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -79,20 +88,23 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 3
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 3
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -119,20 +131,23 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 4: return 180 days followers data
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 4: return 180 days followers data
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -159,20 +174,23 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 5: return a year followers data
-        elif (range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 5: return a year followers data
+            elif (range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -199,20 +217,23 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # return 7 days followers data
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # return 7 days followers data
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -239,23 +260,37 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
-    #
+                result = []
+                for item in results:
+                    result.append(item)
+                #   print(result)
+
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @staticmethod
     # Get spotify monthly listener
     def get_monthly_listener(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        # Case 1
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
-            pipeline = [
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
+
+            # Case 1
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+                pipeline = [
             # match artist spotify id
             {"$match": {
                 "spotify_id": str(artist_id)
@@ -282,18 +317,21 @@ class SpotifyController:
             }}
         ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -320,18 +358,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -358,18 +399,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -396,18 +440,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -434,18 +481,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -472,27 +522,39 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
 
+    @staticmethod
     # Get spotify popularity
     def get_popularity(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        # Case 1
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            # Case 1
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -519,18 +581,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -557,18 +622,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -595,18 +663,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -633,18 +704,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -671,19 +745,22 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -710,14 +787,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
     # Get spotify top 5 city
     def get_top_five_city(artist_id):
@@ -747,14 +831,19 @@ class SpotifyController:
 
         return result
 
+    @staticmethod
     # Get spotify fan conversion rate
     # Formula: (follower/monthly_listener)*100
     def get_conversion_rate(artist_id, date_end, range):
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-            pipeline = [
+        try:
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -790,18 +879,21 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -837,19 +929,22 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -885,17 +980,20 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -931,17 +1029,20 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -977,19 +1078,22 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist spotify id
                 {"$match": {
                     "spotify_id": str(artist_id)
@@ -1025,14 +1129,22 @@ class SpotifyController:
                 }}
             ]
 
-            results = Spotify.objects().aggregate(pipeline)
+                results = Spotify.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
 
 # return spotify country charts
