@@ -5,10 +5,12 @@ from controllers.melon_controller import MelonController
 melon_bp = Blueprint('melon', __name__)
 melon_api = Api(melon_bp)
 
-@melon_bp.route('/follower/<int:artist_id>/<string:date_end>/<string:filter>', methods=['GET'])
-def get_melon_follower(artist_id, date_end, filter):
-    try:
-        follower = MelonController.get_follower(artist_id, date_end, filter)
-        return jsonify(follower), 200
-    except Exception as e:
-        return jsonify({'err': str(e)}), 500
+@melon_bp.route('/follower', methods=['GET'])
+def get_melon_follower():
+    artist_id = request.args.get('artist_id', type=str)
+    date_end = request.args.get('date_end', type=str)
+    filter = request.args.get('filter', type=str)
+
+    follower = MelonController.get_follower(artist_id, date_end, filter)
+
+    return follower
