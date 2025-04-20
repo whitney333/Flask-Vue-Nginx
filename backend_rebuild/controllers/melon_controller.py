@@ -1,18 +1,24 @@
 from models.melon_model import Melon
+from flask import jsonify, request
 import datetime
 
 
 class MelonController:
+    @staticmethod
     def get_follower(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        # Case 1
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            # Case 1
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id in string format
                 {"$match": {
                     "id": str(artist_id)
@@ -39,20 +45,23 @@ class MelonController:
                     "follower": "$follower"
                 }}
             ]
-            results = Melon.objects().aggregate(pipeline)
+                results = Melon.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 2
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 2
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist id in string format
                 {"$match": {
                     "id": str(artist_id)
@@ -79,20 +88,23 @@ class MelonController:
                     "follower": "$follower"
                 }}
             ]
-            results = Melon.objects().aggregate(pipeline)
+                results = Melon.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 3
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 3
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist id in string format
                 {"$match": {
                     "id": str(artist_id)
@@ -119,20 +131,23 @@ class MelonController:
                     "follower": "$follower"
                 }}
             ]
-            results = Melon.objects().aggregate(pipeline)
+                results = Melon.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 4
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 4
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist id in string format
                 {"$match": {
                     "id": str(artist_id)
@@ -159,20 +174,23 @@ class MelonController:
                     "follower": "$follower"
                 }}
             ]
-            results = Melon.objects().aggregate(pipeline)
+                results = Melon.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        # Case 5
-        elif (range == "365d"):
-            # calculate the date 365 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            # Case 5
+            elif (range == "365d"):
+                # calculate the date 365 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist id in string format
                 {"$match": {
                     "id": str(artist_id)
@@ -199,19 +217,22 @@ class MelonController:
                     "follower": "$follower"
                 }}
             ]
-            results = Melon.objects().aggregate(pipeline)
+                results = Melon.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist id in string format
                 {"$match": {
                     "id": str(artist_id)
@@ -238,11 +259,18 @@ class MelonController:
                     "follower": "$follower"
                 }}
             ]
-            results = Melon.objects().aggregate(pipeline)
+                results = Melon.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
