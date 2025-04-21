@@ -1,5 +1,6 @@
 from models.sns.tiktok_model import Tiktok, TiktokVideo
 import datetime
+from flask import jsonify, request
 
 class TiktokController:
     # TODO Tiktok scraping method fix
@@ -11,15 +12,20 @@ class TiktokController:
     def get_hashtags_most_engaged_recent_ten(self):
         pass
 
+    @staticmethod
     def get_follower(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -45,19 +51,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -83,20 +92,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -122,21 +133,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-
-
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -162,20 +174,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-        elif (range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -201,20 +215,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
-
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -240,24 +256,36 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_hashtag(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -283,20 +311,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -322,19 +352,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -360,19 +393,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -398,19 +434,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -436,19 +475,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -474,24 +516,36 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_like(artist_id, date_end, range):
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -517,20 +571,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -556,19 +612,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -594,19 +653,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -632,19 +694,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -670,19 +735,22 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -708,14 +776,21 @@ class TiktokController:
                 }}
             ]
 
-            results = Tiktok.objects().aggregate(pipeline)
+                results = Tiktok.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
     def get_tiktok_video_index(self):
         pass
