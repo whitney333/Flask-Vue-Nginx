@@ -1,20 +1,26 @@
 from models.sns.instagram_model import Instagram
 import datetime
+from flask import jsonify, request
 
 
 class InstagramController:
+    @staticmethod
     def get_follower(artist_id, date_end, range):
         """
         get instagram followers
         """
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -39,18 +45,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -75,18 +84,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -111,18 +123,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -147,18 +162,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif(range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif(range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -183,19 +201,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "id": artist_id
@@ -220,27 +241,39 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_post_count(artist_id, date_end, range):
         """
         get instagram media counts
         """
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -265,20 +298,23 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
 
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -303,18 +339,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -339,18 +378,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -375,18 +417,21 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -411,19 +456,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -448,15 +496,23 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_threads_follower(artist_id, date_end, range):
         """
         Get Instagram threads follower
@@ -464,14 +520,18 @@ class InstagramController:
         :param range:
         :return:
         """
-        format = "%Y-%m-%d"
-        date_end = datetime.datetime.strptime(date_end, format)
+        if not all([artist_id, date_end, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+        try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
 
-            pipeline = [
+            if (range == "7d"):
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
+
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -496,19 +556,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            # calculate the date 28 days ago from today
-            twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                # calculate the date 28 days ago from today
+                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -533,19 +596,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            # calculate the date 90 days ago from today
-            ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                # calculate the date 90 days ago from today
+                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -570,19 +636,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "180d"):
-            # calculate the date 180 days ago from today
-            hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "180d"):
+                # calculate the date 180 days ago from today
+                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -607,19 +676,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "365d"):
-            # calculate the date 180 days ago from today
-            year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "365d"):
+                # calculate the date 180 days ago from today
+                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -644,19 +716,22 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            # calculate the date 7 days ago from today
-            seven_days_ago = date_end - datetime.timedelta(days=7)
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                # calculate the date 7 days ago from today
+                seven_days_ago = date_end - datetime.timedelta(days=7)
 
-            pipeline = [
+                pipeline = [
                 # match artist id
                 {"$match": {
                     "user_id": artist_id
@@ -681,24 +756,35 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_likes(artist_id, range):
         """
         Get total likes & likes per post of the latest 12 posts
         :param range:
         :return:
         """
+        if not all([artist_id, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            pipeline = [
+        try:
+            if (range == "7d"):
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -741,16 +827,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -793,16 +882,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -845,16 +937,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -897,19 +992,30 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_comments(artist_id, range):
+        if not all([artist_id, range]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
-        if (range == "7d"):
-            pipeline = [
+        try:
+            if (range == "7d"):
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -951,16 +1057,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "28d"):
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "28d"):
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -1002,16 +1111,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        elif (range == "90d"):
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            elif (range == "90d"):
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -1053,16 +1165,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
-        else:
-            pipeline = [
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+            else:
+                pipeline = [
                 {"$match": {
                     "user_id": artist_id
                 }},
@@ -1104,23 +1219,34 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+                results = Instagram.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+                result = []
+                for item in results:
+                    result.append(item)
+                # print(result)
 
-            return result
+                return jsonify({
+                    'status': 'success',
+                    'data': result
+                }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_posts_index(artist_id):
         """
         get instagram latest 12 posts index
         :param: artist_id
         :return:
-
         """
-        pipeline = [
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
             # match artist
             {"$match": {
                 "user_id": artist_id
@@ -1194,17 +1320,29 @@ class InstagramController:
                 }
             }}
         ]
-        results = Instagram.objects().aggregate(pipeline)
+            results = Instagram.objects().aggregate(pipeline)
 
-        result = []
-        for item in results:
-            result.append(item)
-        # print(result)
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
 
-        return result
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
     def get_hashtags_most_engaged_recent_twelve(artist_id):
-        pipeline = [
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
             {"$match": {
                 "user_id": "242998577"
             }},
@@ -1256,8 +1394,81 @@ class InstagramController:
             {"$limit": 10}
         ]
 
+            results = Instagram.objects().aggregate(pipeline)
 
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
 
-    def get_hashtags_most_used_recent_twelve(self):
-        pass
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
+    @staticmethod
+    def get_hashtags_most_used_recent_twelve(artist_id):
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
+            {"$match": {
+                "user_id": "61160817623"
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            # lookup artist follower
+            {"$lookup": {
+                "from": "instagram",
+                "as": "ig_info",
+                "let": {"user_idd": "$user_id"},
+                "pipeline": [
+                    {"$match": {
+                        "$expr": {
+                            "$eq": ["$user_id", "$$user_idd"]
+                        }
+                    }},
+                    {"$sort": {"datetime": -1}},
+                    {"$limit": 1}
+                ]
+            }},
+            {"$unwind": "$ig_info"},
+            {"$unwind": "$posts"},
+            {"$project": {
+                "_id": 0,
+                "hashtag": "$posts.hashtag"
+            }},
+            {"$unwind": "$hashtag"},
+            {"$group": {
+                "_id": "$hashtag",
+                "count": {"$sum": 1},
+
+            }},
+            {"$project": {
+                "_id": 0,
+                "tag": "$_id",
+                "count": {"$toInt": "$count"}
+            }},
+            {"$sort": {"count": -1}},
+            {"$limit": 10}
+        ]
+
+            results = Instagram.objects().aggregate(pipeline)
+
+            result = []
+            for item in results:
+                result.append(item)
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
