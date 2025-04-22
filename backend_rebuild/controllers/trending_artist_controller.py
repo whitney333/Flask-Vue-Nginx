@@ -1,4 +1,5 @@
 from flask import request, jsonify
+import json
 # music related data
 from models.spotify_model import SpotifyCharts
 from models.sns.youtube_model import YoutubeCharts
@@ -140,10 +141,7 @@ class TrendingArtistController:
             for item in results:
                 result.append(item)
 
-            return jsonify({
-                'status': 'success',
-                'data': result
-            }), 200
+            return result
         except Exception as e:
             return jsonify({'err': str(e)}), 500
 
@@ -253,11 +251,7 @@ class TrendingArtistController:
             for item in results:
                 result.append(item)
 
-            return jsonify({
-                'status': 'success',
-                'data': result
-            }), 200
-
+            return result
         except Exception as e:
             return jsonify({'err': str(e)}), 500
 
@@ -361,394 +355,82 @@ class TrendingArtistController:
             for item in results:
                 result.append(item)
 
+            return result
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @classmethod
+    def merge_all_music_scores(self, country, year, week):
+        sp_data = self.get_spotify_charts_score(country, year, week)
+        yt_data = self.get_youtube_charts_score(country, year, week)
+        bb_data = self.get_billboard_charts_score(year, week)
+
+        merged_data = []
+
+        # Step 1: Merge yt_data with sp_data and bb_data
+        for yt_artist in yt_data:
+            merged_artist = yt_artist.copy()  # Start with YouTube data
+
+            # Check for match in sp_data
+            sp_match = next((sp for sp in sp_data if sp['artist'] == yt_artist['artist']), None)
+            if sp_match:
+                merged_artist.update(sp_match)  # Merge Spotify data
+
+            # Check for match in bb_data
+            bb_match = next((bb for bb in bb_data if bb['artist'] == yt_artist['artist']), None)
+            if bb_match:
+                merged_artist.update(bb_match)  # Merge Billboard data
+
+            merged_data.append(merged_artist)
+
+        # Step 2: Add unmatched sp_data artists
+        for sp_artist in sp_data:
+            if not any(artist['artist'] == sp_artist['artist'] for artist in merged_data):
+                merged_data.append(sp_artist)
+
+        # Step 3: Add unmatched bb_data artists
+        for bb_artist in bb_data:
+            if not any(artist['artist'] == bb_artist['artist'] for artist in merged_data):
+                merged_data.append(bb_artist)
+        print(merged_data)
+        return merged_data
+
+    @staticmethod
+    def calculate_total_music_score(merge_list):
+        # Calculate total_score for each artist
+        for item in merge_list:
+            youtube_score = item.get('youtube_score', 0)
+            billboard_score = item.get('billboard_score', 0)
+            spotify_score = item.get('sp_total_score', 0)
+            item['total_score'] = youtube_score + billboard_score + spotify_score
+
+        # Sort by total_score in descending order
+        sorted_list = sorted(merge_list, key=lambda x: x['total_score'], reverse=True)
+
+        return sorted_list
+
+    @classmethod
+    def get_music_score(cls, country, year, week):
+        # TODO Add spotify monthly listeners index of every artist
+        ## in order to avoid artists that do not enter the charts
+        if not all([country, year, week]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            merge_list = cls.merge_all_music_scores(country, year, week)
+            results = cls.calculate_total_music_score(merge_list)
+
             return jsonify({
                 'status': 'success',
-                'data': result
+                'data': results
             }), 200
         except Exception as e:
             return jsonify({
                 'err': str(e)
             }), 500
 
-    def calculate_music_score(country, week):
-        pipeline = [
-            # match country
-            {"$match": {
-                "country": country
-            }},
-            # match year
-            {"$match": {
-                "year": "2025"
-            }},
-            # match week
-            {"$match": {
-                "week": week
-            }},
-            {"$project": {
-                "_id": 0,
-                "datetime": "$datetime",
-                "country": "$country",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "spotify_weekly_top_songs": "$weekly_top_songs",
-            }},
-            {"$unwind": "$spotify_weekly_top_songs"},
-            # calculate spotify score
-            {"$project": {
-                "datetime": "$datetime",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "country": "$country",
-                "sp_rank": {"$toInt": "$spotify_weekly_top_songs.rank"},
-                # check song title
-                "sp_song": "$spotify_weekly_top_songs.title",
-                "sp_artist_id": "$spotify_weekly_top_songs.artist_id",
-                "artist": {
-                    "$trim": {
-                        "input": "$spotify_weekly_top_songs.artist",
-                        "chars": ","
-                    }
-                }
-            }},
-            {"$addFields": {
-                "sp_score": {
-                    "$subtract": [
-                        {"$toInt": 201},
-                        {"$toInt": "$sp_rank"}
-                    ]
-                }
-            }},
-            # group by artist, get total score
-            {"$group": {
-                "_id": "$sp_artist_id",
-                "datetime": {"$first": "$datetime"},
-                "year": {"$first": "$year"},
-                "month": {"$first": "$month"},
-                "day": {"$first": "$day"},
-                "week": {"$first": "$week"},
-                "country": {"$first": "$country"},
-                "artist": {"$first": "$artist"},
-                "sp_score_list": {"$addToSet": "$sp_score"}
-            }},
-            {"$project": {
-                "sp_id": "$_id",
-                "datetime": "$datetime",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "country": "$country",
-                "artist": "$artist",
-                "sp_total_score": {
-                    "$reduce": {
-                        "input": "$sp_score_list",
-                        "initialValue": 0,
-                        "in": {"$add": [{"$toInt": "$$value"}, "$$this"]}
-                    }
-                }
-            }},
-            # lookup artist
-            {"$lookup": {
-                "from": "artist",
-                "localField": "spotify_id",
-                "foreignField": "sp_id",
-                "as": "artist_info"
-            }},
-            # return needed fields
-            {"$project": {
-                "sp_id": "$sp_id",
-                "datetime": "$datetime",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "country": "$country",
-                "artist": "$artist",
-                "sp_total_score": "$sp_total_score",
-                "artist_mid": {
-                    "$arrayElemAt": ["$artist_info.spotify_id", 0]
-                },
-                "youtube_id": {
-                    "$arrayElemAt": ["$artist_info.youtube_id", 0]
-                }
-            }},
-            # lookup youtube charts
-            {"$lookup": {
-                "from": "youtube_charts",
-                "localField": "week",
-                "foreignField": "week",
-                "as": "youtube_charts"
-            }},
-            {"$unwind": "$youtube_charts"},
-            {"$match": {
-                "youtube_charts.country": "south-korea"
-            }},
-            {"$project": {
-                "mid": "$mid",
-                "artist": "$artist",
-                "datetime": "$datetime",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "country": "$country",
-                "sp_total_score": "$sp_total_score",
-                "platforms": "$platforms",
-                "youtube_week": "$youtube_charts.week",
-                "youtube_country": "$youtube_charts.country",
-                "youtube_charts": "$youtube_charts.weekly_top_songs"
-            }},
-            # convert yt_rank to integer
-            {"$project": {
-                "_id": 0,
-                "mid": "$mid",
-                "artist": "$artist",
-                "datetime": "$datetime",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "country": "$country",
-                "sp_total_score": "$sp_total_score",
-                "platforms": "$platforms",
-                "youtube_week": "$youtube_week",
-                "youtube_country": "$youtube_country",
-                "yt_charts": {
-                    "$map": {
-                        "input": "$youtube_charts",
-                        "as": "yt_item",
-                        "in": {
-                            "rank": {"$toInt": "$$yt_item.rank"},
-                            "pre_rank": {"$toInt": "$$yt_item.previous_rank"},
-                            "title": "$$yt_item.title",
-                            "artist": "$$yt_item.artist",
-                            "rank_position": "$$yt_item.rank_position"
-                        }
-                    }
-                }
-            }},
-            # calculate youtube charts score by artists first
-            {"$addFields": {
-                "yt_charts": {
-                    "$map": {
-                        "input": "$yt_charts",
-                        "as": "yt_chart",
-                        "in": {
-                            "$mergeObjects": [
-                                "$$yt_chart",
-                                {"yt_score": {
-                                    "$subtract": [
-                                        {"$toInt": 101},
-                                        {"$toInt": "$$yt_chart.rank"}]
-                                }}
-                            ]
-                        }
-                    }
-                }
-            }},
-            {"$unwind": "$yt_charts"},
-            # return expand yt
-            {"$project": {
-                "mid": "$mid",
-                "artist": "$artist",
-                "datetime": "$datetime",
-                "year": "$year",
-                "month": "$month",
-                "day": "$day",
-                "week": "$week",
-                "country": "$country",
-                "sp_total_score": "$sp_total_score",
-                "platforms": "$platforms",
-                "youtube_week": "$youtube_week",
-                "youtube_country": "$youtube_country",
-                "yt_charts_artist": "$yt_charts.artist",
-                "yt_score": "$yt_charts.yt_score"
-            }},
-            {"$group": {
-                "_id": "$yt_charts_artist",
-                "_all": {"$addToSet": "$$ROOT"},
-                "yt_score_list": {"$addToSet": "$yt_score"},
-                "yt_artist": {"$first": "$yt_charts_artist"}
-            }},
-            # calculate yt total score
-            {"$project": {
-                "_id": 0,
-                "_all": "$_all",
-                "yt_artist": "$yt_artist",
-                "yt_total_score": {
-                    "$reduce": {
-                        "input": "$yt_score_list",
-                        "initialValue": 0,
-                        "in": {
-                            "$add": [{"$toInt": "$$value"}, "$$this"]
-                        }
-                    }
-                }
-            }},
-            # match yt_artist with sp_artist,
-            # if artist name is the same, keep it; not the same, drop it
-            {"$addFields": {
-                "_artist": {
-                    "$filter": {
-                        "input": "$_all",
-                        "cond": {
-                            "$eq": ["$$this.artist", "$$this.yt_charts_artist"]
-                        }
-                    }
-                }
-            }},
-            {"$project": {
-                "yt_artist": "$yt_artist",
-                "yt_total_score": "$yt_total_score",
-                "artist": {
-                    "$arrayElemAt": ["$_artist", 0]
-                }
-            }},
-            # organize artist info
-            {"$project": {
-                "mid": "$artist.mid",
-                "artist": "$artist.artist",
-                "year": {"$toInt": "$artist.year"},
-                "week": "$artist.week",
-                "country": "$youtube_country",
-                "spotify_total_score": "$artist.sp_total_score",
-                "youtube_total_score": "$artist.yt_score",
-                "platforms": "$artist.platforms"
-            }},
-            # lookup billboard global 200
-            {"$lookup": {
-                "from": "billboard_charts",
-                "localField": "week",
-                "foreignField": "week",
-                "as": "billboard_charts"
-            }},
-            # billboard ranking is global ranking
-            {"$project": {
-                "artist": "$artist",
-                "year": "$year",
-                "week": "$week",
-                "spotify_total_score": "$spotify_total_score",
-                "youtube_total_score": "$youtube_total_score",
-                "billboard_charts": {
-                    "$arrayElemAt": ["$billboard_charts.data", 0]
-                }
-            }},
-            # convert billboard rank to integer
-            {"$project": {
-                "artist": "$artist",
-                "year": "$year",
-                "week": "$week",
-                "spotify_total_score": "$spotify_total_score",
-                "youtube_total_score": "$youtube_total_score",
-                "bb_charts": {
-                    "$map": {
-                        "input": "$billboard_charts",
-                        "as": "bb_item",
-                        "in": {
-                            "rank": {"$toInt": "$$bb_item.ranking"},
-                            "artist": "$$bb_item.artist"
-                        }
-                    }
-                }
-            }},
-            # calculate billboard charts score
-            {"$addFields": {
-                "bb_charts": {
-                    "$map": {
-                        "input": "$bb_charts",
-                        "as": "bb_chart",
-                        "in": {
-                            "$mergeObjects": [
-                                "$$bb_chart",
-                                {"bb_score": {
-                                    "$subtract": [
-                                        {"$toInt": 201},
-                                        "$$bb_chart.rank"
-                                    ]
-                                }}
-                            ]
-                        }
-                    }
-                }
-            }},
-            {"$unwind": "$bb_charts"},
-            # return expanded billboard
-            {"$project": {
-                "artist": "$artist",
-                "year": "$year",
-                "week": "$week",
-                "spotify_total_score": "$spotify_total_score",
-                "youtube_total_score": "$youtube_total_score",
-                "bb_charts_artist": "$bb_charts.artist",
-                "bb_score": "$bb_charts.bb_score"
-            }},
-            {"$group": {
-                "_id": "$bb_charts_artist",
-                "_all": {"$addToSet": "$$ROOT"},
-                "bb_score_list": {"$addToSet": "$bb_score"},
-                "bb_artist": {"$first": "$bb_charts_artist"}
-            }},
-            # calculate billboard total score
-            {"$project": {
-                "_id": 0,
-                "_all": "$_all",
-                "bb_artist": "$bb_artist",
-                "bb_total_score": {
-                    "$reduce": {
-                        "input": "$bb_score_list",
-                        "initialValue": 0,
-                        "in": {
-                            "$add": [{"$toInt": "$$value"}, "$$this"]
-                        }
-                    }
-                }
-            }},
-            # match billboard artist with artist
-            # if text contains artist name, keep the value
-            {"$addFields": {
-                "_artist": {
-                    "$filter": {
-                        "input": "$_all",
-                        "as": "temp",
-                        "cond": {
-                            "$eq": ["$$temp.artist", "$$temp.bb_charts_artist"]
-                        }
-                    }
-                }
-            }
-            },
-            {"$sort": {"bb_total_score": -1}},
-            # match artist
-            {"$project": {
-                "bb_artist": "$bb_artist",
-                "bb_total_score": "$bb_total_score",
-                "artist": {
-                    "$arrayElemAt": ["$_artist", 0]
-                }
-            }},
-            # return needed fields
-            {"$project": {
-                "artist": "$artist.artist",
-                "year": "$artist.year",
-                "week": "$artist.week",
-                "spotify_total_score": "$artist.spotify_total_score",
-                "youtube_total_score": "$artist.youtube_total_score",
-                "billboard_total_score": "$bb_total_score"
-            }},
-            {"$match": {
-                "artist": {"$ne": None}
-            }},
-            {"$addFields": {
-                "music_performance_score": {
-                    "$multiply": [
-                        {"$add": ["$spotify_total_score", "$youtube_total_score", "$billboard_total_score"]}, 0.3
-                    ]
-                }
-            }},
-            {"$sort": {"music_performance_score": -1}}
-        ]
-
+    @classmethod
+    def get_drama_score(cls):
+        pass
