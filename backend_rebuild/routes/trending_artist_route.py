@@ -28,3 +28,12 @@ def billboard_chart_score():
 
     return TrendingArtistController.get_billboard_charts_score(year, week)
 
+@trending_artist_bp.route('/music-score', methods=['GET'])
+def total_music_score():
+    country = request.args.get('country', default=None)
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    music_score = TrendingArtistController.get_music_score(country, year, week)
+
+    return music_score
