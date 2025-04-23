@@ -4,7 +4,10 @@ import json
 from models.spotify_model import SpotifyCharts
 from models.sns.youtube_model import YoutubeCharts
 from models.billboard_model import BillboardCharts
-
+# sns related data
+from models.sns.youtube_model import Youtube
+from models.sns.instagram_model import Instagram
+from models.sns.tiktok_model import Tiktok
 # drama related data
 from models.netflix_model import NetflixCharts
 
@@ -363,6 +366,7 @@ class TrendingArtistController:
 
     @classmethod
     def merge_all_music_scores(self, country, year, week):
+        # music data
         sp_data = self.get_spotify_charts_score(country, year, week)
         yt_data = self.get_youtube_charts_score(country, year, week)
         bb_data = self.get_billboard_charts_score(year, week)
@@ -394,8 +398,38 @@ class TrendingArtistController:
         for bb_artist in bb_data:
             if not any(artist['artist'] == bb_artist['artist'] for artist in merged_data):
                 merged_data.append(bb_artist)
+
         print(merged_data)
         return merged_data
+
+    @classmethod
+    def merge_all_sns_scores(self, country, year, week):
+        merge_music_data = self.merge_all_music_scores(country, year, week)
+
+        concat_sns_list = []
+
+        # lookup artist in youtube collection
+        for artist in merge_music_data:
+            merged_artist = artist.copy()
+
+            # match youtube_sns_score
+            if merged_artist.get("youtube_id"):
+                yt_sns_scores = self.get_youtube_score(merged_artist.get("youtube_id"))
+                merged_artist["youtube_sns_score"] = yt_sns_scores[0]["hashtag"]
+            else:
+                merged_artist["youtube_sns_score"] = 0
+            # match tiktok_sns_score
+            if merged_artist.get("tiktok_id"):
+                tk_sns_scores = self.get_tiktok_score(merged_artist.get("tiktok_id"))
+                merged_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
+            else:
+                merged_artist["tiktok_sns_score"] = 0
+            # print(merged_artist)
+
+
+
+        # print(concat_sns_list)
+        return concat_sns_list
 
     @staticmethod
     def calculate_total_music_score(merge_list):
@@ -404,10 +438,10 @@ class TrendingArtistController:
             youtube_score = item.get('youtube_score', 0)
             billboard_score = item.get('billboard_score', 0)
             spotify_score = item.get('sp_total_score', 0)
-            item['total_score'] = youtube_score + billboard_score + spotify_score
+            item['total_music_score'] = youtube_score + billboard_score + spotify_score
 
         # Sort by total_score in descending order
-        sorted_list = sorted(merge_list, key=lambda x: x['total_score'], reverse=True)
+        sorted_list = sorted(merge_list, key=lambda x: x['total_music_score'], reverse=True)
 
         return sorted_list
 
@@ -434,3 +468,146 @@ class TrendingArtistController:
     @classmethod
     def get_drama_score(cls):
         pass
+
+    @staticmethod
+    def get_instagram_score(artist_id):
+        """
+        Get Instagram latest 12 posts' total likes & comments,
+        and 7-day follower growth
+        :return:
+        """
+        pass
+        # if not all([artist_id]):
+        #     return jsonify({'err': 'Missing required parameters'}), 400
+        #
+        # try:
+        #     pipeline = [
+        #     {"$match": {
+        #         "user_id": artist_id
+        #     }},
+        #     {"$sort": {"datetime": -1}},
+        #     {"$limit": 1},
+        #     {"$unwind": "$posts"},
+        #     {"$project": {
+        #         "_id": 0,
+        #         "datetime": "$datetime",
+        #         "user_id": "$user_id",
+        #         "engagement": {
+        #             "$sum": ["$posts.like_count", "$posts.comment_count"]
+        #         }
+        #     }},
+        #     {"$lookup": {
+        #         "from": "instagram",
+        #         "let": {"user_id": "$user_id", "datetime": "$datetime"},
+        #         "pipeline": [
+        #             {"$match": {
+        #                 "$expr": {"$eq": ["$user_id", "$$user_id"]}
+        #             }},
+        #             {"$sort": {"datetime": -1}},
+        #             {"$limit": 1}
+        #         ],
+        #         'as': 'matched_ins'
+        #     }},
+        #     {"$unwind": "$matched_ins"},
+        #     # return fields
+        #     {"$project": {
+        #         "_id": 0,
+        #         "datetime": "$datetime",
+        #         "user_id": "$user_id",
+        #         "instagram_score": {
+        #             "$sum": ["$engagement", "$matched_ins.follower_count"]
+        #         }
+        #     }}
+        # ]
+        #
+        #     results = InstagramPost.objects().aggregate(pipeline)
+        #     result = []
+        #     for item in results:
+        #         result.append(item)
+        #     return result
+        # except Exception as e:
+        #     return jsonify({
+        #         'err': str(e)
+        #     }), 500
+
+    @staticmethod
+    def get_youtube_score(artist_id):
+        """
+        Based on music merged_list, add on each artist's youtube sns score
+        :param artist_id:
+        :return:
+        """
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
+                {"$match": {
+                    "channel_id": artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                # return hashtag counts
+                {"$project": {
+                    "_id": 0,
+                    "channel_id": "$channel_id",
+                    "datetime": "$datetime",
+                    "hashtag": {
+                        "$sum": ["$channel_hashtag", "$video_hashtag"]
+                    }
+                }}
+            ]
+
+            results = Youtube.objects().aggregate(pipeline)
+            result = []
+            for item in results:
+                result.append(item)
+
+            return result
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @staticmethod
+    def get_tiktok_score(artist_id):
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
+                {"$match": {
+                    "id": artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$project": {
+                    "_id": 0,
+                    "tiktok_id": "$id",
+                    "datetime": "$datetime",
+                    "hashtag": "$hashtag"
+                }}
+            ]
+
+            results = Tiktok.objects().aggregate(pipeline)
+            result = []
+            for item in results:
+                result.append(item)
+
+            return result
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @classmethod
+    def get_sns_score(cls, artist_id):
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pass
+        except Exception as e:
+            returnjsonify({
+                'err': str(e)
+            }), 500
