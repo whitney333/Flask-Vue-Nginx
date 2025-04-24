@@ -129,6 +129,7 @@ class TrendingArtistController:
                 "week": "$week",
                 "country": "$country",
                 "artist": "$artist",
+                "mid": "$artist_info.artist_id",
                 "sp_total_score": "$sp_total_score",
                 "spotify_id": "$sp_id",
                 "instagram_id": "$artist_info.instagram_id",
@@ -399,7 +400,7 @@ class TrendingArtistController:
             if not any(artist['artist'] == bb_artist['artist'] for artist in merged_data):
                 merged_data.append(bb_artist)
 
-        print(merged_data)
+        # print(merged_data)
         return merged_data
 
     @classmethod
@@ -424,21 +425,27 @@ class TrendingArtistController:
                 merged_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
             else:
                 merged_artist["tiktok_sns_score"] = 0
+            concat_sns_list.append(merged_artist)
             # print(merged_artist)
 
 
 
-        # print(concat_sns_list)
+        print(concat_sns_list)
         return concat_sns_list
 
     @staticmethod
     def calculate_total_music_score(merge_list):
         # Calculate total_score for each artist
         for item in merge_list:
+            # Calculate music score
             youtube_score = item.get('youtube_score', 0)
             billboard_score = item.get('billboard_score', 0)
             spotify_score = item.get('sp_total_score', 0)
             item['total_music_score'] = youtube_score + billboard_score + spotify_score
+            # Calculate sns score
+            youtube_sns_score = item.get('youtube_sns_score', 0)
+            tiktok_sns_score = item.get('tiktok_sns_score', 0)
+            item['total_sns_score'] = youtube_sns_score + tiktok_sns_score
 
         # Sort by total_score in descending order
         sorted_list = sorted(merge_list, key=lambda x: x['total_music_score'], reverse=True)
@@ -585,7 +592,7 @@ class TrendingArtistController:
                     "_id": 0,
                     "tiktok_id": "$id",
                     "datetime": "$datetime",
-                    "hashtag": "$hashtag"
+                    "hashtag": {"$toInt": "$hashtag"}
                 }}
             ]
 
