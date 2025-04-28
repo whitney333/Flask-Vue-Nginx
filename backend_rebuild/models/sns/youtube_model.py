@@ -27,7 +27,7 @@ class Youtube(Document):
     video_hashtag = StringField(required=True)
     video = ListField(EmbeddedDocumentField(YoutubeVideo))
 
-class ChartsTracks(EmbeddedDocumentField):
+class WeeklyTopSongs(EmbeddedDocument):
     rank = StringField(required=True)
     previous_rank = StringField(required=True)
     rank_position = StringField(required=True)
@@ -41,4 +41,4 @@ class YoutubeCharts(Document):
     month = StringField(required=True)
     day = StringField(required=True)
     week = IntField(required=True)
-    weekly_top_songs = ListField(EmbeddedDocumentField(ChartsTracks))
+    weekly_top_songs = ListField(EmbeddedDocumentField(WeeklyTopSongs))

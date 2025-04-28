@@ -23,4 +23,3 @@ class Tiktok(Document):
     follower = StringField
     like = StringField
     hashtag = StringField
-    video: ListField(EmbeddedDocumentListField(TiktokVideo))

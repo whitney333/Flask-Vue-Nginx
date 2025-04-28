@@ -1,7 +1,7 @@
 from mongoengine import *
 from datetime import datetime
 
-class User(Document):
+class Users(Document):
     firebase_id = StringField(required=True, unique=True)
     name = StringField(required=True)
     company_name = StringField(required=True)
