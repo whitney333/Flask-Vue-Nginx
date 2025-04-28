@@ -61,3 +61,19 @@ def instagram_sns_score():
     ig_sns_score = TrendingArtistController.get_instagram_score(artist_id)
 
     return ig_sns_score
+
+@trending_artist_bp.route('/merge-sns-score', methods=['GET'])
+def get_sns_score():
+    country = request.args.get('country', default=None)
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    all_sns_score = TrendingArtistController.merge_all_sns_scores(country, year, week)
+
+    return all_sns_score
+
+@trending_artist_bp.route('/sns-score-list', methods=['GET'])
+def only_sns_score():
+    sns_score = TrendingArtistController.get_sns_score()
+
+    return sns_score
