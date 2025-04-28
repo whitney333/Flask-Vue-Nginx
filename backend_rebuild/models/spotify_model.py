@@ -1,6 +1,7 @@
 from mongoengine import *
 from datetime import datetime
 
+
 class SpotifyTopCountry(EmbeddedDocument):
     country = StringField(required=True)
     city = StringField(required=True)
@@ -10,7 +11,10 @@ class Track(EmbeddedDocument):
     track = StringField(required=True)
     popularity = IntField(required=True)
 
-class SpotifyRegionTopTrack(EmbeddedDocument):
+class TopTrack(EmbeddedDocument):
+    """
+    Spotify region top tracks
+    """
     region = StringField(required=True)
     country = StringField(required=True)
     tracks = ListField(EmbeddedDocumentField(Track))
@@ -25,11 +29,11 @@ class Spotify(Document):
     monthly_listener = IntField(required=True)
     popularity = IntField(required=True)
     top_country = ListField(EmbeddedDocumentField(SpotifyTopCountry))
-    top_track = ListField(EmbeddedDocumentField(SpotifyRegionTopTrack))
+    top_track = ListField(EmbeddedDocumentField(TopTrack))
     popular_track = DictField(required=True)
     image = URLField(required=True)
 
-class SpotifyWeeklyTopSongs(EmbeddedDocument):
+class WeeklyTopSongs(EmbeddedDocument):
     rank = StringField(required=True)
     title = StringField(required=True)
     artist_id = StringField(required=True)
@@ -62,4 +66,4 @@ class SpotifyCharts(Document):
     month = StringField(required=True)
     day = StringField(required=True)
     week = IntField(required=True)
-    weekly_top_songs = ListField(EmbeddedDocumentField(SpotifyWeeklyTopSongs))
+    weekly_top_songs = ListField(EmbeddedDocumentField(WeeklyTopSongs))

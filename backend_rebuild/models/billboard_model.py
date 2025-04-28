@@ -1,7 +1,7 @@
 from mongoengine import *
 from datetime import datetime
 
-class Track(EmbeddedDocumentField):
+class Track(EmbeddedDocument):
     title = StringField(required=True)
     ranking = StringField(required=True)
     rank_position = StringField(required=True)
