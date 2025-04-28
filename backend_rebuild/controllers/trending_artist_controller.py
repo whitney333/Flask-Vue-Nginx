@@ -6,7 +6,7 @@ from models.sns.youtube_model import YoutubeCharts
 from models.billboard_model import BillboardCharts
 # sns related data
 from models.sns.youtube_model import Youtube
-from models.sns.instagram_model import Instagram
+from models.sns.instagram_model import Instagram, InstagramLatest
 from models.sns.tiktok_model import Tiktok
 # drama related data
 from models.netflix_model import NetflixCharts
@@ -483,59 +483,76 @@ class TrendingArtistController:
         and 7-day follower growth
         :return:
         """
-        pass
-        # if not all([artist_id]):
-        #     return jsonify({'err': 'Missing required parameters'}), 400
-        #
-        # try:
-        #     pipeline = [
-        #     {"$match": {
-        #         "user_id": artist_id
-        #     }},
-        #     {"$sort": {"datetime": -1}},
-        #     {"$limit": 1},
-        #     {"$unwind": "$posts"},
-        #     {"$project": {
-        #         "_id": 0,
-        #         "datetime": "$datetime",
-        #         "user_id": "$user_id",
-        #         "engagement": {
-        #             "$sum": ["$posts.like_count", "$posts.comment_count"]
-        #         }
-        #     }},
-        #     {"$lookup": {
-        #         "from": "instagram",
-        #         "let": {"user_id": "$user_id", "datetime": "$datetime"},
-        #         "pipeline": [
-        #             {"$match": {
-        #                 "$expr": {"$eq": ["$user_id", "$$user_id"]}
-        #             }},
-        #             {"$sort": {"datetime": -1}},
-        #             {"$limit": 1}
-        #         ],
-        #         'as': 'matched_ins'
-        #     }},
-        #     {"$unwind": "$matched_ins"},
-        #     # return fields
-        #     {"$project": {
-        #         "_id": 0,
-        #         "datetime": "$datetime",
-        #         "user_id": "$user_id",
-        #         "instagram_score": {
-        #             "$sum": ["$engagement", "$matched_ins.follower_count"]
-        #         }
-        #     }}
-        # ]
-        #
-        #     results = InstagramPost.objects().aggregate(pipeline)
-        #     result = []
-        #     for item in results:
-        #         result.append(item)
-        #     return result
-        # except Exception as e:
-        #     return jsonify({
-        #         'err': str(e)
-        #     }), 500
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
+                {"$match": {
+                    "user_id": artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                # calculate engagement by sum up: like_count & comment_count
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "user_id": "$user_id",
+                    "engagement": {
+                        "$sum": ["$posts.like_count", "$posts.comment_count"]
+                    }
+                }},
+                # group by artist
+                {"$group": {
+                    "_id": "$user_id",
+                    "user_id": {"$first": "$user_id"},
+                    "datetime": {"$first": "$datetime"},
+                    "engagement_score": {"$sum": "$engagement"}
+                }},
+                {"$lookup": {
+                    "from": "instagram",
+                    "let": {"user_id": "$user_id", "datetime": "$datetime"},
+                    "pipeline": [
+                        {"$match": {
+                            "$expr": {"$eq": ["$user_id", "$$user_id"]}
+                        }},
+                        {"$sort": {"datetime": -1}},
+                        {"$limit": 7}
+                    ],
+                    'as': 'matched_ins'
+                }},
+                {"$unwind": "$matched_ins"},
+                {"$group": {
+                    "_id": "$user_id",
+                    "datetime": {"$first": "$datetime"},
+                    "engagement_score": {"$first": "$engagement_score"},
+                    "follower": {"$push": "$matched_ins.follower_count"}
+                }},
+                # return fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "user_id": "$user_id",
+                    "instagram_score": {
+                        "$sum": [{
+                            "$subtract": [
+                                {"$arrayElemAt": ["$follower", 0]}, {"$arrayElemAt": ["$follower", -1]}
+                            ]
+                        }, "$engagement_score"]
+                    },
+                }}
+            ]
+
+            results = InstagramLatest.objects().aggregate(pipeline)
+            result = []
+            for item in results:
+                result.append(item)
+            return result
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
     @staticmethod
     def get_youtube_score(artist_id):
