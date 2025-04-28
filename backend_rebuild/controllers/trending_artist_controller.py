@@ -1,5 +1,6 @@
 from flask import request, jsonify
 import json
+from models.artist_model import Artists
 # music related data
 from models.spotify_model import SpotifyCharts
 from models.sns.youtube_model import YoutubeCharts
@@ -21,6 +22,30 @@ class TrendingArtistController:
     3) Drama Performance
         Includes: Netflix_Charts, Spotify_Ost
     """
+    @staticmethod
+    def query_db_artist():
+        pipeline = [
+            {"$match": {
+                "artist_id": {"$ne": None}
+            }},
+            {"$project": {
+                "_id": 0,
+                "artist_id": "$artist_id",
+                "english_name": "$english_name",
+                "korean_name": "$korean_name",
+                "instagram_id": "$instagram_id",
+                "youtube_id": "$youtube_id",
+                "tiktok_id": "$tiktok_id"
+            }}
+        ]
+
+        artists = Artists.objects().aggregate(pipeline)
+        results = []
+        for artist in artists:
+            results.append(artist)
+
+        return results
+
     @staticmethod
     def get_spotify_charts_score(country, year, week):
 
@@ -366,11 +391,11 @@ class TrendingArtistController:
             }), 500
 
     @classmethod
-    def merge_all_music_scores(self, country, year, week):
+    def merge_all_music_scores(cls, country, year, week):
         # music data
-        sp_data = self.get_spotify_charts_score(country, year, week)
-        yt_data = self.get_youtube_charts_score(country, year, week)
-        bb_data = self.get_billboard_charts_score(year, week)
+        sp_data = cls.get_spotify_charts_score(country, year, week)
+        yt_data = cls.get_youtube_charts_score(country, year, week)
+        bb_data = cls.get_billboard_charts_score(year, week)
 
         merged_data = []
 
@@ -405,6 +430,13 @@ class TrendingArtistController:
 
     @classmethod
     def merge_all_sns_scores(self, country, year, week):
+        """
+        Based on music scores, add on sns_score
+        :param country:
+        :param year:
+        :param week:
+        :return:
+        """
         merge_music_data = self.merge_all_music_scores(country, year, week)
 
         concat_sns_list = []
@@ -425,10 +457,14 @@ class TrendingArtistController:
                 merged_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
             else:
                 merged_artist["tiktok_sns_score"] = 0
+            # match instagram_sns_score
+            # if merged_artist.get("instagram_id"):
+            #     ig_sns_scores = self.get_instagram_score(merged_artist.get("instagram_id"))
+            #     merged_artist["instagram_sns_score"] = ig_sns_scores
+            # else:
+            #     merged_artist["instagram_sns_score"] = 0
+
             concat_sns_list.append(merged_artist)
-            # print(merged_artist)
-
-
 
         print(concat_sns_list)
         return concat_sns_list
@@ -445,7 +481,8 @@ class TrendingArtistController:
             # Calculate sns score
             youtube_sns_score = item.get('youtube_sns_score', 0)
             tiktok_sns_score = item.get('tiktok_sns_score', 0)
-            item['total_sns_score'] = youtube_sns_score + tiktok_sns_score
+            instagram_sns_score = item.get('instagram_sns_score', 0)
+            item['total_sns_score'] = youtube_sns_score + tiktok_sns_score + instagram_sns_score
 
         # Sort by total_score in descending order
         sorted_list = sorted(merge_list, key=lambda x: x['total_music_score'], reverse=True)
@@ -532,8 +569,8 @@ class TrendingArtistController:
                 # return fields
                 {"$project": {
                     "_id": 0,
-                    "datetime": "$datetime",
-                    "user_id": "$user_id",
+                    # "datetime": "$datetime",
+                    # "user_id": "$_id",
                     "instagram_score": {
                         "$sum": [{
                             "$subtract": [
@@ -548,6 +585,7 @@ class TrendingArtistController:
             result = []
             for item in results:
                 result.append(item)
+
             return result
         except Exception as e:
             return jsonify({
@@ -625,13 +663,41 @@ class TrendingArtistController:
             }), 500
 
     @classmethod
-    def get_sns_score(cls, artist_id):
-        if not all([artist_id]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+    def get_sns_score(self):
 
-        try:
-            pass
-        except Exception as e:
-            returnjsonify({
-                'err': str(e)
-            }), 500
+        # get all artists in db
+        artists = self.query_db_artist()
+        # print(artists)
+
+        combined_artist_sns_score = []
+
+        # print(type(merged_artist))
+        for artist in artists:
+            combined_artist = artist.copy()
+            # match youtube_sns_score
+            if combined_artist.get("youtube_id"):
+                yt_sns_scores = self.get_youtube_score(combined_artist.get("youtube_id"))
+                combined_artist["youtube_sns_score"] = yt_sns_scores[0]["hashtag"]
+            else:
+                combined_artist["youtube_sns_score"] = 0
+            # match tiktok_sns_score
+            if combined_artist.get("tiktok_id"):
+                tk_sns_scores = self.get_tiktok_score(combined_artist.get("tiktok_id"))
+                combined_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
+            else:
+                combined_artist["tiktok_sns_score"] = 0
+            # match instagram_sns_score
+            if combined_artist.get("instagram_id"):
+                ig_sns_scores = self.get_instagram_score(combined_artist.get("instagram_id"))
+                # print(ig_sns_scores)
+                # if list is not null
+                if len(ig_sns_scores) == 1:
+                    combined_artist["instagram_sns_score"] = ig_sns_scores[0]["instagram_score"]
+                    # print(type(ig_sns_scores))
+                else:
+                    combined_artist["instagram_sns_score"] = 0
+            else:
+                combined_artist["instagram_sns_score"] = 0
+            combined_artist_sns_score.append(combined_artist)
+
+        return combined_artist_sns_score
