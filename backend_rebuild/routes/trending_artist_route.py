@@ -37,3 +37,27 @@ def total_music_score():
     music_score = TrendingArtistController.get_music_score(country, year, week)
 
     return music_score
+
+@trending_artist_bp.route('/tiktok-sns-score', methods=['GET'])
+def tiktok_sns_score():
+    artist_id = request.args.get('artist_id', type=str)
+
+    tk_sns_score = TrendingArtistController.get_tiktok_score(artist_id)
+
+    return tk_sns_score
+
+@trending_artist_bp.route('/youtube-sns-score', methods=['GET'])
+def youtube_sns_score():
+    artist_id = request.args.get('artist_id', type=str)
+
+    yt_sns_score = TrendingArtistController.get_youtube_score(artist_id)
+
+    return yt_sns_score
+
+@trending_artist_bp.route('/instagram-sns-score', methods=['GET'])
+def instagram_sns_score():
+    artist_id = request.args.get('artist_id', type=str)
+
+    ig_sns_score = TrendingArtistController.get_instagram_score(artist_id)
+
+    return ig_sns_score
