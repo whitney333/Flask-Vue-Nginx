@@ -64,6 +64,10 @@ def instagram_sns_score():
 
 @trending_artist_bp.route('/merge-sns-score', methods=['GET'])
 def get_sns_score():
+    """
+    Based on music chart data
+    :return:
+    """
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
     week = request.args.get('week', type=int)
@@ -72,8 +76,24 @@ def get_sns_score():
 
     return all_sns_score
 
-@trending_artist_bp.route('/sns-score-list', methods=['GET'])
-def only_sns_score():
+@trending_artist_bp.route('/pre-sns-score', methods=['GET'])
+def _sns_score():
     sns_score = TrendingArtistController.get_sns_score()
 
     return sns_score
+
+@trending_artist_bp.route('/sns-score', methods=['GET'])
+def total_sns_score():
+    sns_scores = TrendingArtistController.get_total_sns_score()
+
+    return sns_scores
+
+@trending_artist_bp.route('/netflix-score', methods=['GET'])
+def netflix_chart_score():
+    country = request.args.get('country', default=None)
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    netflix_chart = TrendingArtistController.get_netflix_chart(country, year, week)
+
+    return netflix_chart

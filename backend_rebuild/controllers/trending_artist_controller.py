@@ -509,9 +509,75 @@ class TrendingArtistController:
                 'err': str(e)
             }), 500
 
+    @staticmethod
+    def get_netflix_chart(country, year, week):
+        if not all([country, year, week]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        pipeline = [
+            {"$match": {
+                "country": country
+            }},
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "week": "$week",
+                "country": "$country",
+                "rank": "$rank",
+                "name": "$name",
+                "weeks_on_chart": "$weeks_on_chart"
+            }},
+            {"$addFields": {
+                "year": {
+                    "$year": "$datetime"
+                }
+            }},
+            # match year & week
+            {"$match": {
+                "year": int(year),
+                "week": week
+            }},
+            # {"$project": {
+            #     "_id": 0,
+            #     "year": "$year",
+            #     "week": "$week",
+            #     "country": "$country",
+            #     "rank": "$rank",
+            #     "name": "$name",
+            #     "weeks_on_chart": "$weeks_on_chart"
+            # }},
+            # # calculate rank score
+            {"$addFields": {
+                "rank_score": {
+                    "$subtract": [201, {"$toInt": "$rank"}]}
+            }},
+            {"$project": {
+                "_id": 0,
+                "year": "$year",
+                "week": "$week",
+                "country": "$country",
+                "rank": "$rank",
+                "rank_score": {"$toInt": "$rank_score"},
+                "name": "$name",
+                "weeks_on_chart": "$weeks_on_chart"
+            }}
+        ]
+
+        try:
+            results = NetflixCharts.objects().aggregate(pipeline)
+            result = []
+            for item in results:
+                result.append(item)
+            print(result)
+            return result
+        except Exception as e:
+            return jsonify({'err': str(e)}), 500
+
     @classmethod
     def get_drama_score(cls):
-        pass
+        pipeline = [
+
+        ]
 
     @staticmethod
     def get_instagram_score(artist_id):
@@ -701,3 +767,33 @@ class TrendingArtistController:
             combined_artist_sns_score.append(combined_artist)
 
         return combined_artist_sns_score
+
+    @staticmethod
+    def calculate_sns_score(merge_list):
+        # Calculate total_sns_score for each artist
+        for item in merge_list:
+            # Calculate sns score
+            youtube_sns_score = item.get('youtube_sns_score', 0)
+            tiktok_sns_score = item.get('tiktok_sns_score', 0)
+            instagram_sns_score = item.get('instagram_sns_score', 0)
+            item['total_sns_score'] = youtube_sns_score + tiktok_sns_score + instagram_sns_score
+
+        # Sort by total_score in descending order
+        sorted_list = sorted(merge_list, key=lambda x: x['total_sns_score'], reverse=True)
+
+        return sorted_list
+
+    @classmethod
+    def get_total_sns_score(self):
+        try:
+            combined_list = self.get_sns_score()
+            results = self.calculate_sns_score(combined_list)
+
+            return jsonify({
+                'status': 'success',
+                'data': results
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
