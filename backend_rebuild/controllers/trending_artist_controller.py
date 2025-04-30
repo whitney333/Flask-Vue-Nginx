@@ -2,7 +2,7 @@ from flask import request, jsonify
 import json
 from models.artist_model import Artists
 # music related data
-from models.spotify_model import SpotifyCharts
+from models.spotify_model import SpotifyCharts, SpotifyOst
 from models.sns.youtube_model import YoutubeCharts
 from models.billboard_model import BillboardCharts
 # sns related data
@@ -11,6 +11,7 @@ from models.sns.instagram_model import Instagram, InstagramLatest
 from models.sns.tiktok_model import Tiktok
 # drama related data
 from models.netflix_model import NetflixCharts
+from models.drama_model import Drama
 
 class TrendingArtistController:
     """
@@ -537,15 +538,6 @@ class TrendingArtistController:
                 "year": int(year),
                 "week": week
             }},
-            # {"$project": {
-            #     "_id": 0,
-            #     "year": "$year",
-            #     "week": "$week",
-            #     "country": "$country",
-            #     "rank": "$rank",
-            #     "name": "$name",
-            #     "weeks_on_chart": "$weeks_on_chart"
-            # }},
             # # calculate rank score
             {"$addFields": {
                 "rank_score": {
@@ -568,16 +560,150 @@ class TrendingArtistController:
             result = []
             for item in results:
                 result.append(item)
-            print(result)
+            # print(result)
             return result
         except Exception as e:
             return jsonify({'err': str(e)}), 500
 
-    @classmethod
-    def get_drama_score(cls):
-        pipeline = [
+    @staticmethod
+    def get_spotify_ost(year, week):
+        if not all([year, week]):
+            return jsonify({'err': 'Missing required parameters'}), 400
 
+        # return only spotify ost
+        # pipeline = [
+        #     {"$match": {
+        #         "year": year,
+        #         "week": week
+        #     }},
+        #     {"$project": {
+        #         "_id": 0,
+        #         "year": "$year",
+        #         "week": "$week",
+        #         "track": "$track",
+        #         "album": "$album",
+        #         "artist": "$artist",
+        #         "play_counts": {"$toInt": "$play_counts"}
+        #     }},
+        #     {"$sort": {"play_counts": -1}}
+        # ]
+        pipeline = [
+            {"$match": {
+                "BROADCAST_YEAR": {
+                    "$gte": year-1,
+                    "$lte": year
+                }
+            }},
+            {"$project": {
+                "english_name": "$NAME",
+                "korean_name": "$NAME_IN_KOREAN",
+                "artist_id": "$STARRING.MID"
+            }},
+            # lookup spotify ost
+            {"$lookup": {
+                "from": "spotify_ost",
+                "let": {"english_name": "$english_name"},
+                "pipeline": [
+                    {"$match": {
+                        "year": year,
+                        "week": week
+                    }}
+                ],
+                "as": "spotify_ost"
+            }},
+            {"$unwind": "$spotify_ost"},
+            # match drama name with album name
+            {"$addFields": {
+                "is_match": {
+                    "$regexMatch": {
+                        "input": "$spotify_ost.album",
+                        "regex": {
+                            "$concat": [".*", {"$toString": "$english_name"}, ".*"]
+                        },
+                        "options": "i"
+                    }
+                }
+            }},
+            # return matched drama
+            {"$match": {
+                "is_match": True
+            }},
+            # group by drama
+            {"$group": {
+                "_id": "$english_name",
+                "korean_name": {"$first": "$korean_name"},
+                "artist_id": {"$first": "$artist_id"},
+                "year": {"$first": "$spotify_ost.year"},
+                "week": {"$first": "$spotify_ost.week"},
+                "play_counts": {"$push": {"$toInt": "$spotify_ost.play_counts"}}
+            }},
+            # return sum up play_counts
+
+            # {"$unwind": "$artist_id"},
+            {"$project": {
+                "_id": 0,
+                "english_name": "$_id",
+                "korean_name": "$korean_name",
+                "artist_id": "$artist_id",
+                "year": "$year",
+                "week": "$week",
+                "play_counts": {"$sum": "$play_counts"}
+            }},
         ]
+
+        try:
+            results = Drama.objects().aggregate(pipeline)
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+            return result
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @staticmethod
+    def get_all_drama(year):
+        if not all([year]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        pipeline = [
+            {"$match": {
+                "BROADCAST_YEAR": {
+                    "$gte": year - 1,  # fetch drama within 2 yrs
+                    "$lt": year
+                }
+            }},
+            {"$project": {
+                "_id": 0,
+                "english_name": "$NAME",
+                "korean_name": "$NAME_IN_KOREAN",
+                "artist_id": "$STARRING.MID"
+            }},
+        ]
+
+        try:
+            results = Drama.objects().aggregate(pipeline)
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
+            return result
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @classmethod
+    def get_drama_score(cls, country, year, week):
+        if not all([country, year, week]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        # get spotify ost list
+        spotify_ost = cls.get_spotify_ost(year, week)
+        # match global netflix chart as default
+
 
     @staticmethod
     def get_instagram_score(artist_id):
