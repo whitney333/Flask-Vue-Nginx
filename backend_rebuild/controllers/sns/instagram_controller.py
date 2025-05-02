@@ -1386,8 +1386,12 @@ class InstagramController:
                 "eng_rate": {"$sum": "$eng_rate"}
             }},
             {"$project": {
+                "_id": 0,
+                "tag": "$_id",
                 "eng_rate_per_hashtag": {
-                    "$divide": ["$eng_rate", "$count"]
+                    "$round": [
+                        {"$divide": ["$eng_rate", "$count"]}, 3
+                    ]
                 }
             }},
             {"$sort": {"eng_rate_per_hashtag": -1}},
@@ -1418,7 +1422,7 @@ class InstagramController:
         try:
             pipeline = [
             {"$match": {
-                "user_id": "61160817623"
+                "user_id": artist_id
             }},
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
