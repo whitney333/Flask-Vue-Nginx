@@ -1,4 +1,4 @@
-from models.sns.instagram_model import Instagram
+from models.sns.instagram_model import Instagram, InstagramLatest
 import datetime
 from flask import jsonify, request
 
@@ -1344,7 +1344,7 @@ class InstagramController:
         try:
             pipeline = [
             {"$match": {
-                "user_id": "242998577"
+                "user_id": artist_id
             }},
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
@@ -1394,7 +1394,7 @@ class InstagramController:
             {"$limit": 10}
         ]
 
-            results = Instagram.objects().aggregate(pipeline)
+            results = InstagramLatest.objects().aggregate(pipeline)
 
             result = []
             for item in results:
@@ -1458,7 +1458,7 @@ class InstagramController:
             {"$limit": 10}
         ]
 
-            results = Instagram.objects().aggregate(pipeline)
+            results = InstagramLatest.objects().aggregate(pipeline)
 
             result = []
             for item in results:
