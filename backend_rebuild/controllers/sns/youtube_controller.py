@@ -674,6 +674,7 @@ class YoutubeController:
                 }},
                 # calculate engagement rate & avg
                 {"$project": {
+                    "_id": 0,
                     "datetime": "$_id",
                     "video": "$video",
                     "total_view": "$total_view",
@@ -750,6 +751,7 @@ class YoutubeController:
                 }},
                 # calculate engagement rate & avg
                 {"$project": {
+                    "_id": 0,
                     "datetime": "$_id",
                     "video": "$video",
                     "total_view": "$total_view",
@@ -825,6 +827,7 @@ class YoutubeController:
                 }},
                 # calculate engagement rate & avg
                 {"$project": {
+                    "_id": 0,
                     "datetime": "$_id",
                     "video": "$video",
                     "total_view": "$total_view",
@@ -900,6 +903,7 @@ class YoutubeController:
                 }},
                 # calculate engagement rate & avg
                 {"$project": {
+                    "_id": 0,
                     "datetime": "$_id",
                     "video": "$video",
                     "total_view": "$total_view",
@@ -975,6 +979,7 @@ class YoutubeController:
                 }},
                 # calculate engagement rate & avg
                 {"$project": {
+                    "_id": 0,
                     "datetime": "$_id",
                     "video": "$video",
                     "total_view": "$total_view",
@@ -1050,6 +1055,7 @@ class YoutubeController:
                 }},
                 # calculate engagement rate & avg
                 {"$project": {
+                    "_id": 0,
                     "datetime": "$_id",
                     "video": "$video",
                     "total_view": "$total_view",
