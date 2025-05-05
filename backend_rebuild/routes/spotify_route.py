@@ -17,7 +17,7 @@ def get_spotify_follower():
     return follower
 
 # spotify monthly_listener route
-@spotify_bp.route('/monthly_listener', methods=['GET'])
+@spotify_bp.route('/monthly-listener', methods=['GET'])
 def get_spotify_monthly_listener():
     artist_id = request.args.get('artist_id', type=str)
     date_end = request.args.get('date_end', type=str)
@@ -39,7 +39,7 @@ def get_spotify_popularity():
     return popularity
 
 # spotify fan conversion rate route
-@spotify_bp.route('/conversion_rate', methods=['GET'])
+@spotify_bp.route('/conversion-rate', methods=['GET'])
 def get_spotify_conversion_rate():
     artist_id = request.args.get('artist_id', type=str)
     date_end = request.args.get('date_end', type=str)
@@ -48,3 +48,11 @@ def get_spotify_conversion_rate():
     conversion_rate = SpotifyController.get_conversion_rate(artist_id, date_end, filter)
 
     return conversion_rate
+
+@spotify_bp.route('/top-city', methods=['GET'])
+def get_spotify_top_five_city():
+    artist_id = request.args.get('artist_id', type=str)
+
+    top_five_city = SpotifyController.get_top_five_city(artist_id)
+
+    return top_five_city

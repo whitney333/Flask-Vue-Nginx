@@ -803,12 +803,17 @@ class SpotifyController:
                 'err': str(e)
             }), 500
 
+    @staticmethod
     # Get spotify top 5 city
     def get_top_five_city(artist_id):
-        pipeline = [
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            pipeline = [
             # match artist id
             {"$match": {
-                "spotify_id": "0jxjOumN4dyPFTLUojSbNP"
+                "spotify_id": artist_id
             }},
             # sort by date
             {"$sort": {"datetime": -1}},
@@ -822,14 +827,21 @@ class SpotifyController:
             }}
         ]
 
-        results = Spotify.objects().aggregate(pipeline)
+            results = Spotify.objects().aggregate(pipeline)
 
-        result = []
-        for item in results:
-            result.append(item)
-        # print(result)
+            result = []
+            for item in results:
+                result.append(item)
+            # print(result)
 
-        return result
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
     @staticmethod
     # Get spotify fan conversion rate
@@ -839,6 +851,9 @@ class SpotifyController:
             return jsonify({'err': 'Missing required parameters'}), 400
 
         try:
+            format = "%Y-%m-%d"
+            date_end = datetime.datetime.strptime(date_end, format)
+
             if (range == "7d"):
                 # calculate the date 7 days ago from today
                 seven_days_ago = date_end - datetime.timedelta(days=7)
