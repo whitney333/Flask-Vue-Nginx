@@ -2,7 +2,7 @@ from mongoengine import *
 from datetime import datetime
 
 
-class Artist(Document):
+class Artists(Document):
     artist_id = StringField(required=True)
     english_name = StringField(required=True)
     korean_name = StringField(required=True)
