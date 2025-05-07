@@ -1,5 +1,4 @@
-from libs.utils import getIdFromFirebaseID
-from firebase.firebase_auth import verify_firebase_token
+from libs.utils import getIdFromFirebaseID, requires_auth
 from models import campaign_db
 from flask import jsonify, Blueprint, request
 from bson.json_util import dumps
@@ -12,22 +11,11 @@ campaign_api = Api(campaign_api_bp)
 
 
 @campaign_api_bp.route('/v1/campaign/posts', methods=['GET'])
-def get_campaign_posts():
+@requires_auth
+def get_campaign_posts(firebase_id, user_id):
     try:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Unauthorized"}), 401
-
-        token = auth_header.split(" ")[1]
-        decoded_token = verify_firebase_token(token)
-
-        if not decoded_token:
-            return jsonify({"error": "Invalid token"}), 401
-
-        firebaseId = decoded_token['uid']
-        userId = getIdFromFirebaseID(firebaseId)
         # get all posts
-        posts = campaign_db.posts.find({'userId': userId})
+        posts = campaign_db.posts.find({'userId': user_id})
         return dumps(posts), 200
     except Exception as e:
         return dumps({'err': str(e)})
@@ -52,21 +40,11 @@ def get_campign_post(id: str):
 
 
 @campaign_api_bp.route('/v1/campaign/post', methods=['POST'])
-def post_campign_post():
+@requires_auth
+def post_campign_post(firebase_id, user_id):
     try:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Unauthorized"}), 401
-
-        token = auth_header.split(" ")[1]
-        decoded_token = verify_firebase_token(token)
-
-        if not decoded_token:
-            return jsonify({"error": "Invalid token"}), 401
-
         data = request.get_json()
-        firebaseId = decoded_token['uid']
-        data['userId'] = getIdFromFirebaseID(firebaseId)
+        data['userId'] = user_id
         data['created_at'] = datetime.datetime.now()
         post = campaign_db.posts.insert_one(data)
         return dumps(post), 200
