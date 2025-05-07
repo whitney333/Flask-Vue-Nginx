@@ -1,5 +1,6 @@
 from flask import request, jsonify
 import json
+import re
 from models.artist_model import Artists
 # music related data
 from models.spotify_model import SpotifyCharts, SpotifyOst
@@ -570,23 +571,7 @@ class TrendingArtistController:
         if not all([year, week]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
-        # return only spotify ost
-        # pipeline = [
-        #     {"$match": {
-        #         "year": year,
-        #         "week": week
-        #     }},
-        #     {"$project": {
-        #         "_id": 0,
-        #         "year": "$year",
-        #         "week": "$week",
-        #         "track": "$track",
-        #         "album": "$album",
-        #         "artist": "$artist",
-        #         "play_counts": {"$toInt": "$play_counts"}
-        #     }},
-        #     {"$sort": {"play_counts": -1}}
-        # ]
+        year = int(year)
         pipeline = [
             {"$match": {
                 "BROADCAST_YEAR": {
@@ -638,8 +623,6 @@ class TrendingArtistController:
                 "play_counts": {"$push": {"$toInt": "$spotify_ost.play_counts"}}
             }},
             # return sum up play_counts
-
-            # {"$unwind": "$artist_id"},
             {"$project": {
                 "_id": 0,
                 "english_name": "$_id",
@@ -649,6 +632,15 @@ class TrendingArtistController:
                 "week": "$week",
                 "play_counts": {"$sum": "$play_counts"}
             }},
+            {"$unwind": "$artist_id"},
+            {"$group": {
+                "_id": "$artist_id",
+                "english_name": {"$push": "$english_name"},
+                "korean_name": {"$push": "$korean_name"},
+                "year": {"$first": "$year"},
+                "week": {"$first": "$week"},
+                "ost_score": {"$push": "$play_counts"}
+            }}
         ]
 
         try:
@@ -668,6 +660,7 @@ class TrendingArtistController:
         if not all([year]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
+        year = int(year)
         pipeline = [
             {"$match": {
                 "BROADCAST_YEAR": {
@@ -695,15 +688,60 @@ class TrendingArtistController:
                 'err': str(e)
             }), 500
 
+    @staticmethod
+    def extract_base_title(title):
+        """
+        To extract base title using regex
+        :param title:
+        :return:
+        """
+        # Remove ": Limited Series", ": Season X" and similar suffixes
+        match = re.match(r'^(.*?)(?:\s*:\s*(?:Limited Series|Season\s*\d+))?$', title)
+
+        return match.group(1).strip() if match else title
+
     @classmethod
     def get_drama_score(cls, country, year, week):
         if not all([country, year, week]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
         # get spotify ost list
-        spotify_ost = cls.get_spotify_ost(year, week)
-        # match global netflix chart as default
+        ost = cls.get_spotify_ost(year, week)
+        ost_dict = {}
 
+        for item in ost:
+            # Handle both single names and lists of names
+            english_names = item['english_name'] if isinstance(item['english_name'], list) else [item['english_name']]
+            for name in english_names:
+                base_name = cls.extract_base_title(name)
+                if base_name not in ost_dict:
+                    ost_dict[base_name] = []
+                ost_dict[base_name].append(item)
+
+        # match global netflix chart as default
+        netflix = cls.get_netflix_chart(country, year, week)
+
+        result = []
+
+        for netflix_item in netflix:
+            netflix_base = cls.extract_base_title(netflix_item['name'])
+            matched_ost_items = ost_dict.get(netflix_base, [])
+
+            if matched_ost_items:
+                for ost_item in matched_ost_items:
+                    # Merge the dictionaries (netflix fields first, then ost fields)
+                    merged = {"name": netflix_item.get("name"),
+                              "country": netflix_item.get("country"),
+                              "netflix_score": netflix_item.get("rank_score"),
+                              "year": netflix_item.get("year"),
+                              "week": netflix_item.get("week"),
+                              "artist_id": ost_item.get("_id"),
+                              "korean_name": ost_item.get("korean_name")[0],
+                              "ost_score": ost_item.get("ost_score")[0]
+                              }
+                    result.append(merged)
+
+        return result
 
     @staticmethod
     def get_instagram_score(artist_id):
