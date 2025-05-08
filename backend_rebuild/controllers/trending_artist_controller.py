@@ -3,7 +3,7 @@ import json
 import re
 from models.artist_model import Artists
 # music related data
-from models.spotify_model import SpotifyCharts, SpotifyOst
+from models.spotify_model import SpotifyCharts, SpotifyOst, Spotify
 from models.sns.youtube_model import YoutubeCharts
 from models.billboard_model import BillboardCharts
 # sns related data
@@ -37,7 +37,8 @@ class TrendingArtistController:
                 "korean_name": "$korean_name",
                 "instagram_id": "$instagram_id",
                 "youtube_id": "$youtube_id",
-                "tiktok_id": "$tiktok_id"
+                "tiktok_id": "$tiktok_id",
+                "spotify_id": "$spotify_id"
             }}
         ]
 
@@ -47,6 +48,53 @@ class TrendingArtistController:
             results.append(artist)
 
         return results
+
+    @staticmethod
+    def get_spotify_popularity_index(spotify_id):
+        """
+        To avoid artists do not enter any music charts,
+        we add spotify popularity index as the base score
+        :return:
+        """
+        # get the latest popularity index
+        pipeline = [
+            {"$match": {
+                "spotify_id": spotify_id
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$project": {
+                "_id": 0,
+                "spotify_id": "$spotify_id",
+                "popularity": "$popularity"
+            }}
+        ]
+
+        results = Spotify.objects().aggregate(pipeline)
+        result = []
+
+        for item in results:
+            result.append(item)
+
+        return result
+
+    @classmethod
+    def merge_spotify_score(cls, spotify_id):
+        # get all artists in db
+        artists = cls.query_db_artist()
+
+        #cls.get_spotify_charts_score()
+
+        combined_spotify_score = []
+
+        for artist in artists:
+            merged_artist = artist.copy()
+            if merged_artist.get("spotify_id"):
+                spotify_popularity = cls.get_spotify_popularity_index(artist.get("spotify_id"))
+                merged_artist["sp_pop_score"] = spotify_popularity[0]["popularity"]
+            combined_spotify_score.append(merged_artist)
+
+        return combined_spotify_score
 
     @staticmethod
     def get_spotify_charts_score(country, year, week):
@@ -139,14 +187,18 @@ class TrendingArtistController:
                 }
             }},
             {"$sort": {"sp_total_score": -1}},
-             # lookup artist
+            # lookup artist
             {"$lookup": {
                 "from": "artists",
                 "localField": "sp_id",
                 "foreignField": "spotify_id",
                 "as": "artist_info"
             }},
-            {"$unwind": "$artist_info"},
+            # unwind artist_info field and simultaneously keep other records which do not have this field
+            {"$unwind": {
+                "path": "$artist_info",
+                "preserveNullAndEmptyArrays": True
+            }},
             # keep artist id from all platforms
             {"$project": {
                 "_id": 0,
