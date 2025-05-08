@@ -57,6 +57,7 @@ class TrendingArtistController:
         try:
             year = str(year)
             week = int(week)
+
             pipeline = [
             # match country
             {"$match": {
@@ -140,7 +141,7 @@ class TrendingArtistController:
             {"$sort": {"sp_total_score": -1}},
              # lookup artist
             {"$lookup": {
-                "from": "artist",
+                "from": "artists",
                 "localField": "sp_id",
                 "foreignField": "spotify_id",
                 "as": "artist_info"
@@ -393,7 +394,7 @@ class TrendingArtistController:
             }), 500
 
     @classmethod
-    def merge_all_music_scores(cls, country, year, week):
+    def merge_music_scores(cls, country, year, week):
         # music data
         sp_data = cls.get_spotify_charts_score(country, year, week)
         yt_data = cls.get_youtube_charts_score(country, year, week)
@@ -499,7 +500,7 @@ class TrendingArtistController:
             return jsonify({'err': 'Missing required parameters'}), 400
 
         try:
-            merge_list = cls.merge_all_music_scores(country, year, week)
+            merge_list = cls.merge_music_scores(country, year, week)
             results = cls.calculate_total_music_score(merge_list)
 
             return jsonify({
@@ -701,7 +702,7 @@ class TrendingArtistController:
         return match.group(1).strip() if match else title
 
     @classmethod
-    def get_drama_score(cls, country, year, week):
+    def merge_drama_score(cls, country, year, week):
         if not all([country, year, week]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
@@ -742,6 +743,37 @@ class TrendingArtistController:
                     result.append(merged)
 
         return result
+
+    @staticmethod
+    def calculate_total_drama_score(merge_list):
+        # Calculate total_score for each artist
+        for item in merge_list:
+            netflix_score = item.get('netflix_score', 0)
+            ost_score = item.get('ost_score', 0)
+            item['total_drama_score'] = netflix_score + ost_score
+
+        # Sort by total_score in descending order
+        sorted_list = sorted(merge_list, key=lambda x: x['total_drama_score'], reverse=True)
+
+        return sorted_list
+
+    @classmethod
+    def get_drama_score(cls, country, year, week):
+        if not all([country, year, week]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        try:
+            merge_list = cls.merge_drama_score(country, year, week)
+            results = cls.calculate_total_drama_score(merge_list)
+
+            return jsonify({
+                'status': 'success',
+                'data': results
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
 
     @staticmethod
     def get_instagram_score(artist_id):
@@ -894,7 +926,6 @@ class TrendingArtistController:
 
     @classmethod
     def get_sns_score(self):
-
         # get all artists in db
         artists = self.query_db_artist()
         # print(artists)
