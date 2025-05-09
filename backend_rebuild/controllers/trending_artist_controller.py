@@ -33,7 +33,8 @@ class TrendingArtistController:
             {"$project": {
                 "_id": 0,
                 "artist_id": "$artist_id",
-                "english_name": "$english_name",
+                "type": "$type",
+                "artist": "$english_name",
                 "korean_name": "$korean_name",
                 "instagram_id": "$instagram_id",
                 "youtube_id": "$youtube_id",
@@ -50,7 +51,7 @@ class TrendingArtistController:
         return results
 
     @staticmethod
-    def get_spotify_popularity_index(spotify_id):
+    def get_spotify_popularity(spotify_id):
         """
         To avoid artists do not enter any music charts,
         we add spotify popularity index as the base score
@@ -79,22 +80,91 @@ class TrendingArtistController:
         return result
 
     @classmethod
-    def merge_spotify_score(cls, spotify_id):
+    def get_spotify_popularity_score(cls):
         # get all artists in db
         artists = cls.query_db_artist()
-
-        #cls.get_spotify_charts_score()
 
         combined_spotify_score = []
 
         for artist in artists:
             merged_artist = artist.copy()
             if merged_artist.get("spotify_id"):
-                spotify_popularity = cls.get_spotify_popularity_index(artist.get("spotify_id"))
+                spotify_popularity = cls.get_spotify_popularity(artist.get("spotify_id"))
                 merged_artist["sp_pop_score"] = spotify_popularity[0]["popularity"]
             combined_spotify_score.append(merged_artist)
 
         return combined_spotify_score
+
+    @classmethod
+    def merge_spotify_score(cls, country, year, week):
+        sp_chart = cls.get_spotify_charts_score(country, year, week)
+        sp_pop = cls.get_spotify_popularity_score()
+
+        merged_list = []
+        for chart_item in sp_chart:
+            #  find matching in spotify popularity
+            pop_match = next(
+                (pop_item for pop_item in sp_pop if pop_item["spotify_id"] == chart_item["spotify_id"]),
+                None
+            )
+            if pop_match:
+                # Merge dictionaries (sp_chart fields take precedence in case of conflict)
+                sp_total_score = pop_match["sp_pop_score"] + chart_item["sp_chart_score"]
+
+                merged_item = {
+                    # **pop_match, **chart_item,
+                    "artist": pop_match["artist"],
+                    "korean_name": pop_match["korean_name"],
+                    "mid": pop_match["artist_id"],
+                    "type": chart_item["type"],
+                    "country": chart_item["country"],
+                    "year": chart_item["year"],
+                    "month": chart_item["month"],
+                    "day": chart_item["day"],
+                    "week": chart_item["week"],
+                    "datetime": chart_item["datetime"],
+                    "instagram_id": pop_match["instagram_id"],
+                    "instagram_user": chart_item["instagram_user"],
+                    "spotify_id": pop_match["spotify_id"],
+                    "tiktok_id": pop_match["tiktok_id"],
+                    "youtube_id": pop_match["youtube_id"],
+                    "spotify_score": sp_total_score
+                }
+                merged_list.append(merged_item)
+            else:
+                merged_list.append(chart_item)
+
+        # Step 2: Add sp_pop items that weren't in sp_chart
+        sp_pop_ids_in_chart = {item["spotify_id"] for item in sp_chart}
+        unmatched_pop_items = [
+            pop_item for pop_item in sp_pop
+            if pop_item["spotify_id"] not in sp_pop_ids_in_chart
+        ]
+
+        final_merged = merged_list + unmatched_pop_items
+
+        results = []
+        # check if total score not exists,count chart score or popularity score
+        for item in final_merged:
+            # Create a new dict without sp_chart_score and sp_pop_score
+            new_item = {k: v for k, v in item.items() if k not in ["sp_chart_score", "sp_pop_score"]}
+
+            if "spotify_score" in item:
+                # artist already has total_score
+                pass
+            elif "sp_chart_score" in item:
+                new_item["spotify_score"] = item["sp_chart_score"]
+            elif "sp_pop_score" in item:
+                new_item["spotify_score"] = item["sp_pop_score"]
+            else:
+                # skip if no score exists
+                continue
+            results.append(new_item)
+
+        # return only items that have sp_total_score
+        final_result = [item for item in results if 'spotify_score' in item]
+
+        return final_result
 
     @staticmethod
     def get_spotify_charts_score(country, year, week):
@@ -209,8 +279,9 @@ class TrendingArtistController:
                 "week": "$week",
                 "country": "$country",
                 "artist": "$artist",
+                "type": "$artist_info.type",
                 "mid": "$artist_info.artist_id",
-                "sp_total_score": "$sp_total_score",
+                "sp_chart_score": "$sp_total_score",
                 "spotify_id": "$sp_id",
                 "instagram_id": "$artist_info.instagram_id",
                 "instagram_user": "$artist_info.instagram_user",
@@ -448,7 +519,7 @@ class TrendingArtistController:
     @classmethod
     def merge_music_scores(cls, country, year, week):
         # music data
-        sp_data = cls.get_spotify_charts_score(country, year, week)
+        sp_data = cls.merge_spotify_score(country, year, week)
         yt_data = cls.get_youtube_charts_score(country, year, week)
         bb_data = cls.get_billboard_charts_score(year, week)
 
@@ -492,7 +563,7 @@ class TrendingArtistController:
         :param week:
         :return:
         """
-        merge_music_data = self.merge_all_music_scores(country, year, week)
+        merge_music_data = self.merge_music_scores(country, year, week)
 
         concat_sns_list = []
 
@@ -531,13 +602,13 @@ class TrendingArtistController:
             # Calculate music score
             youtube_score = item.get('youtube_score', 0)
             billboard_score = item.get('billboard_score', 0)
-            spotify_score = item.get('sp_total_score', 0)
+            spotify_score = item.get('spotify_score', 0)
             item['total_music_score'] = youtube_score + billboard_score + spotify_score
             # Calculate sns score
-            youtube_sns_score = item.get('youtube_sns_score', 0)
-            tiktok_sns_score = item.get('tiktok_sns_score', 0)
-            instagram_sns_score = item.get('instagram_sns_score', 0)
-            item['total_sns_score'] = youtube_sns_score + tiktok_sns_score + instagram_sns_score
+            # youtube_sns_score = item.get('youtube_sns_score', 0)
+            # tiktok_sns_score = item.get('tiktok_sns_score', 0)
+            # instagram_sns_score = item.get('instagram_sns_score', 0)
+            # item['total_sns_score'] = youtube_sns_score + tiktok_sns_score + instagram_sns_score
 
         # Sort by total_score in descending order
         sorted_list = sorted(merge_list, key=lambda x: x['total_music_score'], reverse=True)
@@ -546,8 +617,6 @@ class TrendingArtistController:
 
     @classmethod
     def get_music_score(cls, country, year, week):
-        # TODO Add spotify monthly listeners index of every artist
-        ## in order to avoid artists that do not enter the charts
         if not all([country, year, week]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
