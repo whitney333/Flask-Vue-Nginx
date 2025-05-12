@@ -1,6 +1,7 @@
 from flask import request, jsonify
 import json
 import re
+import pandas as pd
 from models.artist_model import Artists
 # music related data
 from models.spotify_model import SpotifyCharts, SpotifyOst, Spotify
@@ -26,6 +27,10 @@ class TrendingArtistController:
     """
     @staticmethod
     def query_db_artist():
+        """
+        Get all artists' name, social media IDs, and music platform IDs
+        :return:
+        """
         pipeline = [
             {"$match": {
                 "artist_id": {"$ne": None}
@@ -866,6 +871,72 @@ class TrendingArtistController:
         return result
 
     @staticmethod
+    def get_db_artist_ids(artist_id):
+        """
+         Get all artists' name, social media IDs, and music platform IDs
+         :return:
+         """
+        if not all([artist_id]):
+            return jsonify({'err': 'Missing required parameters'}), 400
+
+        pipeline = [
+            {"$match": {
+                "artist_id": artist_id
+            }},
+            {"$project": {
+                "_id": 0,
+                "artist_id": "$artist_id",
+                "type": "$type",
+                "artist": "$english_name",
+                "korean_name": "$korean_name",
+                "instagram_id": "$instagram_id",
+                "youtube_id": "$youtube_id",
+                "tiktok_id": "$tiktok_id",
+                "spotify_id": "$spotify_id"
+            }}
+        ]
+
+        artists = Artists.objects().aggregate(pipeline)
+        results = []
+        for artist in artists:
+            results.append(artist)
+
+        return results
+
+    @classmethod
+    def merge_drama_with_ids(cls, country, year, week):
+        merged_drama = cls.get_drama_score(country, year, week)
+
+        try:
+            combined_list = []
+
+            for drama in merged_drama:
+                _merged = drama.copy()
+                if drama.get("artist_id"):
+                    artist_ids = cls.get_db_artist_ids(_merged.get("artist_id"))
+                    # print(type(artist_ids))
+                    # _merged["_"] = artist_ids
+
+                    # check if _ field has element
+                    if len(artist_ids) == 1:
+                        _merged["name"] = artist_ids[0]["artist"]
+                        _merged["instagram_id"] = artist_ids[0]["instagram_id"]
+                        _merged["youtube_id"] = artist_ids[0]["youtube_id"]
+                        _merged["tiktok_id"] = artist_ids[0]["tiktok_id"]
+                        _merged["type"] = artist_ids[0]["type"]
+
+                        combined_list.append(_merged)
+            # print(combined_list)
+            return jsonify({
+                'status': 'success',
+                'data': combined_list
+            })
+        except Exception as e:
+            return jsonify({
+                'err': str(e)
+            }), 500
+
+    @staticmethod
     def calculate_total_drama_score(merge_list):
         # Calculate total_score for each artist
         for item in merge_list:
@@ -883,18 +954,10 @@ class TrendingArtistController:
         if not all([country, year, week]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
-        try:
-            merge_list = cls.merge_drama_score(country, year, week)
-            results = cls.calculate_total_drama_score(merge_list)
+        merge_list = cls.merge_drama_score(country, year, week)
+        results = cls.calculate_total_drama_score(merge_list)
 
-            return jsonify({
-                'status': 'success',
-                'data': results
-            }), 200
-        except Exception as e:
-            return jsonify({
-                'err': str(e)
-            }), 500
+        return results
 
     @staticmethod
     def get_instagram_score(artist_id):
@@ -1046,7 +1109,7 @@ class TrendingArtistController:
             }), 500
 
     @classmethod
-    def get_sns_score(self):
+    def get_db_sns_score(self):
         # get all artists in db
         artists = self.query_db_artist()
         # print(artists)
@@ -1065,7 +1128,11 @@ class TrendingArtistController:
             # match tiktok_sns_score
             if combined_artist.get("tiktok_id"):
                 tk_sns_scores = self.get_tiktok_score(combined_artist.get("tiktok_id"))
-                combined_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
+                # if list is not null
+                if len(tk_sns_scores) == 1:
+                    combined_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
+                else:
+                    combined_artist["tiktok_sns_score"] = 0
             else:
                 combined_artist["tiktok_sns_score"] = 0
             # match instagram_sns_score
@@ -1102,7 +1169,7 @@ class TrendingArtistController:
     @classmethod
     def get_total_sns_score(self):
         try:
-            combined_list = self.get_sns_score()
+            combined_list = self.get_db_sns_score()
             results = self.calculate_sns_score(combined_list)
 
             return jsonify({
@@ -1113,3 +1180,86 @@ class TrendingArtistController:
             return jsonify({
                 'err': str(e)
             }), 500
+
+    @classmethod
+    def calculate_overall_popularity(cls, country, year, week):
+        # request sns/ music/ drama endpoint separately
+        music = cls.get_music_score(country, year, week)
+        sns = cls.get_total_sns_score()
+        drama = cls.get_drama_score(country, year, week)
+
+        # Convert lists to DataFrames
+        df_music = pd.DataFrame(music)
+        df_sns = pd.DataFrame(sns)
+        df_drama = pd.DataFrame(drama)
+
+        results = []
+        # get all unique artist_ids from all datasets
+        all_artist_ids = set(df_music['artist_id'].dropna().unique()).union(
+            set(df_sns['artist_id'].dropna().unique())).union(
+            set(df_drama['artist_id'].dropna().unique()))
+
+        for artist_id in all_artist_ids:
+            result = {
+                "artist_id": artist_id,
+                "country": country,
+                "week": week,
+                "year": year,
+                "total_drama_score": None,
+                "total_sns_score": None,
+                "total_music_score": None,
+                "youtube_id": None,
+                "tiktok_id": None,
+                "spotify_id": None,
+                "popularity": None
+            }
+
+            # initialize scores for popularity calculation
+            drama_score = 0
+            sns_score = 0
+            music_score = 0
+
+            # get music data if exists
+            music_data = df_music[df_music['artist_id'] == artist_id]
+            if not music_data.empty:
+                music_data = music_data.iloc[0].to_dict()
+                music_score = music_data.get("total_music_score", 0)
+                result.update({
+                    "country": music_data.get("country", "south-korea"),
+                    "total_music_score": music_score,
+                    "spotify_id": music_data.get("spotify_id"),
+                    "youtube_id": music_data.get("youtube_id"),
+                    "tiktok_id": music_data.get("tiktok_id")
+                })
+
+            # get sns data if exists
+            sns_data = df_sns[df_sns['artist_id'] == artist_id]
+            if not sns_data.empty:
+                sns_data = sns_data.iloc[0].to_dict()
+                sns_score = sns_data.get("total_sns_score", 0)
+                result.update({
+                    "total_sns_score": sns_score,
+                    "youtube_id": sns_data.get("youtube_id") or result["youtube_id"],
+                    "tiktok_id": sns_data.get("tiktok_id") or result["tiktok_id"],
+                    "spotify_id": sns_data.get("spotify_id") or result["spotify_id"],
+                    "country": sns_data.get("country", result["country"])
+                })
+
+            # get drama data if exists
+            drama_data = df_drama[df_drama['artist_id'] == artist_id]
+            if not drama_data.empty:
+                drama_data = drama_data.iloc[0].to_dict()
+                drama_score = drama_data.get("total_drama_score", 0)
+                result.update({
+                    "total_drama_score": drama_score,
+                    "country": drama_data.get("country", result["country"])
+                })
+
+            # Calculate popularity (handle None values by treating them as 0)
+            result["popularity"] = (drama_score if drama_score is not None else 0) + \
+                                   (sns_score if sns_score is not None else 0) + \
+                                   (music_score if music_score is not None else 0)
+
+            results.append(result)
+
+        return results
