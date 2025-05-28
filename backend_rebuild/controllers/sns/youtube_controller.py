@@ -96,20 +96,39 @@ class YoutubeController:
     def get_subscribers(artist_id, date_end, range):
         """
         Get artist's subscribers count by different time range ()
-        :return:
+
         """
-        if not all([artist_id, date_end, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not date_end:
+            return jsonify({'err': 'Missing date_end parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
 
         try:
+            # Validate and parse date
             format = "%Y-%m-%d"
-            date_end = datetime.datetime.strptime(date_end, format)
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
 
-            if (range == "7d"):
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
 
-                pipeline = [
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+            # mongodb pipeline
+            pipeline = [
                 # match artist channel id
                 {"$match": {
                     "channel_id": artist_id
@@ -119,7 +138,7 @@ class YoutubeController:
                 {"$match": {
                     "datetime": {
                         "$lte": date_end,
-                        "$gt": seven_days_ago
+                        "$gt": start_date
                     }
                 }},
                 {"$project": {
@@ -134,241 +153,63 @@ class YoutubeController:
                 }}
             ]
 
-                results = Youtube.objects().aggregate(pipeline)
+            # Execute pipeline
+            results = Youtube.objects().aggregate(pipeline)
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
+            # Format results
+            result = list(results)  # Convert cursor to list
 
+            # Check if we got any results
+            if not result:
                 return jsonify({
                     'status': 'success',
-                    'data': result
+                    'data': [],
+                    'message': 'No data found for the specified range'
                 }), 200
 
-            elif (range == "28d"):
-                # calculate the date 28 days ago from today
-                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": twenty_eight_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "subscriber_count": "$subscriber_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "90d"):
-                # calculate the date 90 days ago from today
-                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": ninety_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "subscriber_count": "$subscriber_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "180d"):
-                # calculate the date 180 days ago from today
-                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": hundred_eighty_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "subscriber_count": "$subscriber_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "365d"):
-                # calculate the date 180 days ago from today
-                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": year_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "subscriber_count": "$subscriber_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            else:
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": seven_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "subscriber_count": "$subscriber_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500
 
     @staticmethod
     def get_youtube_channel_view(artist_id, date_end, range):
-        if not all([artist_id, date_end, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not date_end:
+            return jsonify({'err': 'Missing date_end parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
 
         try:
+            # Validate and parse date
             format = "%Y-%m-%d"
-            date_end = datetime.datetime.strptime(date_end, format)
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
 
-            if (range == "7d"):
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
 
-                pipeline = [
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+            # mongodb pipeline
+            pipeline = [
                 # match artist channel id
                 {"$match": {
                     "channel_id": artist_id
@@ -378,7 +219,7 @@ class YoutubeController:
                 {"$match": {
                     "datetime": {
                         "$lte": date_end,
-                        "$gt": seven_days_ago
+                        "$gt": start_date
                     }
                 }},
                 {"$project": {
@@ -393,224 +234,27 @@ class YoutubeController:
                 }}
             ]
 
-                results = Youtube.objects().aggregate(pipeline)
+            # Execute pipeline
+            results = Youtube.objects().aggregate(pipeline)
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
+            # Format results
+            result = list(results)  # Convert cursor to list
 
+            # Check if we got any results
+            if not result:
                 return jsonify({
                     'status': 'success',
-                    'data': result
+                    'data': [],
+                    'message': 'No data found for the specified range'
                 }), 200
 
-            elif (range == "28d"):
-                # calculate the date 28 days ago from today
-                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": twenty_eight_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "view_count": "$view_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "90d"):
-                # calculate the date 90 days ago from today
-                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": ninety_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "view_count": "$view_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "180d"):
-                # calculate the date 180 days ago from today
-                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": hundred_eighty_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "view_count": "$view_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "365d"):
-                # calculate the date 180 days ago from today
-                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": year_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "view_count": "$view_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            else:
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": seven_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "view_count": "$view_count",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500
 
@@ -624,19 +268,30 @@ class YoutubeController:
         total views, total likes, total comments,
         avg likes, avg comments
         """
-        if not all([artist_id, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
 
         try:
-            if (range == "7d"):
-                # calculate the date 7 days ago from today
-                # seven_days_ago = date_end - datetime.timedelta(days=7)
 
-                pipeline = [
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+
+            pipeline = [
                 {"$match": {
                     "channel_id": artist_id
                 }},
-                {"$sort": {"datetime": 1}},
+                {"$sort": {"datetime": -1}},
                 # match date range
                 # {"$match": {
                 #     "datetime": {
@@ -649,7 +304,12 @@ class YoutubeController:
                 {"$unwind": "$video"},
                 {"$project": {
                     "_id": 0,
-                    "datetime": "$datetime",
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
                     "published_at": "$video.published_at",
                     "view_count": {"$toInt": "$video.view_count"},
                     "like_count": {"$toInt": "$video.like_count"},
@@ -666,7 +326,7 @@ class YoutubeController:
                     "total_comment": {"$sum": "$comment_count"}
                 }},
                 {"$sort": {"_id": 1}},
-                # calculate subtotal
+                # # calculate subtotal
                 {"$addFields": {
                     "sub_total": {
                         "$sum": ["$total_like", "$total_favorite", "$total_comment"]
@@ -680,433 +340,76 @@ class YoutubeController:
                     "total_view": "$total_view",
                     "total_like": "$total_like",
                     "avg_like": {
-                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
+                        "$divide": ["$total_like", "$video"]
                     },
                     "total_comment": "$total_comment",
                     "avg_comment": {
-                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
+                            "$divide": ["$total_comment", "$video"]
                     },
                     "eng_rate": {
-                        "$round": [{
                             "$multiply": [{
                                 "$divide": ["$sub_total", "$total_view"]
                             }, 100]
-                        }, 2]
                     }
                 }}
             ]
 
-                results = Youtube.objects().aggregate(pipeline)
+            results = Youtube.objects().aggregate(pipeline)
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
+            # Format results
+            result = list(results)  # Convert cursor to list
 
+            # Check if we got any results
+            if not result:
                 return jsonify({
                     'status': 'success',
-                    'data': result
+                    'data': [],
+                    'message': 'No data found for the specified range'
                 }), 200
 
-            elif (range == "28d"):
-                pipeline = [
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                # {"$match": {
-                #     "datetime": {
-                #         "$lte": date_end,
-                #         "$gt": seven_days_ago
-                #     }
-                # }},
-                {"$limit": 28},
-                # unwind video
-                {"$unwind": "$video"},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$datetime",
-                    "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
-                    "like_count": {"$toInt": "$video.like_count"},
-                    "favorite_count": {"$toInt": "$video.favorite_count"},
-                    "comment_count": {"$toInt": "$video.comment_count"}
-                }},
-                # group videos by date
-                {"$group": {
-                    "_id": "$datetime",
-                    "video": {"$sum": {"$toInt": 1}},
-                    "total_view": {"$sum": "$view_count"},
-                    "total_like": {"$sum": "$like_count"},
-                    "total_favorite": {"$sum": "$favorite_count"},
-                    "total_comment": {"$sum": "$comment_count"}
-                }},
-                {"$sort": {"_id": 1}},
-                # calculate subtotal
-                {"$addFields": {
-                    "sub_total": {
-                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
-                    }
-                }},
-                # calculate engagement rate & avg
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
-                    "video": "$video",
-                    "total_view": "$total_view",
-                    "total_like": "$total_like",
-                    "avg_like": {
-                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
-                    },
-                    "total_comment": "$total_comment",
-                    "avg_comment": {
-                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
-                    },
-                    "eng_rate": {
-                        "$round": [{
-                            "$multiply": [{
-                                "$divide": ["$sub_total", "$total_view"]
-                            }, 100]
-                        }, 2]
-                    }
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            elif (range == "90d"):
-                pipeline = [
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                # {"$match": {
-                #     "datetime": {
-                #         "$lte": date_end,
-                #         "$gt": seven_days_ago
-                #     }
-                # }},
-                {"$limit": 90},
-                # unwind video
-                {"$unwind": "$video"},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$datetime",
-                    "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
-                    "like_count": {"$toInt": "$video.like_count"},
-                    "favorite_count": {"$toInt": "$video.favorite_count"},
-                    "comment_count": {"$toInt": "$video.comment_count"}
-                }},
-                # group videos by date
-                {"$group": {
-                    "_id": "$datetime",
-                    "video": {"$sum": {"$toInt": 1}},
-                    "total_view": {"$sum": "$view_count"},
-                    "total_like": {"$sum": "$like_count"},
-                    "total_favorite": {"$sum": "$favorite_count"},
-                    "total_comment": {"$sum": "$comment_count"}
-                }},
-                {"$sort": {"_id": 1}},
-                # calculate subtotal
-                {"$addFields": {
-                    "sub_total": {
-                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
-                    }
-                }},
-                # calculate engagement rate & avg
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
-                    "video": "$video",
-                    "total_view": "$total_view",
-                    "total_like": "$total_like",
-                    "avg_like": {
-                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
-                    },
-                    "total_comment": "$total_comment",
-                    "avg_comment": {
-                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
-                    },
-                    "eng_rate": {
-                        "$round": [{
-                            "$multiply": [{
-                                "$divide": ["$sub_total", "$total_view"]
-                            }, 100]
-                        }, 2]
-                    }
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            elif (range == "180d"):
-                pipeline = [
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                # {"$match": {
-                #     "datetime": {
-                #         "$lte": date_end,
-                #         "$gt": seven_days_ago
-                #     }
-                # }},
-                {"$limit": 180},
-                # unwind video
-                {"$unwind": "$video"},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$datetime",
-                    "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
-                    "like_count": {"$toInt": "$video.like_count"},
-                    "favorite_count": {"$toInt": "$video.favorite_count"},
-                    "comment_count": {"$toInt": "$video.comment_count"}
-                }},
-                # group videos by date
-                {"$group": {
-                    "_id": "$datetime",
-                    "video": {"$sum": {"$toInt": 1}},
-                    "total_view": {"$sum": "$view_count"},
-                    "total_like": {"$sum": "$like_count"},
-                    "total_favorite": {"$sum": "$favorite_count"},
-                    "total_comment": {"$sum": "$comment_count"}
-                }},
-                {"$sort": {"_id": 1}},
-                # calculate subtotal
-                {"$addFields": {
-                    "sub_total": {
-                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
-                    }
-                }},
-                # calculate engagement rate & avg
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
-                    "video": "$video",
-                    "total_view": "$total_view",
-                    "total_like": "$total_like",
-                    "avg_like": {
-                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
-                    },
-                    "total_comment": "$total_comment",
-                    "avg_comment": {
-                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
-                    },
-                    "eng_rate": {
-                        "$round": [{
-                            "$multiply": [{
-                                "$divide": ["$sub_total", "$total_view"]
-                            }, 100]
-                        }, 2]
-                    }
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            elif (range == "365d"):
-                pipeline = [
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                # {"$match": {
-                #     "datetime": {
-                #         "$lte": date_end,
-                #         "$gt": seven_days_ago
-                #     }
-                # }},
-                {"$limit": 365},
-                # unwind video
-                {"$unwind": "$video"},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$datetime",
-                    "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
-                    "like_count": {"$toInt": "$video.like_count"},
-                    "favorite_count": {"$toInt": "$video.favorite_count"},
-                    "comment_count": {"$toInt": "$video.comment_count"}
-                }},
-                # group videos by date
-                {"$group": {
-                    "_id": "$datetime",
-                    "video": {"$sum": {"$toInt": 1}},
-                    "total_view": {"$sum": "$view_count"},
-                    "total_like": {"$sum": "$like_count"},
-                    "total_favorite": {"$sum": "$favorite_count"},
-                    "total_comment": {"$sum": "$comment_count"}
-                }},
-                {"$sort": {"_id": 1}},
-                # calculate subtotal
-                {"$addFields": {
-                    "sub_total": {
-                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
-                    }
-                }},
-                # calculate engagement rate & avg
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
-                    "video": "$video",
-                    "total_view": "$total_view",
-                    "total_like": "$total_like",
-                    "avg_like": {
-                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
-                    },
-                    "total_comment": "$total_comment",
-                    "avg_comment": {
-                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
-                    },
-                    "eng_rate": {
-                        "$round": [{
-                            "$multiply": [{
-                                "$divide": ["$sub_total", "$total_view"]
-                            }, 100]
-                        }, 2]
-                    }
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            else:
-                pipeline = [
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                # {"$match": {
-                #     "datetime": {
-                #         "$lte": date_end,
-                #         "$gt": seven_days_ago
-                #     }
-                # }},
-                {"$limit": 7},
-                # unwind video
-                {"$unwind": "$video"},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$datetime",
-                    "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
-                    "like_count": {"$toInt": "$video.like_count"},
-                    "favorite_count": {"$toInt": "$video.favorite_count"},
-                    "comment_count": {"$toInt": "$video.comment_count"}
-                }},
-                # group videos by date
-                {"$group": {
-                    "_id": "$datetime",
-                    "video": {"$sum": {"$toInt": 1}},
-                    "total_view": {"$sum": "$view_count"},
-                    "total_like": {"$sum": "$like_count"},
-                    "total_favorite": {"$sum": "$favorite_count"},
-                    "total_comment": {"$sum": "$comment_count"}
-                }},
-                {"$sort": {"_id": 1}},
-                # calculate subtotal
-                {"$addFields": {
-                    "sub_total": {
-                        "$sum": ["$total_like", "$total_favorite", "$total_comment"]
-                    }
-                }},
-                # calculate engagement rate & avg
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
-                    "video": "$video",
-                    "total_view": "$total_view",
-                    "total_like": "$total_like",
-                    "avg_like": {
-                        "$round": [{"$divide": ["$total_like", "$video"]}, 2]
-                    },
-                    "total_comment": "$total_comment",
-                    "avg_comment": {
-                        "$round": [{"$divide": ["$total_comment", "$video"]}, 2]
-                    },
-                    "eng_rate": {
-                        "$round": [{
-                            "$multiply": [{
-                                "$divide": ["$sub_total", "$total_view"]
-                            }, 100]
-                        }, 2]
-                    }
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500
 
     @staticmethod
     def get_youtube_channel_hashtag(artist_id, date_end, range):
-        if not all([artist_id, date_end, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not date_end:
+            return jsonify({'err': 'Missing date_end parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
 
         try:
+            # Validate and parse date
             format = "%Y-%m-%d"
-            date_end = datetime.datetime.strptime(date_end, format)
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
 
-            if (range == "7d"):
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
 
-                pipeline = [
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+            # mongodb pipeline
+            pipeline = [
                 # match artist channel id
                 {"$match": {
                     "channel_id": artist_id
@@ -1116,7 +419,7 @@ class YoutubeController:
                 {"$match": {
                     "datetime": {
                         "$lte": date_end,
-                        "$gt": seven_days_ago
+                        "$gt": start_date
                     }
                 }},
                 {"$project": {
@@ -1131,241 +434,63 @@ class YoutubeController:
                 }}
             ]
 
-                results = Youtube.objects().aggregate(pipeline)
+            # Execute pipeline
+            results = Youtube.objects().aggregate(pipeline)
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
+            # Format results
+            result = list(results)  # Convert cursor to list
 
+            # Check if we got any results
+            if not result:
                 return jsonify({
                     'status': 'success',
-                    'data': result
+                    'data': [],
+                    'message': 'No data found for the specified range'
                 }), 200
 
-            elif (range == "28d"):
-                # calculate the date 28 days ago from today
-                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": twenty_eight_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "channel_hashtag": "$channel_hashtag",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "90d"):
-                # calculate the date 90 days ago from today
-                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": ninety_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "channel_hashtag": "$channel_hashtag",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "180d"):
-                # calculate the date 180 days ago from today
-                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": hundred_eighty_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "channel_hashtag": "$channel_hashtag",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "365d"):
-                # calculate the date 180 days ago from today
-                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": year_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "channel_hashtag": "$channel_hashtag",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            else:
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": seven_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "channel_hashtag": "$channel_hashtag",
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500
 
     @staticmethod
     def get_youtube_video_hashtag(artist_id, date_end, range):
-        if not all([artist_id, date_end, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not date_end:
+            return jsonify({'err': 'Missing date_end parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
 
         try:
+            # Validate and parse date
             format = "%Y-%m-%d"
-            date_end = datetime.datetime.strptime(date_end, format)
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
 
-            if (range == "7d"):
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
 
-                pipeline = [
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+            # mongodb pipeline
+            pipeline = [
                 # match artist channel id
                 {"$match": {
                     "channel_id": artist_id
@@ -1375,7 +500,7 @@ class YoutubeController:
                 {"$match": {
                     "datetime": {
                         "$lte": date_end,
-                        "$gt": seven_days_ago
+                        "$gt": start_date
                     }
                 }},
                 {"$project": {
@@ -1390,223 +515,24 @@ class YoutubeController:
                 }}
             ]
 
-                results = Youtube.objects().aggregate(pipeline)
+            results = Youtube.objects().aggregate(pipeline)
+            # Format results
+            result = list(results)  # Convert cursor to list
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
+            # Check if we got any results
+            if not result:
                 return jsonify({
                     'status': 'success',
-                    'data': result
+                    'data': [],
+                    'message': 'No data found for the specified range'
                 }), 200
 
-            elif (range == "28d"):
-                # calculate the date 28 days ago from today
-                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": twenty_eight_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "video_hashtag": "$video_hashtag"
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "90d"):
-                # calculate the date 90 days ago from today
-                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": ninety_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "video_hashtag": "$video_hashtag"
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "180d"):
-                # calculate the date 180 days ago from today
-                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": hundred_eighty_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "video_hashtag": "$video_hashtag"
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            elif (range == "365d"):
-                # calculate the date 180 days ago from today
-                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": year_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "video_hashtag": "$video_hashtag"
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-
-            else:
-                # calculate the date 7 days ago from today
-                seven_days_ago = date_end - datetime.timedelta(days=7)
-
-                pipeline = [
-                # match artist channel id
-                {"$match": {
-                    "channel_id": artist_id
-                }},
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": seven_days_ago
-                    }
-                }},
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "video_hashtag": "$video_hashtag"
-                }}
-            ]
-
-                results = Youtube.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500
