@@ -24,19 +24,22 @@ class YoutubeController:
 
     @classmethod
     #add this, if you need to call other functions in the same class
-    def get_hashtags_most_used_recent_ten(self):
+    def get_hashtags_most_used_recent_five(self, artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
 
-        pipeline = [
+        try:
+            pipeline = [
             # match artist channel id
             {"$match": {
-                "channel_id": "UCcQ3rsk3vO-qaJkWYva5-KQ"
-                # "UCAgiEbqDrziGMJ-h36t7ODg"
+                "channel_id": artist_id
             }},
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
             {"$unwind": "$video"},
-            # get latest 10 posts
-            {"$limit": 10},
+            # get latest 5 posts
+            {"$limit": 5},
             {"$project": {
                 "_id": 0,
                 "published_date": "$video.published_at",
@@ -54,42 +57,196 @@ class YoutubeController:
             }}
         ]
 
-        results = Youtube.objects.aggregate(pipeline)
+            results = Youtube.objects.aggregate(pipeline)
 
 
-        _temp_list = []
-        for item in results:
-            _temp_list.append(item)
+            _temp_list = []
+            for item in results:
+                _temp_list.append(item)
 
-        # flatten item in list
-        _tag = [ele.get("tags") for ele in _temp_list]
-        _title = [self.extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
-        # print(_title)
-        # print(_tag)
-        flat_title = [item for sublist in _title for item in sublist]
-        # print(flat_title)
+            # flatten item in list
+            _tag = [ele.get("tags") for ele in _temp_list]
+            _title = [self.extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
+            # print(_title)
+            # print(_tag)
+            flat_title = [item for sublist in _title for item in sublist]
+            # print(flat_title)
 
-        # replace None value to ''
-        _switch_none = ['' if v is None else v for v in _tag]
-        # flatten tags list
-        flat_tag = [item for sublist in _switch_none for item in sublist]
-        # print(flat_tag)
+            # replace None value to ''
+            _switch_none = ['' if v is None else v for v in _tag]
+            # flatten tags list
+            flat_tag = [item for sublist in _switch_none for item in sublist]
+            # print(flat_tag)
 
-        # concatenate two lists, and count occurrence value
-        joined_list = flat_title + flat_tag
-        w = pd.value_counts(np.array(joined_list))
+            # concatenate two lists, and count occurrence value
+            joined_list = flat_title + flat_tag
+            w = pd.value_counts(np.array(joined_list))
 
-        # convert list to df then dict
-        df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
-        result = df.to_dict(orient='records')[:10]
+            # convert list to df then dict
+            df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
+            result = df.to_dict(orient='records')[:10]
 
-        response = {'result': result}
-        # print(response)
 
-        return response
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
 
     @classmethod
-    def get_hashtags_most_engaged_recent_ten(self):
+    def get_hashtags_most_used_recent_eight(self, artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            pipeline = [
+            # match artist channel id
+            {"$match": {
+                "channel_id": artist_id
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$video"},
+            # get latest 8 posts
+            {"$limit": 8},
+            {"$project": {
+                "_id": 0,
+                "published_date": "$video.published_at",
+                "title": "$video.title",
+                "tags": "$video.tags"
+            }},
+            {"$set": {
+                "n": {
+                    "$replaceOne": {
+                        "input": "$title",
+                        "find": "#",
+                        "replacement": " #"
+                    }
+                }
+            }}
+        ]
+
+            results = Youtube.objects.aggregate(pipeline)
+
+
+            _temp_list = []
+            for item in results:
+                _temp_list.append(item)
+
+            # flatten item in list
+            _tag = [ele.get("tags") for ele in _temp_list]
+            _title = [self.extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
+            # print(_title)
+            # print(_tag)
+            flat_title = [item for sublist in _title for item in sublist]
+            # print(flat_title)
+
+            # replace None value to ''
+            _switch_none = ['' if v is None else v for v in _tag]
+            # flatten tags list
+            flat_tag = [item for sublist in _switch_none for item in sublist]
+            # print(flat_tag)
+
+            # concatenate two lists, and count occurrence value
+            joined_list = flat_title + flat_tag
+            w = pd.value_counts(np.array(joined_list))
+
+            # convert list to df then dict
+            df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
+            result = df.to_dict(orient='records')[:10]
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
+
+    @classmethod
+    def get_hashtags_most_used_recent_twelve(self, artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            pipeline = [
+            # match artist channel id
+            {"$match": {
+                "channel_id": artist_id
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$video"},
+            # get latest 12 posts
+            {"$limit": 12},
+            {"$project": {
+                "_id": 0,
+                "published_date": "$video.published_at",
+                "title": "$video.title",
+                "tags": "$video.tags"
+            }},
+            {"$set": {
+                "n": {
+                    "$replaceOne": {
+                        "input": "$title",
+                        "find": "#",
+                        "replacement": " #"
+                    }
+                }
+            }}
+        ]
+
+            results = Youtube.objects.aggregate(pipeline)
+
+
+            _temp_list = []
+            for item in results:
+                _temp_list.append(item)
+
+            # flatten item in list
+            _tag = [ele.get("tags") for ele in _temp_list]
+            _title = [self.extract_hashtags_keyword(ele["n"]) for ele in _temp_list]
+            # print(_title)
+            # print(_tag)
+            flat_title = [item for sublist in _title for item in sublist]
+            # print(flat_title)
+
+            # replace None value to ''
+            _switch_none = ['' if v is None else v for v in _tag]
+            # flatten tags list
+            flat_tag = [item for sublist in _switch_none for item in sublist]
+            # print(flat_tag)
+
+            # concatenate two lists, and count occurrence value
+            joined_list = flat_title + flat_tag
+            w = pd.value_counts(np.array(joined_list))
+
+            # convert list to df then dict
+            df = pd.DataFrame(list(zip(w.keys(), w)), columns=['_id', 'count'])
+            result = df.to_dict(orient='records')[:10]
+
+            print(result)
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
+
+    @classmethod
+    def get_hashtags_most_engaged_recent_five(self):
         pass
 
     @staticmethod
@@ -149,7 +306,7 @@ class YoutubeController:
                             "date": "$datetime"
                         }
                     },
-                    "subscriber_count": "$subscriber_count",
+                    "follower": {"$toInt": "$subscriber_count"},
                 }}
             ]
 
@@ -230,7 +387,7 @@ class YoutubeController:
                             "date": "$datetime"
                         }
                     },
-                    "view_count": "$view_count",
+                    "view_count": {"$toInt": "$view_count"},
                 }}
             ]
 
@@ -299,7 +456,7 @@ class YoutubeController:
                 #         "$gt": seven_days_ago
                 #     }
                 # }},
-                {"$limit": 7},
+                {"$limit": days},
                 # unwind video
                 {"$unwind": "$video"},
                 {"$project": {
@@ -536,3 +693,7 @@ class YoutubeController:
                 'status': 'error',
                 'err': str(e)
             }), 500
+
+    @staticmethod
+    def get_youtube_latest_video_info():
+        pass
