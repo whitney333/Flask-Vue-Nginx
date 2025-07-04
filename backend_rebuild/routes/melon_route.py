@@ -5,7 +5,7 @@ from controllers.melon_controller import MelonController
 melon_bp = Blueprint('melon', __name__)
 melon_api = Api(melon_bp)
 
-@melon_bp.route('/follower', methods=['GET'])
+@melon_bp.route('/v1/follower', methods=['GET'])
 def get_melon_follower():
     artist_id = request.args.get('artist_id', type=str)
     date_end = request.args.get('date_end', type=str)
