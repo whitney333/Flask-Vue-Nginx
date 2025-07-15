@@ -1,9 +1,39 @@
 from models.melon_model import Melon
+from models.artist_model import Artists
 from flask import jsonify, request
 import datetime
 
 
 class MelonController:
+    @staticmethod
+    # get melon id by artist id
+    def get_artist_by_mid(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        try:
+            pipeline = [
+                {"$match": {
+                    # match artist id
+                    'artist_id': artist_id
+                }},
+                {"$project": {
+                    "_id": 0
+                }}
+            ]
+
+            results = Artists.objects().aggregate(pipeline)
+
+            result = list(results)
+
+            return result
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            }), 500
+
     @staticmethod
     def get_follower(artist_id, date_end, range):
         # Validate required parameters
@@ -36,10 +66,17 @@ class MelonController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # mongodb pipeline
+            # first get artist mid, then query melon data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = MelonController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve melon id
+            new_artist_id = artist[0]['melon_id']
+
             pipeline = [
                 # match artist id in string format
                 {"$match": {
-                    "id": str(artist_id)
+                    "id": str(new_artist_id)
                 }},
                 # sort by date
                 {"$sort": {"datetime": 1}},
