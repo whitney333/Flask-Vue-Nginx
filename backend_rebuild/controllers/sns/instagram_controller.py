@@ -1,6 +1,10 @@
 from models.sns.instagram_model import Instagram, InstagramLatest
+from models.artist_model import Artists
 import datetime
+from datetime import timedelta
 from flask import jsonify, request
+import pandas as pd
+import numpy as np
 
 
 class InstagramController:
@@ -311,7 +315,7 @@ class InstagramController:
             pipeline = [
                 # Match artist
                 {"$match": {
-                    "user_id": artist_id
+                    "user_id": new_artist_id
                 }},
                 # Sort by datetime for consistent results
                 {"$sort": {"datetime": 1}},
@@ -325,7 +329,7 @@ class InstagramController:
                     "datetime": {
                         "$dateToString": {
                             "format": "%Y-%m-%d",
-                            "date": "$datetime"
+                            "date": "$_id"
                         }
                     },
                     "code": "$posts.code",
@@ -343,11 +347,7 @@ class InstagramController:
                     "_id": 0,
                     "datetime": "$_id",
                     "total_likes": "$total_like",
-                    "like_per_post": {
-                        "$round": [
-                            {"$divide": ["$total_like", "$post_count"]}, 2
-                        ]
-                    }
+                    "likes_per_post": "$likes_per_post",
                 }}
             ]
 
@@ -378,8 +378,17 @@ class InstagramController:
 
     @staticmethod
     def get_comments(artist_id, range):
-        if not all([artist_id, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        """
+        Get total comments and comments per post for the latest posts within a specified time range
+        :param artist_id: The ID of the artist to get like data for
+        :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
+        :return: JSON response containing like data with dates, total likes, and likes per post
+        """
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
 
         try:
             # Define range mapping
@@ -396,43 +405,37 @@ class InstagramController:
 
             pipeline = [
                 {"$match": {
-                    "user_id": artist_id
+                    "user_id": new_artist_id
                 }},
-                # sort by datetime
+                # Sort by datetime for consistent results
                 {"$sort": {"datetime": 1}},
                 # limit posts
                 {"$limit": days},
                 {"$unwind": "$posts"},
-                # return comment fields
+                # Project required fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "code": "$posts.code",
+                    "comment_count": "$posts.comment_count"
+                }},
+                # Group by date to calculate daily totals
+                {"$group": {
+                    "_id": "$datetime",
+                    "total_comment": {"$sum": "$comment_count"},
+                    "comments_per_post": {"$avg": "$comment_count"}
+                }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
                         "$dateToString": {
                             "format": "%Y-%m-%d",
-                            "date": "$datetime"
+                            "date": "$_id"
                         }
                     },
-                    "code": "$posts.code",
-                    "comment_count": "$posts.comment_count"
-                }},
-                # group by date,
-                # to calculate the total likes of latest 12 posts daily
-                {"$group": {
-                    "_id": "$datetime",
-                    "code_list": {"$push": "$code"},
-                    "post_count": {"$sum": 1},
-                    "total_comment": {"$sum": "$comment_count"}
-                }},
-                # get comments per post
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
                     "total_comments": "$total_comment",
-                    "comment_per_post": {
-                        "$round": [
-                            {"$divide": ["$total_comment", "$post_count"]}, 2
-                        ]
-                    }
+                    "comments_per_post": "$comments_per_post"
                 }}
             ]
 
@@ -449,11 +452,12 @@ class InstagramController:
 
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500
 
     @staticmethod
-    def get_posts_index(artist_id):
+    def get_posts_likes_and_comments(artist_id):
         """
         Get the latest Instagram posts with engagement metrics for an artist
         :param artist_id: The ID of the artist to get posts data for
@@ -466,79 +470,80 @@ class InstagramController:
         try:
             # Construct MongoDB pipeline
             pipeline = [
-            # match artist
-            {"$match": {
-                "user_id": artist_id
-            }},
-            # sort by datetime
-            {"$sort": {"datetime": -1}},
-            {"$limit": 1},
-            {"$unwind": "$posts"},
-            # project
-            {"$project": {
-                "_id": 0,
-                "datetime": "$datetime",
-                "user_id": "$user_id",
-                "pk": "$posts.pk",
-                "username": "$posts.username",
-                "code": "$posts.code",
-                "taken_at": "$posts.taken_at",
-                "media_type": "$posts.media_type",
-                "product_type": "$posts.product_type",
-                "comment_count": "$posts.comment_count",
-                "like_count": "$posts.like_count",
-                "play_count": "$posts.play_count",
-                "view_count": "$posts.view_count",
-                "caption_text": "$posts.caption_text",
-                "thumbnail": "$posts.thumbnail",
-                "video_url": "$posts.video_url"
-            }},
-            # lookup artist follower Number(
-            {"$lookup": {
-                "from": "instagram",
-                "as": "ig_info",
-                "let": {"user_idd": "$user_id"},
-                "pipeline": [
-                    {"$match": {
-                        "$expr": {
-                            "$eq": ["$user_id", "$$user_idd"]
-                        }
-                    }},
-                    {"$sort": {"datetime": -1}},
-                    {"$limit": 1}
-                ]
-            }},
-            # unwind  ig_info
-            {"$unwind": "$ig_info"},
-            # project
-            {"$project": {
-                "_id": 0,
-                "datetime": "$datetime",
-                "user_id": "$user_id",
-                "username": "$username",
-                "taken_at": "$taken_at",
-                "media_type": "$media_type",
-                "product_type": "$product_type",
-                "comment_count": "$comment_count",
-                "like_count": "$like_count",
-                "play_count": "$play_count",
-                # "view_count": "$view_count",
-                "caption_text": "$caption_text",
-                "thumbnail": "$thumbnail",
-                # "follower": "$ig_info.follower_count",
-                "engagement_rate": {
-                    "$round": [{
-                        "$divide": [
-                            {"$sum": ["$like_count", "$comment_count"]}, "$ig_info.follower_count"
-                        ]}, 3]
-                },
-                "url": {
-                    "$concat": [
-                        "https://instagram.com/p/", "$code", "/"
+                # match artist
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                # sort by datetime
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                # project
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "user_id": "$user_id",
+                    "pk": "$posts.pk",
+                    "username": "$posts.username",
+                    "code": "$posts.code",
+                    "taken_at": "$posts.taken_at",
+                    "media_type": "$posts.media_type",
+                    "product_type": "$posts.product_type",
+                    "comment_count": "$posts.comment_count",
+                    "like_count": "$posts.like_count",
+                    "play_count": "$posts.play_count",
+                    "view_count": "$posts.view_count",
+                    "caption_text": "$posts.caption_text",
+                    "thumbnail": "$posts.thumbnail",
+                    "video_url": "$posts.video_url"
+                }},
+                # lookup artist follower Number(
+                {"$lookup": {
+                    "from": "instagram",
+                    "as": "ig_info",
+                    "let": {"user_idd": "$user_id"},
+                    "pipeline": [
+                        {"$match": {
+                            "$expr": {
+                                "$eq": ["$user_id", "$$user_idd"]
+                            }
+                        }},
+                        {"$sort": {"datetime": -1}},
+                        {"$limit": 1}
                     ]
-                }
-            }}
-        ]
+                }},
+                # unwind  ig_info
+                {"$unwind": "$ig_info"},
+                # project
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "user_id": "$user_id",
+                    "username": "$username",
+                    "taken_at": "$taken_at",
+                    "media_type": "$media_type",
+                    "product_type": "$product_type",
+                    "comment_count": "$comment_count",
+                    "like_count": "$like_count",
+                    "play_count": "$play_count",
+                    # "view_count": "$view_count",
+                    "caption_text": "$caption_text",
+                    "thumbnail": "$thumbnail",
+                    # "follower": "$ig_info.follower_count",
+                    "engagement_rate": {
+                        "$round": [{
+                            "$divide": [
+                                {"$sum": ["$like_count", "$comment_count"]}, "$ig_info.follower_count"
+                            ]}, 3]
+                    },
+                    "url": {
+                        "$concat": [
+                            "https://instagram.com/p/", "$code", "/"
+                        ]
+                    }
+                }}
+            ]
+
             results = Instagram.objects().aggregate(pipeline)
 
             # Format results
@@ -564,142 +569,551 @@ class InstagramController:
             }), 500
 
     @staticmethod
-    def get_hashtags_most_engaged_recent_twelve(artist_id):
-        if not all([artist_id]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+    def get_instagram_latest_twelve_posts(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
-            pipeline = [
-            {"$match": {
-                "user_id": artist_id
-            }},
-            {"$sort": {"datetime": -1}},
-            {"$limit": 1},
-            # lookup artist follower
-            {"$lookup": {
-                "from": "instagram",
-                "as": "ig_info",
-                "let": {"user_idd": "$user_id"},
-                "pipeline": [
-                    {"$match": {
-                        "$expr": {
-                            "$eq": ["$user_id", "$$user_idd"]
-                        }
-                    }},
-                    {"$sort": {"datetime": -1}},
-                    {"$limit": 1}
-                ]
-            }},
-            {"$unwind": "$ig_info"},
-            {"$unwind": "$posts"},
-            {"$project": {
-                "_id": 0,
+            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
 
-                "hashtag": "$posts.hashtag",
-                "eng_rate": {
-                    "$round": [{
-                        "$multiply": [
-                            {"$divide": [
-                                {"$sum": ["$posts.like_count", "$posts.comment_count"]}, "$ig_info.follower_count"
-                            ]}, 100
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "user_id": "$user_id",
+                    "taken_at": "$posts.taken_at",
+                    "media_type": "$posts.medua_type",
+                    "product_type": "$posts.product_type",
+                    "caption_text": "$posts.caption_text",
+                    "comment_count": "$posts.comment_count",
+                    "like_count": "$posts.like_count",
+                    "play_count": "$posts.play_count",
+                    "hashtags": "$posts.hashtag",
+                    "thumbnail": "$posts.thumbnail",
+                    "url": {
+                        "$concat": [
+                            "https://www.instagram.com/p/", "$posts.code", "/"
                         ]
-                    }, 3]
-                }
-            }},
-            {"$unwind": "$hashtag"},
-            {"$group": {
-                "_id": "$hashtag",
-                "count": {"$sum": 1},
-                "eng_rate": {"$sum": "$eng_rate"}
-            }},
-            {"$project": {
-                "_id": 0,
-                "tag": "$_id",
-                "eng_rate_per_hashtag": {
-                    "$round": [
-                        {"$divide": ["$eng_rate", "$count"]}, 3
-                    ]
-                }
-            }},
-            {"$sort": {"eng_rate_per_hashtag": -1}},
-            {"$limit": 10}
-        ]
+                    }
+                }}
+            ]
 
             results = InstagramLatest.objects().aggregate(pipeline)
+            result = list(results)
 
-            result = []
-            for item in results:
-                result.append(item)
-            # print(result)
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
 
             return jsonify({
                 'status': 'success',
                 'data': result
             }), 200
+
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
-            }), 500
+            })
+
+    @staticmethod
+    def extract_hashtags_keyword(text):
+        """
+        extract keywords with hashtag from string
+        """
+        # initializing hashtag_list variable
+        hashtag_list = []
+
+        # splitting the text into words
+        for word in text.split():
+            # checking the first character of every word
+            if word[0] == '#':
+                # adding the word to the hashtag_list
+                hashtag_list.append(word[1:])
+        return hashtag_list
+
+    @staticmethod
+    def get_latest_follower_count(artist_id):
+        """
+        Get the latest follower count of the artist
+        :param artist_id:
+        :return:
+        """
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                # Match artist and date range
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                # Sort by datetime for consistent results
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                # Project required fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "follower": "$follower_count"
+                }}
+            ]
+
+            # Execute pipeline
+            results = Instagram.objects().aggregate(pipeline)
+
+            # Format results
+            result = list(results)  # Convert cursor to list
+
+            return result
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
+
+    ### Most-used hashtags methods
+    @staticmethod
+    def get_hashtags_most_used_recent_five(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$limit": 5},
+                {"$project": {
+                    "_id": 0,
+                    "taken_at": "$posts.taken_at",
+                    "hashtags": "$posts.hashtag"
+                }},
+                {"$unwind": "$hashtags"},
+                {"$group": {
+                    "_id": "$hashtags",
+                    "count": {"$sum": {"$toInt": 1}}
+                }},
+                {"$sort": {"count": -1}},
+                {"$limit": 10}
+            ]
+
+            results = InstagramLatest.objects().aggregate(pipeline)
+            result = list(results)
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
+
+    @staticmethod
+    def get_hashtags_most_used_recent_eight(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$limit": 8},
+                {"$project": {
+                    "_id": 0,
+                    "taken_at": "$posts.taken_at",
+                    "hashtags": "$posts.hashtag"
+                }},
+                {"$unwind": "$hashtags"},
+                {"$group": {
+                    "_id": "$hashtags",
+                    "count": {"$sum": {"$toInt": 1}}
+                }},
+                {"$sort": {"count": -1}},
+                {"$limit": 10}
+            ]
+
+            results = InstagramLatest.objects().aggregate(pipeline)
+            result = list(results)
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
 
     @staticmethod
     def get_hashtags_most_used_recent_twelve(artist_id):
-        if not all([artist_id]):
-            return jsonify({'err': 'Missing required parameters'}), 400
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
-            pipeline = [
-            {"$match": {
-                "user_id": artist_id
-            }},
-            {"$sort": {"datetime": -1}},
-            {"$limit": 1},
-            # lookup artist follower
-            {"$lookup": {
-                "from": "instagram",
-                "as": "ig_info",
-                "let": {"user_idd": "$user_id"},
-                "pipeline": [
-                    {"$match": {
-                        "$expr": {
-                            "$eq": ["$user_id", "$$user_idd"]
-                        }
-                    }},
-                    {"$sort": {"datetime": -1}},
-                    {"$limit": 1}
-                ]
-            }},
-            {"$unwind": "$ig_info"},
-            {"$unwind": "$posts"},
-            {"$project": {
-                "_id": 0,
-                "hashtag": "$posts.hashtag"
-            }},
-            {"$unwind": "$hashtag"},
-            {"$group": {
-                "_id": "$hashtag",
-                "count": {"$sum": 1},
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
 
-            }},
-            {"$project": {
-                "_id": 0,
-                "tag": "$_id",
-                "count": {"$toInt": "$count"}
-            }},
-            {"$sort": {"count": -1}},
-            {"$limit": 10}
-        ]
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$project": {
+                    "_id": 0,
+                    "taken_at": "$posts.taken_at",
+                    "hashtags": "$posts.hashtag"
+                }},
+                {"$unwind": "$hashtags"},
+                {"$group": {
+                    "_id": "$hashtags",
+                    "count": {"$sum": {"$toInt": 1}}
+                }},
+                {"$sort": {"count": -1}},
+                {"$limit": 10}
+            ]
 
             results = InstagramLatest.objects().aggregate(pipeline)
-
-            result = []
-            for item in results:
-                result.append(item)
+            result = list(results)
 
             return jsonify({
                 'status': 'success',
                 'data': result
             }), 200
+
         except Exception as e:
             return jsonify({
+                'status': 'error',
                 'err': str(e)
-            }), 500
+            })
+
+    ### Most-engaged hashtags methods
+    @staticmethod
+    def get_hashtags_most_engaged_recent_five(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # fetch follower count
+            followers = InstagramController.get_latest_follower_count(artist_id)
+            _follower = list(followers)
+            follower = _follower[0]['follower']
+
+            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$project": {
+                    "_id": 0,
+                    "taken_at": "$posts.taken_at",
+                    "sub_total": {
+                        "$sum": ["$posts.like_count", "$posts.comment_count"]
+                    },
+                    # add follower count here
+                    "follower": {"$toInt": follower},
+                    "hashtags": "$posts.hashtag"
+                }},
+                {"$unwind": "$hashtags"},
+                {"$addFields": {
+                    "_eng_rate": {
+                        "$divide": ["$sub_total", "$follower"]
+                    }
+                }},
+                # group by hashtag name
+                {"$group": {
+                    "_id": "$hashtags",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {
+                        "$sum": "$_eng_rate"
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$multiply": [{
+                            "$divide": [
+                                "$_total_eng_rate", "$count"
+                            ]
+                        }, 100]
+                    }
+                }},
+                {"$sort": {"eng_rate_per_hashtag": -1}},
+                {"$limit": 10}
+            ]
+
+            results = InstagramLatest.objects().aggregate(pipeline)
+            result = list(results)
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
+
+    @staticmethod
+    def get_hashtags_most_engaged_recent_eight(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # fetch follower count
+            followers = InstagramController.get_latest_follower_count(artist_id)
+            _follower = list(followers)
+            follower = _follower[0]['follower']
+
+            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$limit": 8},
+                {"$project": {
+                    "_id": 0,
+                    "taken_at": "$posts.taken_at",
+                    "sub_total": {
+                        "$sum": ["$posts.like_count", "$posts.comment_count"]
+                    },
+                    # add follower count here
+                    "follower": {"$toInt": follower},
+                    "hashtags": "$posts.hashtag"
+                }},
+                {"$unwind": "$hashtags"},
+                {"$addFields": {
+                    "_eng_rate": {
+                        "$divide": ["$sub_total", "$follower"]
+                    }
+                }},
+                # group by hashtag name
+                {"$group": {
+                    "_id": "$hashtags",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {
+                        "$sum": "$_eng_rate"
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$multiply": [{
+                            "$divide": [
+                                "$_total_eng_rate", "$count"
+                            ]
+                        }, 100]
+                    }
+                }},
+                {"$sort": {"eng_rate_per_hashtag": -1}},
+                {"$limit": 10}
+            ]
+
+            results = InstagramLatest.objects().aggregate(pipeline)
+            result = list(results)
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })
+
+    @staticmethod
+    def get_hashtags_most_engaged_recent_twelve(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # fetch follower count
+            followers = InstagramController.get_latest_follower_count(artist_id)
+            _follower = list(followers)
+            follower = _follower[0]['follower']
+
+            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$posts"},
+                {"$limit": 12},
+                {"$project": {
+                    "_id": 0,
+                    "taken_at": "$posts.taken_at",
+                    "sub_total": {
+                        "$sum": ["$posts.like_count", "$posts.comment_count"]
+                    },
+                    # add follower count here
+                    "follower": {"$toInt": follower},
+                    "hashtags": "$posts.hashtag"
+                }},
+                {"$unwind": "$hashtags"},
+                {"$addFields": {
+                    "_eng_rate": {
+                        "$divide": ["$sub_total", "$follower"]
+                    }
+                }},
+                # group by hashtag name
+                {"$group": {
+                    "_id": "$hashtags",
+                    "count": {"$sum": {"$toInt": 1}},
+                    "_total_eng_rate": {
+                        "$sum": "$_eng_rate"
+                    }
+                }},
+                {"$project": {
+                    "eng_rate_per_hashtag": {
+                        "$multiply": [{
+                            "$divide": [
+                                "$_total_eng_rate", "$count"
+                            ]
+                        }, 100]
+                    }
+                }},
+                {"$sort": {"eng_rate_per_hashtag": -1}},
+                {"$limit": 10}
+            ]
+
+            results = InstagramLatest.objects().aggregate(pipeline)
+            result = list(results)
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            })

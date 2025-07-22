@@ -6,22 +6,14 @@ from routes.instagram_route import *
 from routes.tiktok_route import *
 from routes.user_route import *
 from routes.trending_artist_route import *
-from config import Config
-from mongoengine import *
+from db_connect import connect_db
 
 
-def create_app(config_class=Config):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_class)
 
-    # connect database on startup
-    connect(
-        db='general',
-        username='admin',
-        password='demo1008',
-        authentication_source='admin',
-        host="18.162.155.254:27017"
-    )
+    # init DB
+    connect_db(app)
 
     # register blueprints
     app.register_blueprint(melon_bp, url_prefix="/api/melon")

@@ -1,276 +1,125 @@
 from models.melon_model import Melon
+from models.artist_model import Artists
 from flask import jsonify, request
 import datetime
 
 
 class MelonController:
     @staticmethod
-    def get_follower(artist_id, date_end, range):
-        if not all([artist_id, date_end, range]):
-            return jsonify({'err': 'Missing required parameters'}), 400
-
+    # get melon id by artist id
+    def get_artist_by_mid(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
         try:
-            format = "%Y-%m-%d"
-            date_end = datetime.datetime.strptime(date_end, format)
-
-            # Case 1
-            if (range == "7d"):
-                # calculate the date 7 days ago from today
-                seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
-
-                pipeline = [
-                # match artist id in string format
+            pipeline = [
                 {"$match": {
-                    "id": str(artist_id)
+                    # match artist id
+                    'artist_id': artist_id
                 }},
-                # sort by date
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": seven_days_ago
-                    }
-                }},
-                # projection
                 {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "id": "$id",
-                    "follower": "$follower"
+                    "_id": 0
                 }}
             ]
-                results = Melon.objects().aggregate(pipeline)
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
+            results = Artists.objects().aggregate(pipeline)
 
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            # Case 2
-            elif (range == "28d"):
-                # calculate the date 28 days ago from today
-                twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+            result = list(results)
 
-                pipeline = [
-                # match artist id in string format
-                {"$match": {
-                    "id": str(artist_id)
-                }},
-                # sort by date
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": twenty_eight_days_ago
-                    }
-                }},
-                # projection
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "id": "$id",
-                    "follower": "$follower"
-                }}
-            ]
-                results = Melon.objects().aggregate(pipeline)
+            return result
 
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            # Case 3
-            elif (range == "90d"):
-                # calculate the date 90 days ago from today
-                ninety_days_ago = datetime.datetime.now() - datetime.timedelta(days=90)
-
-                pipeline = [
-                # match artist id in string format
-                {"$match": {
-                    "id": str(artist_id)
-                }},
-                # sort by date
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": ninety_days_ago
-                    }
-                }},
-                # projection
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "id": "$id",
-                    "follower": "$follower"
-                }}
-            ]
-                results = Melon.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            # Case 4
-            elif (range == "180d"):
-                # calculate the date 180 days ago from today
-                hundred_eighty_days_ago = datetime.datetime.now() - datetime.timedelta(days=180)
-
-                pipeline = [
-                # match artist id in string format
-                {"$match": {
-                    "id": str(artist_id)
-                }},
-                # sort by date
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": hundred_eighty_days_ago
-                    }
-                }},
-                # projection
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "id": "$id",
-                    "follower": "$follower"
-                }}
-            ]
-                results = Melon.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            # Case 5
-            elif (range == "365d"):
-                # calculate the date 365 days ago from today
-                year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
-                pipeline = [
-                # match artist id in string format
-                {"$match": {
-                    "id": str(artist_id)
-                }},
-                # sort by date
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": year_ago
-                    }
-                }},
-                # projection
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "id": "$id",
-                    "follower": "$follower"
-                }}
-            ]
-                results = Melon.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
-            else:
-                # calculate the date 7 days ago from today
-                seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
-
-                pipeline = [
-                # match artist id in string format
-                {"$match": {
-                    "id": str(artist_id)
-                }},
-                # sort by date
-                {"$sort": {"datetime": 1}},
-                # match date range
-                {"$match": {
-                    "datetime": {
-                        "$lte": date_end,
-                        "$gt": seven_days_ago
-                    }
-                }},
-                # projection
-                {"$project": {
-                    "_id": 0,
-                    "datetime": {
-                        "$dateToString": {
-                            "format": "%Y-%m-%d",
-                            "date": "$datetime"
-                        }
-                    },
-                    "id": "$id",
-                    "follower": "$follower"
-                }}
-            ]
-                results = Melon.objects().aggregate(pipeline)
-
-                result = []
-                for item in results:
-                    result.append(item)
-                # print(result)
-
-                return jsonify({
-                    'status': 'success',
-                    'data': result
-                }), 200
         except Exception as e:
             return jsonify({
+                'status': 'error',
+                'err': str(e)
+            }), 500
+
+    @staticmethod
+    def get_follower(artist_id, date_end, range):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not date_end:
+            return jsonify({'err': 'Missing date_end parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
+
+        try:
+            # Validate and parse date
+            format = "%Y-%m-%d"
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+            # mongodb pipeline
+            # first get artist mid, then query melon data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = MelonController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve melon id
+            new_artist_id = artist[0]['melon_id']
+
+            pipeline = [
+                # match artist id in string format
+                {"$match": {
+                    "id": str(new_artist_id)
+                }},
+                # sort by date
+                {"$sort": {"datetime": 1}},
+                # match date range
+                {"$match": {
+                    "datetime": {
+                        "$lte": date_end,
+                        "$gt": start_date
+                    }
+                }},
+                # projection
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$datetime"
+                        }
+                    },
+                    "id": "$id",
+                    "follower": "$follower"
+                }}
+            ]
+
+            results = Melon.objects().aggregate(pipeline)
+
+            # Format results
+            result = list(results)  # Convert cursor to list
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
                 'err': str(e)
             }), 500

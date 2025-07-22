@@ -97,3 +97,29 @@ def netflix_chart_score():
     netflix_chart = TrendingArtistController.get_netflix_chart(country, year, week)
 
     return netflix_chart
+
+@trending_artist_bp.route('/ost-score', methods=['GET'])
+def spotify_ost_score():
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    ost_score = TrendingArtistController.get_spotify_ost(year, week)
+
+    return ost_score
+
+@trending_artist_bp.route('/dramas', methods=['GET'])
+def all_drama():
+    year = request.args.get('year', type=int)
+    dramas = TrendingArtistController.get_all_drama(year)
+
+    return dramas
+
+@trending_artist_bp.route('/merge-drama-score', methods=['GET'])
+def _drama_score():
+    country = request.args.get('country', default=None)
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    drama_score = TrendingArtistController.get_drama_score(country, year, week)
+
+    return drama_score
