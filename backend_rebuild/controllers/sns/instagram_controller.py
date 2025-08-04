@@ -8,23 +8,12 @@ import numpy as np
 
 
 class InstagramController:
+    # get channel id by artist id
     @staticmethod
-    def get_follower(artist_id, date_end, range):
-        """
-        Get Instagram follower count data for a specific time range
-        :param artist_id: The ID of the artist to get follower data for
-        :param date_end: The end date for the data range in format 'YYYY-MM-DD'
-        :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
-        :return: JSON response containing follower data with dates and counts
-        """
+    def get_artist_by_mid(artist_id):
         # Validate required parameters
         if not artist_id:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
-        if not date_end:
-            return jsonify({'err': 'Missing date_end parameter'}), 400
-        if not range:
-            return jsonify({'err': 'Missing range parameter'}), 400
-
         try:
             # Validate and parse date
             format = "%Y-%m-%d"
@@ -94,6 +83,121 @@ class InstagramController:
                 'data': result
             }), 200
 
+            pipeline = [
+                {"$match": {
+                    # match artist mid
+                    'artist_id': artist_id
+                }},
+                {"$project": {
+                    "_id": 0
+                }}
+            ]
+
+            results = Artists.objects().aggregate(pipeline)
+
+            result = list(results)
+
+            return result
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            }), 500
+
+    @staticmethod
+    def get_follower(artist_id, date_end, range):
+        """
+           Get Instagram follower count data for a specific time range
+        :param artist_id: The ID of the artist to get follower data for
+        :param date_end: The end date for the data range in format 'YYYY-MM-DD'
+        :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
+        :return: JSON response containing follower data with dates and counts
+        """
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        if not date_end:
+            return jsonify({'err': 'Missing date_end parameter'}), 400
+        if not range:
+            return jsonify({'err': 'Missing range parameter'}), 400
+
+        try:
+            # Validate and parse date
+            format = "%Y-%m-%d"
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
+            pipeline = [
+                # Match artist and date range
+                {"$match": {
+                    "$and": [
+                        {"user_id": new_artist_id},
+                        {
+                            "datetime": {
+                                "$lte": date_end,
+                                "$gt": start_date
+                            }
+                        }
+                    ]
+                }},
+                # Sort by datetime for consistent results
+                {"$sort": {"datetime": 1}},
+                # Project required fields
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {
+                        "$dateToString": {
+                            "format": format,
+                            "date": "$datetime"
+                        }
+                    },
+                    "follower": "$follower_count"
+                }}
+            ]
+
+            # Execute pipeline
+            results = Instagram.objects().aggregate(pipeline)
+
+            # Format results
+            result = list(results)  # Convert cursor to list
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
         except Exception as e:
             return jsonify({
                 'status': 'error',
@@ -104,6 +208,11 @@ class InstagramController:
     def get_post_count(artist_id, date_end, range):
         """
         Get Instagram media counts for a specific time range
+        :param artist_id: The ID of the artist to get post data for
+        :param date_end: The end date for the data range in format 'YYYY-MM-DD'
+        :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
+        :return: JSON response containing post count data with dates and counts
+         Get Instagram media counts for a specific time range
         :param artist_id: The ID of the artist to get post data for
         :param date_end: The end date for the data range in format 'YYYY-MM-DD'
         :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
@@ -137,8 +246,33 @@ class InstagramController:
             # Get number of days from range mapping, default to 7 days if range not found
             days = range_days.get(range, 7)
             start_date = date_end - datetime.timedelta(days=days)
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
             pipeline = [
                 # Match artist and date range
                 {"$match": {
@@ -229,8 +363,33 @@ class InstagramController:
             # Get number of days from range mapping, default to 7 days if range not found
             days = range_days.get(range, 7)
             start_date = date_end - datetime.timedelta(days=days)
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range, 7)
+            start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
             pipeline = [
                 # Match artist and date range
                 {"$match": {
@@ -258,6 +417,26 @@ class InstagramController:
                     "threads_follower": "$threads_follower"
                 }}
             ]
+
+            # Execute pipeline
+            results = Instagram.objects().aggregate(pipeline)
+
+            # Format results
+            result = list(results)  # Convert cursor to list
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
 
             # Execute pipeline
             results = Instagram.objects().aggregate(pipeline)
@@ -312,6 +491,14 @@ class InstagramController:
             days = range_days.get(range, 7)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
             pipeline = [
                 # Match artist
                 {"$match": {
@@ -326,33 +513,32 @@ class InstagramController:
                 # Project required fields
                 {"$project": {
                     "_id": 0,
+                    "datetime": "$datetime",
+                    "code": "$posts.code",
+                    "like_count": "$posts.like_count",
+                }},
+                # Group by date to calculate daily totals
+                {"$group": {
+                    "_id": "$datetime",
+                    "total_like": {"$sum": "$like_count"},
+                    "likes_per_post": {"$avg": "$like_count"},
+                }},
+                {"$sort": {"_id": 1}},
+                {"$project": {
+                    "_id": 0,
                     "datetime": {
                         "$dateToString": {
                             "format": "%Y-%m-%d",
                             "date": "$_id"
                         }
                     },
-                    "code": "$posts.code",
-                    "like_count": "$posts.like_count"
-                }},
-                # Group by date to calculate daily totals
-                {"$group": {
-                    "_id": "$datetime",
-                    "code_list": {"$push": "$code"},
-                    "post_count": {"$sum": 1},
-                    "total_like": {"$sum": "$like_count"}
-                }},
-                # Calculate likes per post and format final output
-                {"$project": {
-                    "_id": 0,
-                    "datetime": "$_id",
                     "total_likes": "$total_like",
                     "likes_per_post": "$likes_per_post",
                 }}
             ]
 
             # Execute pipeline
-            results = Instagram.objects().aggregate(pipeline)
+            results = InstagramLatest.objects().aggregate(pipeline)
 
             # Format results
             result = list(results)  # Convert cursor to list
@@ -403,14 +589,25 @@ class InstagramController:
             # Get number of days from range mapping, default to 7 days if range not found
             days = range_days.get(range, 7)
 
+            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
             pipeline = [
+                # Match artist
                 {"$match": {
                     "user_id": new_artist_id
                 }},
                 # Sort by datetime for consistent results
                 {"$sort": {"datetime": 1}},
-                # limit posts
+                # Limit to specified number of days
                 {"$limit": days},
+                # Unwind posts array to work with individual posts
                 {"$unwind": "$posts"},
                 # Project required fields
                 {"$project": {
@@ -439,11 +636,19 @@ class InstagramController:
                 }}
             ]
 
-            results = Instagram.objects().aggregate(pipeline)
+            # Execute pipeline
+            results = InstagramLatest.objects().aggregate(pipeline)
 
-            result = []
-            for item in results:
-                result.append(item)
+            # Format results
+            result = list(results)  # Convert cursor to list
+
+            # Check if we got any results
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified range'
+                }), 200
 
             return jsonify({
                 'status': 'success',
@@ -459,16 +664,23 @@ class InstagramController:
     @staticmethod
     def get_posts_likes_and_comments(artist_id):
         """
-        Get the latest Instagram posts with engagement metrics for an artist
-        :param artist_id: The ID of the artist to get posts data for
-        :return: JSON response containing latest posts with engagement metrics
+        get instagram latest 12 posts index
+        :param: artist_id
+        :return:
         """
-        # Validate required parameter
+        # Validate required parameters
         if not artist_id:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
-            # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = InstagramController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['instagram_id']
+
             pipeline = [
                 # match artist
                 {"$match": {
@@ -546,16 +758,7 @@ class InstagramController:
 
             results = Instagram.objects().aggregate(pipeline)
 
-            # Format results
-            result = list(results)  # Convert cursor to list
-
-            # Check if we got any results
-            if not result:
-                return jsonify({
-                    'status': 'success',
-                    'data': [],
-                    'message': 'No posts found for the specified artist'
-                }), 200
+            result = list(results)
 
             return jsonify({
                 'status': 'success',

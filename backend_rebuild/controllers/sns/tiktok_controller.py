@@ -15,11 +15,11 @@ class TiktokController:
     @staticmethod
     def get_follower(artist_id, date_end, range):
         """
-        Get TikTok follower count data for a specific time range
-        :param artist_id: The ID of the artist to get follower data for
+        Get Tiktok follower data for a specific time range
+        :param artist_id: The ID of the artist to get threads follower data for
         :param date_end: The end date for the data range in format 'YYYY-MM-DD'
         :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
-        :return: JSON response containing follower data with dates and counts
+        :return: JSON response containing threads follower data with dates and counts
         """
         # Validate required parameters
         if not artist_id:

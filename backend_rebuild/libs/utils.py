@@ -1,4 +1,3 @@
-from models import user_db
 from flask import request, jsonify
 from functools import wraps
 from firebase.firebase_auth import verify_firebase_token

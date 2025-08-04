@@ -21,7 +21,7 @@ import { getAuth } from 'firebase/auth';
     {
       name: 'Instagram Followers',
       type: 'Followers',
-      fetchURL: "/instagram/chart/follower",
+      fetchURL: "/instagram/v1/follower",
       iconHref: "https://www.instagram.com/t024.0fficial/",
       iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg",
       fetchFollowerType: 'result',
