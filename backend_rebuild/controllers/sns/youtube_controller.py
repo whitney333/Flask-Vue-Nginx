@@ -1,11 +1,42 @@
 from models.sns.youtube_model import YoutubeVideo, Youtube
+from models.artist_model import Artists
+from models.user_model import Users
 import pandas as pd
 import numpy as np
 import datetime
-from flask import jsonify, request
+from flask import jsonify, request, g
 
 
 class YoutubeController:
+    @staticmethod
+    # get channel id by artist id
+    def get_artist_by_mid(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        try:
+            pipeline = [
+                {"$match": {
+                    # match artist mid
+                    'artist_id': artist_id
+                }},
+                {"$project": {
+                    "_id": 0
+                }}
+            ]
+
+            results = Artists.objects().aggregate(pipeline)
+
+            result = list(results)
+
+            return result
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            }), 500
+
     @staticmethod
     def extract_hashtags_keyword(text):
         """
@@ -30,10 +61,18 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
             # match artist channel id
             {"$match": {
-                "channel_id": artist_id
+                "channel_id": new_artist_id
             }},
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
@@ -104,10 +143,18 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
             # match artist channel id
             {"$match": {
-                "channel_id": artist_id
+                "channel_id": new_artist_id
             }},
             {"$sort": {"datetime": -1}},
             {"$limit": 1},
@@ -177,35 +224,42 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
-            # match artist channel id
-            {"$match": {
-                "channel_id": artist_id
-            }},
-            {"$sort": {"datetime": -1}},
-            {"$limit": 1},
-            {"$unwind": "$video"},
-            # get latest 12 posts
-            {"$limit": 12},
-            {"$project": {
-                "_id": 0,
-                "published_date": "$video.published_at",
-                "title": "$video.title",
-                "tags": "$video.tags"
-            }},
-            {"$set": {
-                "n": {
-                    "$replaceOne": {
-                        "input": "$title",
-                        "find": "#",
-                        "replacement": " #"
+                # match artist channel id
+                {"$match": {
+                    "channel_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$unwind": "$video"},
+                # get latest 12 posts
+                {"$limit": 12},
+                {"$project": {
+                    "_id": 0,
+                    "published_date": "$video.published_at",
+                    "title": "$video.title",
+                    "tags": "$video.tags"
+                }},
+                {"$set": {
+                    "n": {
+                        "$replaceOne": {
+                            "input": "$title",
+                            "find": "#",
+                            "replacement": " #"
+                        }
                     }
-                }
-            }}
-        ]
+                }}
+            ]
 
             results = Youtube.objects.aggregate(pipeline)
-
 
             _temp_list = list(results)
 
@@ -250,9 +304,17 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 {"$match": {
-                        "channel_id": artist_id
+                        "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": -1}},
                 {"$limit": 1},
@@ -361,9 +423,17 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 {"$match": {
-                        "channel_id": artist_id
+                        "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": -1}},
                 {"$limit": 1},
@@ -472,9 +542,17 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 {"$match": {
-                        "channel_id": artist_id
+                        "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": -1}},
                 {"$limit": 1},
@@ -612,10 +690,17 @@ class YoutubeController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # mongodb pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 # match artist channel id
                 {"$match": {
-                    "channel_id": artist_id
+                    "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -760,10 +845,17 @@ class YoutubeController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # mongodb pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 # match artist channel id
                 {"$match": {
-                    "channel_id": artist_id
+                    "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -841,9 +933,16 @@ class YoutubeController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # mongodb pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 {"$match": {
-                        "channel_id": artist_id
+                        "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": -1}},
                 # match date range
@@ -955,9 +1054,17 @@ class YoutubeController:
             # Get number of days from range mapping, default to 7 days if range not found
             days = range_days.get(range, 7)
 
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 {"$match": {
-                    "channel_id": artist_id
+                    "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": -1}},
                 # match date range
@@ -1212,9 +1319,16 @@ class YoutubeController:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
 
         try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = YoutubeController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve youtube id
+            new_artist_id = artist[0]['youtube_id']
+
             pipeline = [
                 {"$match": {
-                    "channel_id": artist_id
+                    "channel_id": new_artist_id
                 }},
                 {"$sort": {"datetime": -1}},
                 {"$limit": 1},
@@ -1273,3 +1387,316 @@ class YoutubeController:
                 'status': 'error',
                 'err': str(e)
             })
+
+    def get_youtube_channel_basic_by_artist_id(artist_id):
+        # get logged in user
+        user = Users.objects(firebase_id="01N9AQsbhEf1XcQbTSqPynzNfXA3").first()
+
+        if not user:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+
+        # check if user follows this artist
+        matched_artist = None
+        for artist in user.followed_artist:
+            # check if passed artist_id is inside
+            if artist.artist_id == artist_id:
+                matched_artist = artist
+                break
+
+        if not matched_artist:
+            return jsonify({
+                "error": "You are not following this artist"
+            }), 403
+
+        # query youtube data
+        # data range
+        date_end = request.args.get("start")
+        range_str = request.args.get("range")
+        if not date_end or not range_str:
+            return jsonify({
+                "error": "Missing start date or range"
+            }), 400
+
+        try:
+            # Validate and parse date
+            format = "%Y-%m-%d"
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range_str, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+        except ValueError:
+            return jsonify({
+                "error": "Invalid date format"
+            }), 400
+
+        # youtube_data = Youtube.objects(artist=matched_artist).first()
+        youtube_data = Youtube.objects(
+            channel_id=matched_artist.youtube_id,
+            datetime__gte=start_date,
+            datetime__lte=date_end
+        ).order_by("datetime")
+
+        if not youtube_data:
+            return jsonify({
+                "error": "No youtube data found"
+            }), 404
+
+        result = []
+        for y in youtube_data:
+            result.append({
+                "datetime": y.datetime,
+                "channel_id": y.channel_id,
+                "view_count": y.view_count,
+                "subscriber_count": y.subscriber_count,
+                "video_count": y.video_count,
+                "channel_hashtag": y.channel_hashtag,
+                "video_hashtag": y.video_hashtag
+            })
+
+        return jsonify({
+            "status": "success",
+            "data": result
+        }), 200
+
+    def get_youtube_channel_view_by_artist_id(artist_id):
+        # TODO
+        # get logged in user
+        user = Users.objects(firebase_id="01N9AQsbhEf1XcQbTSqPynzNfXA3").first()
+
+        if not user:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+
+        # check if user follows this artist
+        matched_artist = None
+        for artist in user.followed_artist:
+            # check if passed artist_id is inside
+            if artist.artist_id == artist_id:
+                matched_artist = artist
+                break
+
+        if not matched_artist:
+            return jsonify({
+                "error": "You are not following this artist"
+            }), 403
+
+        # data range
+        date_end = request.args.get("start")
+        range_str = request.args.get("range")
+        if not date_end or not range_str:
+            return jsonify({
+                "error": "Missing start date or range"
+            }), 400
+
+        try:
+            # Validate and parse date
+            format = "%Y-%m-%d"
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range_str, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+        except ValueError:
+            return jsonify({
+                "error": "Invalid date format"
+            }), 400
+
+        try:
+            youtube_data = Youtube.objects(
+                channel_id=matched_artist.youtube_id,
+                datetime__gte=start_date,
+                datetime__lte=date_end
+            ).order_by("datetime")
+
+            if not youtube_data:
+                return jsonify({
+                    "error": "No youtube data found"
+                }), 404
+
+            result = []
+            for y in youtube_data:
+                result.append({
+                    "datetime": y.datetime,
+                    "channel_id": y.channel_id,
+                    "view_count": y.view_count,
+                })
+
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "error": str(e)
+            }), 500
+
+    def get_youtube_video_view_by_artist_id(artist_id):
+        # get logged in user
+        user = Users.objects(firebase_id="01N9AQsbhEf1XcQbTSqPynzNfXA3").first()
+
+        if not user:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+
+        # check if user follows this artist
+        matched_artist = None
+        for artist in user.followed_artist:
+            # check if passed artist_id is inside
+            if artist.artist_id == artist_id:
+                matched_artist = artist
+                break
+
+        if not matched_artist:
+            return jsonify({
+                "error": "You are not following this artist"
+            }), 403
+
+        # data range
+        date_end = request.args.get("start")
+        range_str = request.args.get("range")
+        if not date_end or not range_str:
+            return jsonify({
+                "error": "Missing start date or range"
+            }), 400
+
+        try:
+            # Validate and parse date
+            format = "%Y-%m-%d"
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range_str, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+        except ValueError:
+            return jsonify({
+                "error": "Invalid date format"
+            }), 400
+
+        try:
+            pipeline = [
+                {"$match": {
+                    "channel_id": matched_artist.youtube_id
+                }},
+                {"$sort": {"datetime": -1}},
+                # match date range
+                {"$match": {
+                    "datetime": {
+                        "$lte": date_end,
+                        "$gt": start_date
+                    }
+                }},
+                {"$unwind": "$video"},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": "$datetime",
+                    "video_publish_at": "$video.published_at",
+                    "video_view": "$video.view_count"
+                }},
+                {"$group": {
+                    "_id": "$datetime",
+                    "latest_ten": {"$push": "$$ROOT"}
+                }},
+                {"$project": {
+                    "_id": 1,
+                    "videos": {
+                        "$slice": [{
+                            "$map": {
+                                "input": "$latest_ten",
+                                "as": "video",
+                                "in": {
+                                    "datetime": "$$video.datetime",
+                                    "video_publish_at": {
+                                        "$dateFromString": {
+                                            "dateString": "$$video.video_publish_at",
+                                            "format": "%Y-%m-%dT%H:%M:%SZ"
+                                        }
+                                    },
+                                    "video_view": {"$toInt": "$$video.video_view"}
+                                }
+                            }
+                        }, 12]
+                    }
+                }},
+                {"$addFields": {
+                    "total_view": {
+                        # Sum all video_view values in the array
+                        "$sum": "$videos.video_view"
+                    }
+                }},
+                {"$sort": {"_id": 1}},
+                {"$project": {
+                    "_id": 0,
+                    "datetime": {"$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$_id"
+                    }},
+                    "total_video_view": "$total_view"
+                }}
+            ]
+            youtube_data = Youtube.objects().aggregate(pipeline)
+
+            if not youtube_data:
+                return jsonify({
+                    "error": "No youtube data found"
+                }), 404
+
+            # Format results
+            result = list(youtube_data)
+
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "error": str(e)
+            }), 500
+
+    def get_youtube_video_index_by_artist_id(artist_id):
+        pass

@@ -19,7 +19,7 @@ class YoutubeVideo(EmbeddedDocument):
 class Youtube(Document):
     datetime = DateTimeField(default=datetime.now())
     channel_id = StringField(required=True)
-    view_count = StringField(required=True)
+    view_count = IntField(required=True)
     subscriber_count = IntField(required=True)
     hidden_subscriber_count = BooleanField(required=True)
     video_count = IntField(required=True)

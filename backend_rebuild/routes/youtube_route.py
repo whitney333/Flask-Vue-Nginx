@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, reqparse, Api
 from controllers.sns.youtube_controller import YoutubeController
+from libs.utils import auth_required
 
 youtube_bp = Blueprint('youtube', __name__)
 youtube_api = Api(youtube_bp)
 
+
+# ARCHIVE
 # get youtube subscribers
 @youtube_bp.route('/v1/follower', methods=['GET'])
 def get_youtube_subscriber():
@@ -16,6 +19,7 @@ def get_youtube_subscriber():
 
     return subscribers
 
+# ARCHIVE
 # get youtube channel views
 @youtube_bp.route('/v1/channel-view', methods=['GET'])
 def get_youtube_channel_view():
@@ -38,6 +42,7 @@ def get_youtube_video_view():
 
     return video_view
 
+# ARCHIVE
 # get youtube channel hashtag counts
 @youtube_bp.route('/channel-hashtag', methods=['GET'])
 def get_youtube_channel_hashtag():
@@ -49,6 +54,7 @@ def get_youtube_channel_hashtag():
 
     return channel_hashtag
 
+# ARCHIVE
 # get youtube video hashtag counts
 @youtube_bp.route('/video-hashtag', methods=['GET'])
 def get_youtube_video_hashtag():
@@ -143,3 +149,39 @@ def get_most_engaged_recent_twelve_hashtags():
     hashtags = YoutubeController.get_hashtags_most_engaged_recent_twelve(artist_id)
 
     return hashtags
+
+########## v2 Endpoint ##########
+@youtube_bp.route("/v2/channel/<string:artist_id>", methods=['GET'])
+@auth_required
+def get_youtube_channel_basic_by_artist_id(artist_id):
+    result = YoutubeController.get_youtube_channel_basic_by_artist_id(artist_id)
+
+    return result
+
+@youtube_bp.route("/v2/video-index/<string:artist_id>", methods=['GET'])
+def get_youtube_video_index_by_artist_id(artist_id):
+    pass
+
+@youtube_bp.route("/v2/channel-view/<string:artist_id>", methods=['GET'])
+def get_youtube_channel_view_by_artist_id(artist_id):
+    result = YoutubeController.get_youtube_channel_view_by_artist_id(artist_id)
+
+    return result
+
+@youtube_bp.route("/v2/video-view/<string:artist_id>", methods=['GET'])
+def get_youtube_video_view_by_artist_id(artist_id):
+    result = YoutubeController.get_youtube_video_view_by_artist_id(artist_id)
+
+    return result
+
+@youtube_bp.route("/v2/hashtag/most-used-five/<string:artist_id>", methods=['GET'])
+def get_youtube_most_used_five_hashtag_by_artist_id(artist_id):
+    pass
+
+@youtube_bp.route("/v2/hashtag/most-used-eight/<string:artist_id>", methods=['GET'])
+def get_youtube_most_used_eight_hashtag_by_artist_id(artist_id):
+    pass
+
+@youtube_bp.route("/v2/hashtag/most-used-twelve/<string:artist_id>", methods=['GET'])
+def get_youtube_most_used_twelve_hashtag_by_artist_id(artist_id):
+    pass
