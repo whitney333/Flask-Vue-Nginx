@@ -150,7 +150,7 @@ def get_most_engaged_recent_twelve_hashtags():
 
     return hashtags
 
-########## v2 Endpoint ##########
+#################### v2 Endpoint ####################
 @youtube_bp.route("/v2/channel/<string:artist_id>", methods=['GET'])
 @auth_required
 def get_youtube_channel_basic_by_artist_id(artist_id):
@@ -159,29 +159,71 @@ def get_youtube_channel_basic_by_artist_id(artist_id):
     return result
 
 @youtube_bp.route("/v2/video-index/<string:artist_id>", methods=['GET'])
+@auth_required
 def get_youtube_video_index_by_artist_id(artist_id):
-    pass
+    result = YoutubeController.get_youtube_video_index_by_artist_id(artist_id)
+
+    return result
 
 @youtube_bp.route("/v2/channel-view/<string:artist_id>", methods=['GET'])
+@auth_required
 def get_youtube_channel_view_by_artist_id(artist_id):
     result = YoutubeController.get_youtube_channel_view_by_artist_id(artist_id)
 
     return result
 
 @youtube_bp.route("/v2/video-view/<string:artist_id>", methods=['GET'])
+@auth_required
 def get_youtube_video_view_by_artist_id(artist_id):
     result = YoutubeController.get_youtube_video_view_by_artist_id(artist_id)
 
     return result
 
+@youtube_bp.route("/v2/posts/<string:artist_id>", methods=['GET'])
+@auth_required
+def get_youtube_latest_video_info(artist_id):
+    result = YoutubeController.get_youtube_latest_video_info_by_artist_id(artist_id)
+
+    return result
+
 @youtube_bp.route("/v2/hashtag/most-used-five/<string:artist_id>", methods=['GET'])
+@auth_required
 def get_youtube_most_used_five_hashtag_by_artist_id(artist_id):
-    pass
+    result = YoutubeController.get_hashtags_most_used_recent_five_by_artist_id(artist_id)
+
+    return result
 
 @youtube_bp.route("/v2/hashtag/most-used-eight/<string:artist_id>", methods=['GET'])
+@auth_required
 def get_youtube_most_used_eight_hashtag_by_artist_id(artist_id):
-    pass
+    result = YoutubeController.get_hashtags_most_used_recent_eight_by_artist_id(artist_id)
+
+    return result
 
 @youtube_bp.route("/v2/hashtag/most-used-twelve/<string:artist_id>", methods=['GET'])
+@auth_required
 def get_youtube_most_used_twelve_hashtag_by_artist_id(artist_id):
-    pass
+    result = YoutubeController.get_hashtags_most_used_recent_twelve_by_artist_id(artist_id)
+
+    return result
+
+@youtube_bp.route("/v2/hashtag/most-engaged-five/<string:artist_id>", methods=['GET'])
+@auth_required
+def get_youtube_most_engaged_five_hashtag_by_artist_id(artist_id):
+    result = YoutubeController.get_hashtags_most_engaged_recent_five_by_artist_id(artist_id)
+
+    return result
+
+@youtube_bp.route("/v2/hashtag/most-engaged-eight/<string:artist_id>", methods=['GET'])
+@auth_required
+def get_youtube_most_engaged_eight_hashtag_by_artist_id(artist_id):
+    result = YoutubeController.get_hashtags_most_engaged_recent_five_by_artist_id(artist_id)
+
+    return result
+
+@youtube_bp.route("/v2/hashtag/most-engaged-twelve/<string:artist_id>", methods=['GET'])
+@auth_required
+def get_youtube_most_engaged_twelve_hashtag_by_artist_id(artist_id):
+    result = YoutubeController.get_hashtags_most_engaged_recent_twelve_by_artist_id(artist_id)
+
+    return result
