@@ -1,5 +1,6 @@
 from models.melon_model import Melon
 from models.artist_model import Artists
+from models.user_model import Users
 from flask import jsonify, request
 import datetime
 
@@ -122,4 +123,88 @@ class MelonController:
             return jsonify({
                 'status': 'error',
                 'err': str(e)
+            }), 500
+
+    def get_melon_follower_by_artist_id(artist_id):
+        # get logged in user
+        user = Users.objects(firebase_id="01N9AQsbhEf1XcQbTSqPynzNfXA3").first()
+
+        if not user:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+
+        # check if user follows this artist
+        matched_artist = None
+        for artist in user.followed_artist:
+            # check if passed artist_id is inside
+            if artist.artist_id == artist_id:
+                matched_artist = artist
+                break
+
+        if not matched_artist:
+            return jsonify({
+                "error": "You are not following this artist"
+            }), 403
+
+        # data range
+        date_end = request.args.get("start")
+        range_str = request.args.get("filter")
+        if not date_end or not range_str:
+            return jsonify({
+                "error": "Missing start date or range"
+            }), 400
+
+        try:
+            # Validate and parse date
+            format = "%Y-%m-%d"
+            try:
+                date_end = datetime.datetime.strptime(date_end, format)
+            except ValueError:
+                return jsonify({'err': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+            # Define range mapping
+            range_days = {
+                "7d": 7,
+                "28d": 28,
+                "90d": 90,
+                "180d": 180,
+                "365d": 365
+            }
+
+            # Get number of days from range mapping, default to 7 days if range not found
+            days = range_days.get(range_str, 7)
+            start_date = date_end - datetime.timedelta(days=days)
+
+        except ValueError:
+            return jsonify({
+                "error": "Invalid date format"
+            }), 400
+
+        try:
+            melon_data = Melon.objects(
+                melon_id=matched_artist.melon_id,
+                datetime__gte=start_date,
+                datetime__lte=date_end
+            ).order_by("datetime")
+
+            if not melon_data:
+                return jsonify({
+                    "error": "No melon data found"
+                }), 404
+
+            result = []
+            for m in melon_data:
+                result.append({
+                    "datetime": m.datetime,
+                    "channel_id": m.melon_id,
+                    "follower": m.follower,
+                })
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
             }), 500
