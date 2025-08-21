@@ -1,122 +1,116 @@
 <script setup>
   import axios from '@/axios';
   import { useCounterStore } from '@/stores/counter';
-  import { onMounted, reactive, ref } from 'vue';
+  import { useArtistStore } from '@/stores/artist'
+  import {watch, computed, onMounted, reactive, ref} from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import DB_TS_card from '@/views/Dashboard/components/DB_TS_card.vue';
   import { currentProfile } from '@/libs/current-profile';
-import { getAuth } from 'firebase/auth';
-  const artistInfo = ref({})
+  import { getAuth } from 'firebase/auth';
+  const followedArtists = ref([])
+  const artistInfo = ref([])
+  const graphItems = ref([])
   const memberInfo = ref("")
   const hotData = ref([])
   const router = useRouter()
-  const counterStore = useCounterStore()
-  const mid = ref('1297') // to do
+  //pinia store mid
+  const artistStore = useArtistStore()
+  const mid = ref(null) // to do
   const page = ref(1)
   const q = ref("t024")
   const limit = ref(10)
   const end = new Date().toISOString().slice(0, 10);
 
-  const graphItems = [
-    {
-      name: 'Instagram Followers',
-      type: 'Followers',
-      fetchURL: "/instagram/chart/follower",
-      iconHref: "https://www.instagram.com/t024.0fficial/",
-      iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg",
-      fetchFollowerType: 'result',
-      followerDataType: 'follower_count',
-      fetchDateType: 'datetime',
-      colors: ['#5851DB', '#6d67e1'],
-    },
-    {
-      name: 'Spotify Followers',
-      type: 'Followers',
-      range: "three_month",
-      end: new Date().toISOString().slice(0, 10),
-      fetchURL: `/spotify/index?end=${end}&range=three_month`,
-      iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
-      iconHref: "https://open.spotify.com/artist/0jxjOumN4dyPFTLUojSbNP",
-      fetchFollowerType: 'posts',
-      followerDataType: 'follower',
-      fetchDateType: 'date',
-      colors: ['#1DB954'],
-    },
-    {
-      name: 'Spotify Listeners',
-      type: 'Listeners',
-      range: "three_month",
-      end: new Date().toISOString().slice(0, 10),
-      fetchURL: `/spotify/index?end=${end}&range=three_month`,
-      iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
-      iconHref: "https://open.spotify.com/artist/0jxjOumN4dyPFTLUojSbNP",
-      fetchFollowerType: 'posts',
-      followerDataType: 'listener',
-      fetchDateType: 'date',
-      colors: ['#1DB954'],
-    },
-    {
-      name: 'Tiktok Listeners',
-      type: 'Followers',
-      range: "three_month",
-      end: new Date().toISOString().slice(0, 10),
-      fetchURL: "/tiktok/chart/follower",
-      iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg",
-      iconHref: "https://www.tiktok.com/@t024.official",
-      fetchFollowerType: 'result',
-      followerDataType: 'tiktok_follower',
-      fetchDateType: 'datetime',
-      colors: ['#171616', '#464646'],
-    },
-    {
-      name: 'Youtube Subscribes',
-      type: 'Subscribers',
-      range: "three_month",
-      end: new Date().toISOString().slice(0, 10),
-      fetchURL: "/youtube/stats/channel",
-      iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg",
-      iconHref: "https://www.youtube.com/@t024.official",
-      fetchFollowerType: 'result',
-      followerDataType: 'subscriber',
-      fetchDateType: 'datetime',
-      colors: ['#ff0000'],
-    },
-    {
-      name: 'Twitter Followers',
-      type: 'Followers',
-      range: "three_month",
-      end: new Date().toISOString().slice(0, 10),
-      fetchURL: `/twitter/index?end=${end}&range=three_month`,
-      iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg",
-      iconHref: "https://twitter.com/t024_official",
-      fetchFollowerType: 'posts',
-      followerDataType: 'follower',
-      fetchDateType: 'datetime',
-      colors: ['#1DA1F2'],
-    },
-
-
-
-  ]
   const cardLoading = reactive({
     artist: true,
     member: true,
     trending: true,
   })
+
   const handleIncrement = () => {
     counterStore.increment()
   }
   const handleToAbout = () => {
     router.push({path: '/about'})
   }
-  const fetchArtistInfo = async () => {
+
+  const fetchFollowedArtist = async () => {
     try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        console.error("Not login yet!");
+        return;
+      }
+
+      const token = await user.getIdToken();
+      console.log(token)
+      const res = await axios.get("/user/v1/followed_artists", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          timeout: 10000
+        }
+      });
+      followedArtists.value = res.data.data;
+      // console.log(followedArtists.value[0]["artist_id"])
+      if (followedArtists.value.length > 0) {
+        // fetch first artist_id
+        const firstArtistId = followedArtists.value[0]["artist_id"]
+        artistStore.setMid(firstArtistId)
+        // mid.value = firstArtistId
+        cardLoading.artist = true
+
+        console.log("🎯 first artistId:", firstArtistId)
+        // await fetchArtistInfo(mid.value, token);
+        // request artist information
+        const artistInfoRes = await axios.get(`/artist/info?artist_id=${firstArtistId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }, timeout: 10000})
+        artistInfo.value = artistInfoRes.data["data"][0]
+        // console.log(artistInfo)
+        cardLoading.artist = false
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+
+  const fetchArtistInfo = async (artistId, token=null) => {
+    try {
+      if (!artistId) {
+        console.warn("artistId is undefined!")
+        return
+      }
       cardLoading.artist = true
-      const res = await axios.get(`/artist/info?mid=${mid.value}`, {setTimeout: 10000})
-      artistInfo.value = res.data["results"]
-      cardLoading.artist = false
+      console.log("Fetching artist info for:", artistId)
+
+      // if no token
+      if (!token) {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        token = await user.getIdToken();
+      }
+      // update mid.value with the selected artistId
+      // mid.value = artistId
+      artistStore.setMid(artistId)
+
+      const resp = await axios.get(`/artist/info?artist_id=${artistId}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }, timeout: 10000})
+
+      if (resp.data.data && resp.data.data.length > 0) {
+        artistInfo.value = resp.data.data[0]
+      } else {
+        artistInfo.value = null
+      }
     } catch (e) {
       console.error(e);
+    } finally {
+      cardLoading.artist = false
     }
   }
 
@@ -144,25 +138,200 @@ import { getAuth } from 'firebase/auth';
 
 
   const fetchAll = () => {
-    fetchArtistInfo()
-    fetchMemberInfo()
-    fetchTheQoo()
+    fetchFollowedArtist();
+    // fetchMemberInfo()
+    // fetchTheQoo()
   }
 
-  const profile = await currentProfile()
-  const { currentUser } = getAuth()
-
-  if (!currentUser) {
-    router.push('/auth/login')
-  }
-
-  if (!profile) {
-    router.push('/auth/register/details')
-  }
+  // const profile = await currentProfile()
+  // const { currentUser } = getAuth()
+  //
+  // if (!currentUser) {
+  //   router.push('/auth/login')
+  // }
+  //
+  // if (!profile) {
+  //   router.push('/auth/register/details')
+  // }
 
   onMounted(() => {
     fetchAll()
   })
+
+  // convert datetime into YYYY-MM-DD
+  function formatDate(dateStr) {
+    return new Date(dateStr).toISOString().slice(0, 10);
+  }
+
+  // request & generate graph items
+  const graphItems_ = computed(() => {
+    if (!mid.value || !artistInfo.value) {
+      return [];
+    }
+
+    const end = new Date().toISOString().slice(0, 10);
+    // console.log(mid.value)
+    return [
+      {
+        name: 'Instagram Followers',
+        type: 'Followers',
+        fetchURL: mid.value
+            ? `/instagram/v1/follower?date_end=${end}&filter=28d&artist_id=${mid.value}`
+            : "",
+        iconHref: artistInfo.value?.instagram_user
+            ? `https://www.instagram.com/${artistInfo.value.instagram_user}`
+            : "#",
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#5851DB', '#6d67e1'],
+      },
+      {
+        name: 'Spotify Followers',
+        type: 'Followers',
+        range: "28d",
+        fetchURL: mid.value
+            ? `/spotify/v1/follower?date_end=${end}&filter=28d&artist_id=${mid.value}`
+            : "",
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
+        iconHref: artistInfo.value?.spotify_id
+            ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#1DB954'],
+      },
+      {
+        name: 'Spotify Listeners',
+        type: 'Listeners',
+        range: "28d",
+        fetchURL: `/spotify/v1/monthly-listener?date_end=${end}&filter=28d&artist_id=${mid.value}`,
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
+        iconHref: artistInfo.value?.spotify_id
+            ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'monthly_listener',
+        fetchDateType: 'datetime',
+        colors: ['#1DB954'],
+      },
+      {
+        name: 'Tiktok Followers',
+        type: 'Followers',
+        range: "28d",
+        fetchURL: `/tiktok/v1/follower?date_end=${end}&filter=28d&artist_id=${mid.value}`,
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg",
+        iconHref: artistInfo.value?.tiktok_id
+            ? `https://www.tiktok.com/${artistInfo.value.tiktok_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#171616', '#464646'],
+      },
+      {
+        name: 'Youtube Subscribes',
+        type: 'Subscribers',
+        range: "28d",
+        fetchURL: `/youtube/v1/channel?date_end=${end}&filter=28d&artist_id=${mid.value}`,
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg",
+        iconHref: artistInfo.value?.youtube_id
+            ? `https://www.youtube.com/${artistInfo.value.youtube_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#ff0000'],
+      }
+    ];
+  })
+
+  // watch mid & artistInfo, in order to update graphItems
+  watch([artistStore.mid, artistInfo], ([newMid, newInfo]) => {
+    // if (!newMid || !newInfo) {
+    //   graphItems.value = []
+    //   return
+    // }
+    const end = new Date().toISOString().slice(0, 10)
+
+    graphItems.value =  [
+      {
+        name: 'Instagram Followers',
+        type: 'Followers',
+        fetchURL: artistStore.mid
+            ? `/instagram/v1/follower?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`
+            : "",
+        iconHref: artistInfo.value?.instagram_user
+            ? `https://www.instagram.com/${artistInfo.value.instagram_user}`
+            : "#",
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#5851DB', '#6d67e1'],
+      },
+      {
+        name: 'Spotify Followers',
+        type: 'Followers',
+        range: "28d",
+        fetchURL: artistStore.mid
+            ? `/spotify/v1/follower?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`
+            : "",
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
+        iconHref: artistInfo.value?.spotify_id
+            ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#1DB954'],
+      },
+      {
+        name: 'Spotify Listeners',
+        type: 'Listeners',
+        range: "28d",
+        fetchURL: `/spotify/v1/monthly-listener?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`,
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
+        iconHref: artistInfo.value?.spotify_id
+            ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'monthly_listener',
+        fetchDateType: 'datetime',
+        colors: ['#1DB954'],
+      },
+      {
+        name: 'Tiktok Followers',
+        type: 'Followers',
+        range: "28d",
+        fetchURL: `/tiktok/v1/follower?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`,
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg",
+        iconHref: artistInfo.value?.tiktok_id
+            ? `https://www.tiktok.com/@${artistInfo.value.tiktok_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#171616', '#464646'],
+      },
+      {
+        name: 'Youtube Subscribes',
+        type: 'Subscribers',
+        range: "28d",
+        fetchURL: `/youtube/v1/channel?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`,
+        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg",
+        iconHref: artistInfo.value?.youtube_id
+            ? `https://www.youtube.com/channel/${artistInfo.value.youtube_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#ff0000'],
+      }
+    ];
+  }, { immediate: true })
 
 </script>
 
@@ -199,8 +368,16 @@ import { getAuth } from 'firebase/auth';
             sm="6">
               <v-avatar style="height:150px; width:150px;">
                 <v-img
-                    :src=artistInfo.image
+                    v-if="artistInfo.image_url"
+                    :src="artistInfo.image_url || 'https://blocks.astratic.com/img/general-img-square.png'"
                     class="img-design"
+                    cover
+                ></v-img>
+                <v-img
+                    v-else
+                    src="https://blocks.astratic.com/img/general-img-square.png"
+                    class="img-design"
+                    cover
                 ></v-img>
               </v-avatar>
             </v-col>
@@ -252,7 +429,7 @@ import { getAuth } from 'firebase/auth';
                     </span>
                     <br />
                     <span :class="['text-body-1']">
-                      {{  artistInfo.birth ? artistInfo.birth : "N/A" }}
+                      {{  artistInfo.birth ? formatDate(artistInfo.birth) : "N/A" }}
                     </span>
                   </v-card>
                 </v-col>
@@ -293,11 +470,11 @@ import { getAuth } from 'firebase/auth';
             sm="3">
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                {{ $t("Label")}}
+                {{ $t("Pronouns")}}
                 </span>
                 <br />
                 <span :class="['text-body-1']">
-                  {{    artistInfo.labels ? artistInfo.labels : "N/A" }}
+                  {{    artistInfo.pronouns ? artistInfo.pronouns : "N/A" }}
                 </span>
               </v-card>
             </v-col>
@@ -327,27 +504,10 @@ import { getAuth } from 'firebase/auth';
                 </span>
               </v-card>
             </v-col>
-            <v-col
-            cols="6"
-            sm="3">
-              <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                {{ $t("Last Release")}}
-                </span>
-                <br />
-                <span :class="['text-body-1']">
-                  {{    artistInfo.last_release ? artistInfo.last_release : "N/A" }}
-                </span>
-              </v-card>
-            </v-col>
-
           </v-row>
-
         </template>
-
         </v-card>
       </v-col>
-
       <!-- Trending Info -->
       <v-col
       cols="12"
@@ -358,11 +518,26 @@ import { getAuth } from 'firebase/auth';
           >
           <template v-slot:title>
             <span :class="['text-h5']">
-              {{  $t('Trending') }}
+              {{  $t('Following Artists') }}
             </span>
           </template>
           <template v-slot:text>
-
+            <v-list>
+              <v-list-item
+                  v-for="artist in followedArtists"
+                  :key="artist.artist_id"
+                  class="artist-item"
+                  :prepend-avatar="artist.image"
+                  @click="fetchArtistInfo(artist.artist_id)"
+              >
+                <v-list-item-title class="text-body-1 font-weight-medium">
+                  {{ artist.english_name }}
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-grey">
+                  {{ artist.korean_name }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
           <v-divider></v-divider>
           <br />
           <v-card variant="text" v-if="hotData" v-for="item in hotData">
@@ -371,10 +546,8 @@ import { getAuth } from 'firebase/auth';
           <v-card variant="text" v-else>
             No relevant data in 48 hours
           </v-card>
-          
         </template>
         </v-card>
-
       </v-col>
     </v-row>
     <!-- Statistic-->
@@ -421,5 +594,12 @@ import { getAuth } from 'firebase/auth';
     min-width: 600px;
     min-height: 600px;
   }
-
+.artist-item {
+  transition: background-color 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.artist-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
 </style>
