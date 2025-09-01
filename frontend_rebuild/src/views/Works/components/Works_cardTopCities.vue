@@ -1,6 +1,7 @@
 <script setup>
     import axios from '@/axios';
-    import { onMounted, ref } from 'vue';
+    import {onMounted, ref, watch} from 'vue';
+     import { useArtistStore } from '@/stores/artist'
 
     const props = defineProps({
         iconSrc: String,
@@ -8,6 +9,8 @@
         value: Object
     })
 
+    // const artistId = ref("1z4g3DjTBBZKhvAroFlhOM")
+    const artistStore = useArtistStore()
     const citiesData = ref([])
     const cities = ref([])
     const lastUpdate = ref("")
@@ -19,18 +22,19 @@
     const getData = async () => {
         try{
             loadingCard.value = true
-            const res = await axios.get('/spotify/top-city', {setTimeout: 10000})
+            const res = await axios.get(`/spotify/v1/top-city?artist_id=${artistStore.mid}`, {setTimeout: 10000})
             
-            citiesData.value = res.data.result
-            lastUpdate.value = res.data.result[0].date
-            monthlyListeners.value = res.data.result[0].monthly_listeners
+            citiesData.value = res.data.data[0].top_city
+            console.log("city: ", citiesData.value)
+            lastUpdate.value = res.data.data[0].datetime
+            monthlyListeners.value = res.data.data[0].listener
             // console.log(res.data.result[0]);
             
             
             const formattedData = citiesData.value.map((e, i) => {
                 return {
                     x: e.city,
-                    y: e.city_listener
+                    y: e.listener
                 }
             })
             cities.value = citiesData.value.map((val) => val.city)
@@ -88,6 +92,16 @@
     onMounted(() => {
         getData()
     })
+
+    watch(
+        () => artistStore.mid,
+        async (newMid, oldMid) => {
+          if (!newMid) return
+          // console.log("artist changed:", newMid)
+          await getData()
+        },
+        {immediate: true}
+    )
 </script>
 
 <template>
