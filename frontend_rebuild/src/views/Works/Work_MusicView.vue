@@ -13,6 +13,6 @@
     <v-divider></v-divider>
     <WorksFanEngagementContainer :iconSrc="iconSrc"></WorksFanEngagementContainer>
     <v-divider></v-divider>
-    <WorksWeeklyMusicChartsContainer></WorksWeeklyMusicChartsContainer>
+<!--    <WorksWeeklyMusicChartsContainer></WorksWeeklyMusicChartsContainer>-->
 </template>
 
