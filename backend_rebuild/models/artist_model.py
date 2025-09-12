@@ -46,7 +46,7 @@ class Artists(Document):
     instagram_id = ReferenceField("Instagram")
     youtube_id = StringField("Youtube")
     tiktok_id = ReferenceField("Tiktok")
-    spotify_id = ReferenceField("Spotify")
+    spotify_id = StringField("Spotify")
     melon_id = StringField("Melon")
     genie_id = StringField()
     bilibili_id = ReferenceField("Bilibili")

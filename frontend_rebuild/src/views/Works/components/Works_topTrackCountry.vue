@@ -1,18 +1,21 @@
 <script setup>
-import axios from '@/axios';
-import { onMounted, ref, watch } from 'vue';
-import getUnicodeFlagIcon from 'country-flag-icons/unicode'
+  import axios from '@/axios';
+  import { onMounted, ref, watch } from 'vue';
+  import getUnicodeFlagIcon from 'country-flag-icons/unicode'
+  import { useArtistStore } from "@/stores/artist.js";
 
-    const props = defineProps({
+  const props = defineProps({
         iconSrc: String
     })
     const tracks = ref({})
+    // const artistId = ref('1')
+    const artistStore = useArtistStore()
     const selected = ref('South Korea')
     const trackList = ref([])
     const country = ref('KR')
     const lastUpdate = ref('')
-    const end_date = ref(new Date().toISOString().split('T')[0])
-    const drange = ref('')
+    // const end_date = ref(new Date().toISOString().split('T')[0])
+    // const drange = ref('')
     const chartOptions = ref({})
     const series = ref({})
     const loadingCard = ref(true)
@@ -21,27 +24,27 @@ import getUnicodeFlagIcon from 'country-flag-icons/unicode'
     }
 
     const countriesFlag = {
-        'South Korea': 'KR',
-        'Taiwan': 'TW',
+        'Australia': 'AU',
+        'Brazil': 'BR',
+        'Canada': 'CA',
+        'France': 'FR',
+        'Germany': 'DE',
         'Hong Kong': 'HK',
         "India": "IN",
         'Indonesia': 'ID',
-        'Japan': 'JP',
-        "Malaysia": "MY",
-        "Macao": "MO",
-        'Thailand': 'TH',
-        'Vietnam': 'VN',
-        'Philippines': 'PH',
-        'United States': 'US',
-        'Canada': 'CA',
-        'Brazil': 'BR',
-        'Mexico': 'MX',
-        'United Kingdom': 'GB',
-        'Germany': 'DE',
-        'France': 'FR',
-        'Spain': 'ES',
         'Italy': 'IT',
-        'Australia': 'AU'
+        'Japan': 'JP',
+        "Macao": "MO",
+        "Malaysia": "MY",
+        'Mexico': 'MX',
+        'Philippines': 'PH',
+        'South Korea': 'KR',
+        'Spain': 'ES',
+        'Taiwan': 'TW',
+        'Thailand': 'TH',
+        'United Kingdom': 'GB',
+        'United States': 'US',
+        'Vietnam': 'VN'
     }
 
     const countries = [
@@ -170,8 +173,8 @@ import getUnicodeFlagIcon from 'country-flag-icons/unicode'
     const getTopTrackRegion = async () => {
         try {
             loadingCard.value = true
-            const res = await axios.get(`/spotify/top-track?end=${end_date.value}&country=${countriesFlag[selected.value]}&drange=${drange.value}`, {setTimeout: 10000})
-            const data = res.data.posts[0]
+            const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${countriesFlag[selected.value]}`, {setTimeout: 10000})
+            const data = res.data.data[0]
             lastUpdate.value = data.datetime
             trackList.value = data.top_track.map((val) => val.track)
             
@@ -202,8 +205,8 @@ import getUnicodeFlagIcon from 'country-flag-icons/unicode'
             const date = new Date()
             end_date.value = date.toISOString().split('T')[0]
     
-            const res = await axios.get(`/spotify/top-track?end=${end_date.value}&country=${selected.value}&drange=${drange.value}`, {setTimeout: 5000})
-            selected.value = res.data["posts"][0]["top_track"][0]["track"]
+            const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${selected.value}`, {setTimeout: 5000})
+            selected.value = res.data.data["top_track"]
             loadingCard.value = false
 
         } catch (e) {
@@ -221,7 +224,17 @@ import getUnicodeFlagIcon from 'country-flag-icons/unicode'
         created()
     }) 
     watch(selected, getTopTrackRegion)
-
+        watch(
+        () => artistStore.mid,
+        async (newMid) => {
+          if (newMid) {
+            console.log("🎯 mid changed:", newMid)
+            await getTopSong()
+            await getTopTrackRegion()
+          }
+        },
+        {immediate: true}
+    )
 </script>
 
 <template>

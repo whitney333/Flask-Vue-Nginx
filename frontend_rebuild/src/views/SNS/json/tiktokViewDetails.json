@@ -4,26 +4,30 @@
         "title": "Tiktok Follower",
         "type": "Followers",
         "tooltipText": "Number of followers on Tiktok",
-        "fetchURL": "/tiktok/chart/follower",
-        "fetchFollowerType": "result",
-        "followerDataType": "tiktok_follower",
+        "fetchURL": "/tiktok/v1/follower",
+        "fetchFollowerType": "data",
+        "followerDataType": "follower",
+        "fetchDateType": "datetime"
+    },
+    "tiktokHashtagValue": {
+        "chart": "tiktokHashtag",
+        "title": "Tiktok Hashtag",
+        "type": "Hashtags",
+        "tooltipText": "Number of hashtags on Tiktok",
+        "fetchURL": "/tiktok/v1/hashtag",
+        "fetchFollowerType": "data",
+        "followerDataType": "hashtag",
         "fetchDateType": "datetime"
     },
     "tiktokTotalLikesValue": {
         "chart": "tiktokTotalLikes",
-        "title": "Tiktok Total Posts Likes",
+        "title": "Tiktok Total Likes",
         "type": "Likes",
-        "tooltipText": "Number of latest 12 posts likes on Tiktok",
-        "fetchURL": "/tiktok/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_like",
-        "fetchDateType": "datetime",
-        "secondChat": {
-            "chart": "tiktokAvgLikes",
-            "followerDataType": "avg_like",
-            "fetchDateType": "datetime",
-            "type": "Likes per video"
-        }
+        "tooltipText": "Number of likes on Tiktok",
+        "fetchURL": "/tiktok/v1/like",
+        "fetchFollowerType": "data",
+        "followerDataType": "like",
+        "fetchDateType": "datetime"
     },
     "tiktokTotalViewsValue": {
         "chart": "tiktokTotalViews",

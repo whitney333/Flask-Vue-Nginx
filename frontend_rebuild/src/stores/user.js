@@ -18,17 +18,20 @@ export const useUserStore = defineStore("user", {
       this.name = user.name;
       this.photo = user.photo;
       this.tenant = user.tenant;
-      this.firebaseToken = user.firebase_token
+      this.followedArtists = user.followedArtists || [];
+      this.firebaseToken = user.firebase_token;
     },
     reset() {
       this.firebase_id = null
       this.email = null
       this.name = null
       this.photo = null
+      this.tenant = null
       this.followedArtists = []
+      this.firebaseToken = null
     },
     setFollowedArtists(artists) {
-      console.log("Setting followedArtists in store:", artists);
+      // console.log("Setting followedArtists in store:", artists);
       this.followedArtists = artists || [];
     },
     removeFollowedArtist(artistId) {

@@ -1,8 +1,38 @@
 from models.sns.tiktok_model import Tiktok, TiktokVideo
+from models.artist_model import Artists
 import datetime
 from flask import jsonify, request
 
 class TiktokController:
+    @staticmethod
+    # get channel id by artist id
+    def get_artist_by_mid(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        try:
+            pipeline = [
+                {"$match": {
+                    # match artist mid
+                    'artist_id': artist_id
+                }},
+                {"$project": {
+                    "_id": 0
+                }}
+            ]
+
+            results = Artists.objects().aggregate(pipeline)
+
+            result = list(results)
+
+            return result
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            }), 500
+
     # TODO Tiktok scraping method fix
     # get most-used hashtags
     def get_hashtags_most_used_recent_ten(self):
@@ -51,10 +81,17 @@ class TiktokController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = TiktokController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['tiktok_id']
+
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "id": new_artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -73,7 +110,7 @@ class TiktokController:
                             "date": "$datetime"
                         }
                     },
-                    "follower": "$follower"
+                    "follower": {"$toInt": "$follower"}
                 }}
             ]
 
@@ -134,10 +171,17 @@ class TiktokController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = TiktokController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['tiktok_id']
+
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "id": new_artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -156,7 +200,7 @@ class TiktokController:
                             "date": "$datetime"
                         }
                     },
-                    "hashtag": "$hashtag"
+                    "hashtag": {"$toInt": "$hashtag"}
                 }}
             ]
 
@@ -215,10 +259,17 @@ class TiktokController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = TiktokController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['tiktok_id']
+
             pipeline = [
                 # match artist id
                 {"$match": {
-                    "id": artist_id
+                    "id": new_artist_id
                 }},
                 {"$sort": {"datetime": 1}},
                 # match date range
@@ -237,7 +288,7 @@ class TiktokController:
                             "date": "$datetime"
                         }
                     },
-                    "like": "$like"
+                    "like": {"$toInt": "$like"}
                 }}
             ]
 

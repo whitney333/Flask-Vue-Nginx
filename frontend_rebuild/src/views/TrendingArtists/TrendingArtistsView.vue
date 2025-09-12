@@ -171,7 +171,7 @@ const artistList = ref([
 
     // fetch Artist List everytime the country changed
     const fetchArtistList = async () => {
-        const data = await axios.get(`trendingartist/rank/${selectCountry.value.split(" ").join('').toLowerCase()}`)
+        const data = await axios.get(`trending-artist/rank/${selectCountry.value.split(" ").join('').toLowerCase()}`)
         artistList.value = data
     }
     

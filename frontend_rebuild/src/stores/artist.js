@@ -13,4 +13,4 @@ export const useArtistStore = defineStore('artist', () => {
   }
 
   return { mid, setMid, reset }
-})
+}, {persist: true})

@@ -17,6 +17,7 @@ const loadingBar = ref(true)
 const series = ref([])
 const chartOptions = ref({})
 const follower = ref({})
+
 const formatNumber = computed(() =>
     {
       if (String(index_number.value).length < 4) {
@@ -126,24 +127,53 @@ chartOptions.value = {
 
 const getData = async () => {
     loadingBar.value = true
-    const data = await axios.get(props.value.fetchURL, {setTimeout: 10000})
+    // clean old data
+    series.value = []
+    index_number.value = 0
 
-    follower.value = data.data[props.value.fetchFollowerType]
-    index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
+    try {
+      const data = await axios.get(props.value.fetchURL, {setTimeout: 10000})
+      follower.value = data.data[props.value.fetchFollowerType]
+      index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
 
-    let formattedData = follower.value.map((e, i) => {
+      let formattedData = follower.value.map((e, i) => {
         return {
-            x: e[props.value.fetchDateType],
-            y: e[props.value.followerDataType],
+          x: e[props.value.fetchDateType],
+          y: e[props.value.followerDataType],
         };
-    });
-    // update the series with axios data
-    series.value = [
+      });
+
+      //update the series with axios data
+      series.value = [
         {
-            name: props.value.type,
-            data: formattedData,
+          name: props.value.type,
+          data: formattedData,
         }
-    ]
+      ]
+
+    } catch (err) {
+      console.error("Error fetching data:", err)
+    } finally {
+      loadingBar.value = false
+    }
+
+    // follower.value = data.data[props.value.fetchFollowerType]
+    // index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
+
+    // let formattedData = follower.value.map((e, i) => {
+    //     return {
+    //         x: e[props.value.fetchDateType],
+    //         y: e[props.value.followerDataType],
+    //     };
+    // });
+
+    // update the series with axios data
+    // series.value = [
+    //     {
+    //         name: props.value.type,
+    //         data: formattedData,
+    //     }
+    // ]
     loadingBar.value = false
 }
 
@@ -156,8 +186,15 @@ const getData = async () => {
     () => props.value.fetchURL,
     async (newUrl, oldUrl) => {
       if (newUrl && newUrl !== oldUrl) {
-        console.log("🔄 fetchURL changed:", newUrl)
-        await getData(newUrl)
+        // console.log("🔄 fetchURL changed:", newUrl)
+        series.value = []
+        index_number.value = 0
+        try {
+          await getData(newUrl)
+        } catch (err) {
+          console.log("Error in watcher callback: ", err)
+        }
+
       }
     },
     {immediate: true} // execute when first enter

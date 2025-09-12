@@ -1,6 +1,6 @@
 <script setup>
     import axios from '@/axios';
-    import {onMounted, ref, watch} from 'vue';
+    import {computed, onMounted, ref, watch} from 'vue';
      import { useArtistStore } from '@/stores/artist'
 
     const props = defineProps({
@@ -25,7 +25,7 @@
             const res = await axios.get(`/spotify/v1/top-city?artist_id=${artistStore.mid}`, {setTimeout: 10000})
             
             citiesData.value = res.data.data[0].top_city
-            console.log("city: ", citiesData.value)
+            // console.log("city: ", citiesData.value)
             lastUpdate.value = res.data.data[0].datetime
             monthlyListeners.value = res.data.data[0].listener
             // console.log(res.data.result[0]);
@@ -40,7 +40,7 @@
             cities.value = citiesData.value.map((val) => val.city)
             series.value = [
                 {
-                    name: "Popularity",
+                    name: "listeners",
                     data: formattedData,
                 }
             ]

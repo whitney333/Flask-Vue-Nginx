@@ -95,3 +95,11 @@ def get_bilibili_engagement_rate():
     engagement_rate = BilibiliController.get_engagement_rate(artist_id, date_end, filter)
 
     return engagement_rate
+
+@bilibili_bp.route('/v1/posts', methods=['GET'])
+def get_bilibili_latest_posts():
+    artist_id = request.args.get('artist_id', type=str)
+
+    posts = BilibiliController.get_latest_thirty_posts(artist_id)
+
+    return posts

@@ -4,30 +4,32 @@
         "title": "Spotify Followers",
         "type": "Followers",
         "tooltipText": "Number of followers on Spotify",
-        "fetchFollowerType": "posts",
+        "fetchURL": "/spotify/v1/follower",
+        "fetchFollowerType": "data",
         "followerDataType": "follower",
-        "range": "three_month",
-        "fetchDateType": "date"
+        "range": "365d",
+        "fetchDateType": "datetime"
     },
     "spotifyMonthlyListenersValue": {
         "chart": "spotifyMonthlyListeners",
         "title": "Spotify Monthly Listeners",
         "type": "Monthly Listeners",
         "tooltipText": "Number of Listeners on Spotify",
-        "fetchFollowerType": "posts",
-        "followerDataType": "listener",
-        "range": "year",
-        "fetchDateType": "date"
+        "fetchURL": "/spotify/v1/monthly_listener",
+        "fetchFollowerType": "data",
+        "followerDataType": "monthly_listener",
+        "range": "365d",
+        "fetchDateType": "datetime"
     },
     "spotifyFanConversionRateValue": {
         "chart": "spotifyFanConversionRate",
         "title": "Spotify Fan Conversion Rate",
         "type": "Fan Conversion Rate",
         "tooltipText": "Number of Fan Conversion on Spotify",
-        "fetchFollowerType": "posts",
+        "fetchFollowerType": "data",
         "followerDataType": "conversion_rate",
-        "range": "year",
-        "fetchDateType": "date",
+        "range": "365d",
+        "fetchDateType": "datetime",
         "percentageData": true
     },
     "spotifyTopCitiesValue": {
@@ -45,19 +47,20 @@
         "title": "Spotify Popularity Index",
         "type": "Popularity",
         "tooltipText": "Number of Popularity on Spotify",
-        "fetchFollowerType": "posts",
+        "fetchFollowerType": "data",
         "followerDataType": "popularity",
-        "range": "year",
-        "fetchDateType": "date"
+        "range": "365d",
+        "fetchDateType": "datetime"
     },
     "melonFollowerValue": {
         "chart": "melonFollower",
         "title": "Melon Follower",
         "type": "Follower",
         "tooltipText": "Number of Follower on Melon",
-        "fetchFollowerType": "posts",
+        "fetchURL": "/melon/v1/follower",
+        "fetchFollowerType": "data",
         "followerDataType": "follower",
-        "range": "year",
-        "fetchDateType": "date"
+        "range": "365d",
+        "fetchDateType": "datetime"
     }
 }

@@ -45,7 +45,7 @@
       }
 
       const token = await user.getIdToken();
-      console.log(token)
+      // console.log(token)
       const res = await axios.get("/user/v1/followed_artists", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +85,7 @@
         return
       }
       cardLoading.artist = true
-      console.log("Fetching artist info for:", artistId)
+      // console.log("Fetching artist info for:", artistId)
 
       // if no token
       if (!token) {
@@ -125,6 +125,7 @@
     }
   } 
 
+  // previous fetch news trending
   const fetchTheQoo = async () => {
     try {
       cardLoading.trending = true
@@ -163,90 +164,11 @@
     return new Date(dateStr).toISOString().slice(0, 10);
   }
 
-  // request & generate graph items
-  const graphItems_ = computed(() => {
-    if (!mid.value || !artistInfo.value) {
-      return [];
+  watch(() => artistStore.mid, (newId) => {
+    if (newId) {
+      fetchArtistInfo(newId)
     }
-
-    const end = new Date().toISOString().slice(0, 10);
-    // console.log(mid.value)
-    return [
-      {
-        name: 'Instagram Followers',
-        type: 'Followers',
-        fetchURL: mid.value
-            ? `/instagram/v1/follower?date_end=${end}&filter=28d&artist_id=${mid.value}`
-            : "",
-        iconHref: artistInfo.value?.instagram_user
-            ? `https://www.instagram.com/${artistInfo.value.instagram_user}`
-            : "#",
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg",
-        fetchFollowerType: 'data',
-        followerDataType: 'follower',
-        fetchDateType: 'datetime',
-        colors: ['#5851DB', '#6d67e1'],
-      },
-      {
-        name: 'Spotify Followers',
-        type: 'Followers',
-        range: "28d",
-        fetchURL: mid.value
-            ? `/spotify/v1/follower?date_end=${end}&filter=28d&artist_id=${mid.value}`
-            : "",
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
-        iconHref: artistInfo.value?.spotify_id
-            ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
-            : "#",
-        fetchFollowerType: 'data',
-        followerDataType: 'follower',
-        fetchDateType: 'datetime',
-        colors: ['#1DB954'],
-      },
-      {
-        name: 'Spotify Listeners',
-        type: 'Listeners',
-        range: "28d",
-        fetchURL: `/spotify/v1/monthly-listener?date_end=${end}&filter=28d&artist_id=${mid.value}`,
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
-        iconHref: artistInfo.value?.spotify_id
-            ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
-            : "#",
-        fetchFollowerType: 'data',
-        followerDataType: 'monthly_listener',
-        fetchDateType: 'datetime',
-        colors: ['#1DB954'],
-      },
-      {
-        name: 'Tiktok Followers',
-        type: 'Followers',
-        range: "28d",
-        fetchURL: `/tiktok/v1/follower?date_end=${end}&filter=28d&artist_id=${mid.value}`,
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg",
-        iconHref: artistInfo.value?.tiktok_id
-            ? `https://www.tiktok.com/${artistInfo.value.tiktok_id}`
-            : "#",
-        fetchFollowerType: 'data',
-        followerDataType: 'follower',
-        fetchDateType: 'datetime',
-        colors: ['#171616', '#464646'],
-      },
-      {
-        name: 'Youtube Subscribes',
-        type: 'Subscribers',
-        range: "28d",
-        fetchURL: `/youtube/v1/channel?date_end=${end}&filter=28d&artist_id=${mid.value}`,
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg",
-        iconHref: artistInfo.value?.youtube_id
-            ? `https://www.youtube.com/${artistInfo.value.youtube_id}`
-            : "#",
-        fetchFollowerType: 'data',
-        followerDataType: 'follower',
-        fetchDateType: 'datetime',
-        colors: ['#ff0000'],
-      }
-    ];
-  })
+  }, { immediate: true })
 
   // watch mid & artistInfo, in order to update graphItems
   watch([artistStore.mid, artistInfo], ([newMid, newInfo]) => {
@@ -254,6 +176,12 @@
     //   graphItems.value = []
     //   return
     // }
+    // clean old data
+    graphItems.value.forEach(item => {
+      if (item.series) {
+        item.series.value = []
+      }
+    })
     const end = new Date().toISOString().slice(0, 10)
 
     graphItems.value =  [
@@ -368,8 +296,8 @@
             sm="6">
               <v-avatar style="height:150px; width:150px;">
                 <v-img
-                    v-if="artistInfo.image_url"
-                    :src="artistInfo.image_url || 'https://blocks.astratic.com/img/general-img-square.png'"
+                    v-if="artistInfo.image"
+                    :src="artistInfo.image || 'https://blocks.astratic.com/img/general-img-square.png'"
                     class="img-design"
                     cover
                 ></v-img>
@@ -392,7 +320,7 @@
                     </span>
                     <br />
                     <span :class="['text-body-1']">
-                      {{ artistInfo.artist ? artistInfo.artist : 'N/A'}}
+                      {{ artistInfo.artist ? artistInfo.artist : '-'}}
                     </span>
                   </v-card>
                 </v-col>
@@ -403,22 +331,25 @@
                     </span>
                     <br />
                     <span :class="['text-body-1']">
-                      {{ artistInfo.debut_year ? artistInfo.debut_year : 'N/A' }}
+                      {{ artistInfo.debut_year ? artistInfo.debut_year : '-' }}
                     </span>
                   </v-card>
                 </v-col>
                 <v-responsive width="100%"></v-responsive>
                 <v-col>
                   <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                    {{ $t("Country")}}
+                    <span style="color: #757575;">
+                      {{ $t("Country")}}
                     </span>
                     <br />
-                    <img
-                            src="https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/flags/kr.svg"
-                            alt="kr-flag"
-                            class="h-10 w-10"
-                        >
+                    <span :class="['text-body-1']">
+                      {{ artistInfo.nation ? artistInfo.nation : "-" }}
+                    </span>
+<!--                    <img-->
+<!--                            src="https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/flags/kr.svg"-->
+<!--                            alt="kr-flag"-->
+<!--                            class="h-10 w-10"-->
+<!--                        >-->
                   </v-card>
                 </v-col>
 
@@ -429,7 +360,7 @@
                     </span>
                     <br />
                     <span :class="['text-body-1']">
-                      {{  artistInfo.birth ? formatDate(artistInfo.birth) : "N/A" }}
+                      {{  artistInfo.birth ? formatDate(artistInfo.birth) : "-" }}
                     </span>
                   </v-card>
                 </v-col>
@@ -446,7 +377,7 @@
                 <br />
                 <span :class="['text-body-1']">
                   <span :class="['text-body-1']">
-                    {{  artistInfo.type ? artistInfo.type[0] : "N/A" }}
+                    {{  artistInfo.type ? artistInfo.type[0] : "-" }}
                   </span>
                 </span>
               </v-card>
@@ -458,7 +389,7 @@
                 </span>
                 <br />
                     <span :class="['text-body-1']">
-                {{    memberInfo ? memberInfo : "N/A" }}
+                {{    memberInfo ? memberInfo : "-" }}
                 </span>
               </v-card>
             </v-col>
@@ -467,14 +398,14 @@
           <v-row>
             <v-col
             cols="6"
-            sm="3">
+            sm="4">
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
                 {{ $t("Pronouns")}}
                 </span>
                 <br />
                 <span :class="['text-body-1']">
-                  {{    artistInfo.pronouns ? artistInfo.pronouns : "N/A" }}
+                  {{    artistInfo.pronouns ? artistInfo.pronouns : "-" }}
                 </span>
               </v-card>
             </v-col>
@@ -487,20 +418,20 @@
                 </span>
                 <br />
                 <span :class="['text-body-1']">
-                  {{    artistInfo.fandom ? artistInfo.fandom : "N/A" }}
+                  {{    artistInfo.fandom ? artistInfo.fandom : "-" }}
                 </span>
               </v-card>
             </v-col>
             <v-col
             cols="6"
-            sm="3">
+            sm="4">
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
                 {{ $t("Color")}}
                 </span>
                 <br />
                 <span :class="['text-body-1']">
-                  {{    artistInfo.color ? artistInfo.color : "N/A" }}
+                  {{    artistInfo.color ? artistInfo.color : "-" }}
                 </span>
               </v-card>
             </v-col>
@@ -514,7 +445,7 @@
       md="6">
         <v-card 
           class="fill-height"
-          :loading="cardLoading.trending"
+          :loading="cardLoading.artist"
           >
           <template v-slot:title>
             <span :class="['text-h5']">
@@ -522,7 +453,7 @@
             </span>
           </template>
           <template v-slot:text>
-            <v-list>
+            <v-list class="overflow-y-auto" style="max-height: 250px">
               <v-list-item
                   v-for="artist in followedArtists"
                   :key="artist.artist_id"

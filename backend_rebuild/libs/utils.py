@@ -49,11 +49,12 @@ def auth_required(f):
 
         try:
             decoded_token = verify_firebase_token(token)
+            print(decoded_token)
         except Exception as e:
             return jsonify({"error": f"Invalid token: {str(e)}"}), 401
 
         # store firebase_id in global
-        g.firebase_id = decoded_token["uid"]
-        g.user_id = getIdFromFirebaseID(decoded_token["uid"])
+        g.firebase_id = decoded_token.get("uid")
+        g.user_id = getIdFromFirebaseID(decoded_token.get("uid"))
         return f(*args, **kwargs)
     return wrapper

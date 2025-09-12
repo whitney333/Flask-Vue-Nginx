@@ -1,15 +1,25 @@
 <script setup>
     import { ref } from 'vue';
+    import axios from '@/axios';
     import mishkanLogo from '@/assets/mishkan-logo.svg'
-    import { FacebookAuthProvider, getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+    import { FacebookAuthProvider, getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup,   setPersistence,
+             browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
     import { useRouter } from 'vue-router';
+    import { useUserStore } from "@/stores/user.js";
+
     const valid = ref(false)
     const email = ref('')
     const password = ref('')
     const router = useRouter()
+    const userStore = useUserStore()
     const errorMsg = ref()
     const loadingBar = ref(false)
-    const onRemeberMe = ref(false)
+    const onRememberMe = ref(false)
+
+     // Snackbar
+    const snackbar = ref(false)
+    const snackbarText = ref('')
+    const snackbarColor = ref('success')
 
     const emailRules = ref([
         value => {
@@ -33,45 +43,84 @@
         },
 
     ])
+
     const handleLogin = async () => {
         loadingBar.value = true
         try {
             const auth = getAuth()
-            const data = await signInWithEmailAndPassword(auth , email.value, password.value)
-            const id_token = await data.user.getIdToken();
-            // pass ID token to flask
-            const response = await fetch("/verify-token",
-                {method: "POST",
-                     headers: {
-                       'Content-Type': 'application/json',
-                       'Authorization': `Bearer ${id_token}` // 將 Token 放在 Authorization Header
-                     },
-                  body: JSON.stringify({ someData: 'example' })
-                });
-            const user_id = await response.json();
-            console.log(user_id)
-            router.push('/dashboard')
-            
-        } catch (e) {
-            console.error(e);
-            switch(e.code) {
-                case "auth/invalid-email":
-                    errorMsg.value = "Invalid email"
-                    break;
-                case "auth/user-not-found":
-                    errorMsg.value = "No account with that email was found";
-                    break;
-                case "auth/wrong-password":
-                    errorMsg.value = "Incorrect password";
-                    break
-                default:
-                    errorMsg.value = "Email or password was incorrect"
-                    break
-            }
+            const result = await signInWithEmailAndPassword(auth , email.value, password.value)
+            const idToken = await result.user.getIdToken();
+
+            // set up login time persistence
+            await setPersistence(
+                auth,
+                onRememberMe.value ? browserLocalPersistence : browserSessionPersistence
+            )
+
+            // store to userStore
+            userStore.setUser({
+              firebase_id: result.user.uid,
+              email: result.user.email,
+              name: result.user.displayName,
+              photo: result.user.photoURL,
+              firebaseToken: idToken
+            })
+
+          // POST firebase_id to check if user exists
+          const response = await axios.post(
+              "/user/v1/auth/check",
+              {firebase_id: result.user.uid},
+              {
+                headers: {
+                  Authorization: `Bearer ${idToken}`
+                }
+              }
+          );
+          // const token = response.data;
+          // if data exists then return
+          const {exists} = response.data
+          // console.log("resp: ", response.data)
+
+          // get followed artists list
+          if (exists === true) {
+            const getFollowedArtists = await axios.get("/user/v1/followed_artists", {
+              headers: {
+                Authorization: `Bearer ${idToken}`,
+                timeout: 10000
+              }
+            });
+            // store followed artist
+            userStore.setFollowedArtists(getFollowedArtists.data.data || []);
+            // console.log("Followed Artists in store:", userStore.followedArtists);
+            // redirect to /dashboard
+
+            snackbarText.value = 'Welcome back! Redirecting to dashboard...'
+            snackbarColor.value = 'success'
+            snackbar.value = true
+            setTimeout(() => {
+              router.push("/dashboard")
+            }, 2000)
+          } else {
+            // first time login > redirect to fill out company name & followed artists
+            console.log("First time login, redirecting to details...")
+
+            snackbarText.value = 'Welcome to Mishkan! Monitor the artists more easily, and promote overseas efficiently!'
+            snackbarColor.value = 'success'
+            snackbar.value = true
+            setTimeout(() => {
+              router.push("/auth/register/details")
+            }, 2000)
+          }
+        } catch (err) {
+            console.error(err);
+            snackbarText.value = 'Login failed. Please check your credentials.'
+            snackbarColor.value = 'error'
+            snackbar.value = true
         } finally {
             loadingBar.value = false
         }
     }
+    // Third Party login
     const handleProviderLogin = async (providerName) => {       
         let provider = null
         switch (providerName){
@@ -82,23 +131,60 @@
                 provider = new FacebookAuthProvider()
                 break;
         }
+
         try {
             const result = await signInWithPopup(getAuth(), provider)
-            console.log(result.user);
-            if (result.user.metadata.createdAt === result.user.metadata.lastLoginAt) {
-                router.push("/auth/register/details")
+            // console.log(result.user);
+            const idToken = await result.user.getIdToken();
+
+            // store to userStore
+            userStore.setUser({
+              firebase_id: result.user.uid,
+              email: result.user.email,
+              name: result.user.displayName,
+              photo: result.user.photoURL,
+              firebaseToken: idToken
+            })
+
+            // POST firebase_id to check if user exists
+            const response = await axios.post(
+                "/user/v1/auth/check",
+                {firebase_id: result.user.uid},
+                {headers: {
+                        Authorization: `Bearer ${idToken}`
+                }}
+            );
+            // const token = response.data;
+            // if data exists then return
+            const { exists } = response.data
+            // console.log("resp: ", response.data)
+
+            // get followed artists list
+            if (exists === true) {
+              const getFollowedArtists = await axios.get("/user/v1/followed_artists", {
+                headers: {
+                Authorization: `Bearer ${idToken}`,
+                timeout: 10000
+                }
+              });
+              // store followed artist
+              userStore.setFollowedArtists(getFollowedArtists.data.data || []);
+              console.log("Followed Artists in store:", userStore.followedArtists);
+              // redirect to /dashboard
+              router.push("/dashboard");
             } else {
-                router.push("/dashboard")
+              // first time login > redirect to fill out company name & followed artists
+              console.log("First time login, redirecting to details...")
+              router.push("/auth/register/details")
             }
         } catch(e) {
-            console.error(e);
+            console.error('Google login error: ', e);
         }
     }
 
     const handleRegister = () => {
         router.push('/auth/register')
     }
-
 
 </script>
 
@@ -146,14 +232,14 @@
                                 rounded="lg"
                                 required
                             ></v-text-field>
-                            <v-checkbox
-                                v-model="onRemeberMe"
-                                focused
-                                class="mt-n2 mb-1"
-                                hide-details
-                                variant="solo"
-                                density="compact"
-                                :label="$t('Remember me')" />
+<!--                            <v-checkbox-->
+<!--                                v-model="onRememberMe"-->
+<!--                                focused-->
+<!--                                class="mt-n2 mb-1"-->
+<!--                                hide-details-->
+<!--                                variant="solo"-->
+<!--                                density="compact"-->
+<!--                                :label="$t('Remember me')" />-->
                             <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
@@ -172,11 +258,15 @@
                             <span class="text-caption inline">{{ $t("Don't have an account?") }}</span>
                             <v-btn @click="handleRegister" color="#FF6F00" class="text-caption inline" slim density="compact" variant="plain">
                                 <span class="font-weight-bold">Sign up</span>
-                                </v-btn>
+                            </v-btn>
                         </div>
                     </div>
             </template>
         </v-card>
+      <!-- Snackbar -->
+      <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="1500" location="top">
+        {{ snackbarText }}
+      </v-snackbar>
     </v-container>
 </template>
 

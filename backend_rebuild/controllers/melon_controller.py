@@ -77,7 +77,7 @@ class MelonController:
             pipeline = [
                 # match artist id in string format
                 {"$match": {
-                    "id": str(new_artist_id)
+                    "melon_id": str(new_artist_id)
                 }},
                 # sort by date
                 {"$sort": {"datetime": 1}},
@@ -97,7 +97,7 @@ class MelonController:
                             "date": "$datetime"
                         }
                     },
-                    "id": "$id",
+                    "melon_id": "$melon_id",
                     "follower": "$follower"
                 }}
             ]
@@ -197,7 +197,7 @@ class MelonController:
             for m in melon_data:
                 result.append({
                     "datetime": m.datetime,
-                    "channel_id": m.melon_id,
+                    "melon_id": m.melon_id,
                     "follower": m.follower,
                 })
             return jsonify({

@@ -1,12 +1,16 @@
 <script setup>
-    import { computed, onMounted, ref } from 'vue';
+    import { computed, onMounted, ref, watch } from 'vue';
     import axios from '@/axios';
+
     const props = defineProps({
         value: Object,
         colors: Object,
         iconSrc: String,
     })
     const series = ref([])
+    const artistId = ref("1")
+    const date_end = new Date().toISOString().slice(0, 10);
+    const filter = ref("7d")
     const latest_date = ref("")
     const index_number = ref("")
     const last_month_data = ref("")
@@ -154,11 +158,20 @@
     const fetchData = async () => {
         try {
             loadingBar.value = true
-            const res = await axios.get(props.value.fetchURL, {setTimeout: 10000})
+            const res = await axios.get(props.value.fetchURL,
+                // {params: {
+                //     artist_id: artistId.value,
+                //     date_end: date_end,
+                //     filter: filter.value
+                // }},
+                {setTimeout: 10000})
+
             data.value = res.data[props.value.fetchFollowerType]
+            // console.log(data.value)
             latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
             first_day.value = data.value[0][props.value.fetchDateType]
-            if (data.value.length > 30) {
+
+          if (data.value.length > 30) {
                 one_month.value = data.value[data.value.length - 30][props.value.fetchDateType]
             } else {
                 one_month.value = data.value[0][props.value.fetchDateType]
@@ -173,9 +186,11 @@
             } else {
                 six_months.value = data.value[0][props.value.fetchDateType]
             }
-            
+
             index_number.value = data.value[data.value.length - 1][props.value.followerDataType]
-            last_month_data.value = data.value[data.value.length - 30][props.value.followerDataType]
+            // TODO
+            // original value: 30
+            last_month_data.value = data.value[data.value.length - 7][props.value.followerDataType]
 
             const formattedData = data.value.map((e, i) => {
                 return {
@@ -183,7 +198,7 @@
                     y: e[props.value.followerDataType],
                 };
             });
-            
+
 
             if (props.value.secondChat) {
                 const formattedData2 = data.value.map((e, i) => {
@@ -262,6 +277,18 @@
     const indexDifference = () => {
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
     }
+
+    watch(
+        () => props.value.fetchURL,
+        (newURL) => {
+          // clean old data
+          series.value = []
+          if (newURL) {
+            fetchData(newURL);
+          }
+        },
+        {immediate: true}
+    );
 </script>
 
 <template>

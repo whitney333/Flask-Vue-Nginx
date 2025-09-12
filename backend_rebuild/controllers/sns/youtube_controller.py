@@ -725,11 +725,11 @@ class YoutubeController:
                         }
                     },
                     "channel_id": "$channel_id",
-                    "follower": {"$toInt": "$subscriber_count"},
-                    "video_count": {"$toInt": "$video_count"},
-                    "view_count": {"$toInt": "$view_count"},
-                    "channel_hashtag": {"$toInt": "$channel_hashtag"},
-                    "video_hashtag": {"$toInt": "$video_hashtag"}
+                    "follower": {"$toLong": "$subscriber_count"},
+                    "video_count": {"$toLong": "$video_count"},
+                    "view_count": {"$toLong": "$view_count"},
+                    "channel_hashtag": {"$toLong": "$channel_hashtag"},
+                    "video_hashtag": {"$toLong": "$video_hashtag"}
                 }}
             ]
 
@@ -889,8 +889,14 @@ class YoutubeController:
             # Format results
             result = list(results)  # Convert cursor to list
 
+            # convert to dataframe to calculate daily change
+            df = pd.DataFrame(result)
+            df['datetime'] = pd.to_datetime(df['datetime'])
+            df['daily_view_change'] = df['view_count'].diff()
+            final_result = df.to_dict(orient='records')
+
             # Check if we got any results
-            if not result:
+            if not final_result:
                 return jsonify({
                     'status': 'success',
                     'data': [],
@@ -899,7 +905,7 @@ class YoutubeController:
 
             return jsonify({
                 'status': 'success',
-                'data': result
+                'data': final_result
             }), 200
         except Exception as e:
             return jsonify({
