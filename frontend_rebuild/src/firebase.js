@@ -1,5 +1,7 @@
 import { initializeApp } from "firebase/app";
 import 'firebase/auth'; // Import only what you need
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
 
 const firebase = async () => {
     const firebaseConfig = {
@@ -11,10 +13,11 @@ const firebase = async () => {
         appId: import.meta.env.VITE_API_FIREBASE_APPID,
         measurementId: import.meta.env.VITE_API_FIREBASE_MEASUREMENTID
     };
-    
+
     initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     console.log("Firebase running...");
-    
+
 }
 
 export default firebase;

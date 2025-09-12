@@ -1,15 +1,24 @@
 <script setup>
-    import { reactive, ref } from 'vue';
+    import { reactive, ref, computed } from 'vue';
+    import axios from '@/axios';
     import mishkanLogo from '@/assets/mishkan-logo.svg'
     import { FacebookAuthProvider, getAuth, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
     import { useRouter } from 'vue-router';
+    import { useUserStore } from "@/stores/user.js";
+    const userStore = useUserStore()
     const valid = ref(false)
     const email = ref('')
     const password = ref('')
     const passwordConfirm = ref('')
+    const showPassword = ref(false)
+    const showConfirmedPassword = ref(false)
     const router = useRouter()
     const errorMsg = ref()
     const loadingBar = ref(false)
+    // Snackbar
+    const snackbar = ref(false)
+    const snackbarText = ref('')
+    const snackbarColor = ref('success')
 
     const emailRules = ref([
         value => {
@@ -32,27 +41,43 @@
         },
     ])
 
+    const confirmPasswordRules = computed(() => [
+      v => !!v || 'Confirm Password is required.',
+      v => v === password.value || 'Passwords do not match.'
+    ])
+
+
     const handleRegister = async () => {
+      if (!valid.value) return
+
+      if (password.value !== passwordConfirm.value) {
+        snackbarText.value = 'Passwords do not match.'
+        snackbarColor.value = 'error'
+        snackbar.value = true
+        return
+      }
+
         loadingBar.value = true
         try {
-            if (password.value !== passwordConfirm.value) {
-                errorMsg.value = "Passwords do not match."
-                return
-            }
-            
+            // register on Firebase
             const auth = getAuth()
-            const data = await createUserWithEmailAndPassword(auth , email.value, password.value)
-            
+            const userCredential = await createUserWithEmailAndPassword(auth , email.value, password.value)
+
+            const idToken = await userCredential.user.getIdToken()
+            snackbarText.value = 'Registration successful! Redirecting to login...'
+            snackbarColor.value = 'success'
+            snackbar.value = true
+
+            // signup successfully then redirect to /login
+            await auth.signOut()
+            setTimeout(() => {
+              router.push("/auth/login")
+            }, 2000)
+
         } catch (e) {
-            console.error(e);
-            switch(e.code) {
-                case "auth/email-already-exists	":
-                    errorMsg.value = "Email already exist"
-                    break;
-                default:
-                    errorMsg.value = "Email or password was incorrect"
-                    break
-            }
+            snackbarText.value = err.message
+            snackbarColor.value = 'error'
+            snackbar.value = true
         } finally {
             loadingBar.value = false
         }
@@ -67,21 +92,76 @@
                 provider = new FacebookAuthProvider()
                 break;
         }
-        try {
-            const result = await signInWithPopup(getAuth(), provider)
-            if (result.user.metadata.createdAt === result.user.metadata.lastLoginAt) {
-                router.push("/auth/register/details")
-            } else {
-                router.push("/dashboard")
+      try {
+        const result = await signInWithPopup(getAuth(), provider)
+        // console.log(result.user);
+        const idToken = await result.user.getIdToken();
+
+        // store to userStore
+        userStore.setUser({
+          firebase_id: result.user.uid,
+          email: result.user.email,
+          name: result.user.displayName,
+          photo: result.user.photoURL,
+          firebaseToken: idToken
+        })
+
+        // POST firebase_id to check if user exists
+        const response = await axios.post(
+            "/user/v1/auth/check",
+            {firebase_id: result.user.uid},
+            {
+              headers: {
+                Authorization: `Bearer ${idToken}`
+              }
             }
+        );
+        // const token = response.data;
+        // if data exists then return
+        const {exists} = response.data
+
+        // get followed artists list
+        if (exists === true) {
+          const getFollowedArtists = await axios.get("/user/v1/followed_artists", {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              timeout: 10000
+            }
+          });
+          // store followed artist
+          userStore.setFollowedArtists(getFollowedArtists.data.data || []);
+          // console.log("Followed Artists in store:", userStore.followedArtists);
+          // redirect to /dashboard
+
+          snackbarText.value = 'Welcome back! Redirecting to dashboard...'
+          snackbarColor.value = 'success'
+          snackbar.value = true
+          setTimeout(() => {
             router.push("/dashboard")
-        } catch(e) {
-            console.error(e);
+          }, 2000)
+
+        } else {
+          // first time login > redirect to fill out company name & followed artists
+          // console.log("First time login, redirecting to details...")
+          snackbarText.value = 'Welcome to Mishkan!'
+          snackbarColor.value = 'success'
+          snackbar.value = true
+          setTimeout(() => {
+            router.push("/auth/register/details")
+          }, 2000)
         }
+      } catch (e) {
+        console.error('Google login error: ', e);
+        snackbarText.value = 'Login failed. Please check your credentials.'
+        snackbarColor.value = 'error'
+        snackbar.value = true
+      }
     }
 
     const handleLogin = () => {
+      setTimeout(() => {
         router.push('/auth/login')
+      }, 1500)
     }
 
 
@@ -123,8 +203,10 @@
                                     v-model="password"
                                     :class="['mb-1']"
                                     :width="350"
+                                    :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                                    :type="showPassword ? 'text' : 'password'"
+                                    @click:append="showPassword = !showPassword"
                                     :rules="passwordRules"
-                                    type="password"
                                     :label="$t('Password')"
                                     variant="solo-filled"
                                     flat
@@ -135,8 +217,10 @@
                                     v-model="passwordConfirm"
                                     :class="['mb-1']"
                                     :width="350"
-                                    :rules="passwordRules"
-                                    type="password"
+                                    :rules="confirmPasswordRules"
+                                    :append-icon="showConfirmedPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                                    :type="showConfirmedPassword ? 'text' : 'password'"
+                                    @click:append="showConfirmedPassword = !showConfirmedPassword"
                                     :label="$t('Confirm Password')"
                                     variant="solo-filled"
                                     flat
@@ -166,6 +250,10 @@
                     </div>
             </template>
         </v-card>
+      <!-- Snackbar -->
+      <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="1500" location="top">
+        {{ snackbarText }}
+      </v-snackbar>
     </v-container>
 </template>
 

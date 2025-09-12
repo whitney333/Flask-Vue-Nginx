@@ -1,21 +1,26 @@
 <script setup>
-    import { computed, onMounted, onUnmounted, ref } from 'vue';
+    import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
     import getUnicodeFlagIcon from 'country-flag-icons/unicode'
     import youtubeIcon from '@/assets/icons/youtube.svg';
     import tiktokIcon from '@/assets/icons/tiktok.svg';
     import instagramIcon from '@/assets/icons/instagram.svg';
     import bilibiliIcon from '@/assets/icons/bilibili.svg';
+    import xiaohongshuIcon from '@/assets/icons/xiaohongshu.svg';
     import youtubeBlackIcon from '@/assets/icons/youtube-black.svg';
     import tiktokBlackIcon from '@/assets/icons/tiktok-black.svg';
     import instagramBlackIcon from '@/assets/icons/instagram-black.svg';
     import bilibiliBlackIcon from '@/assets/icons/bilibili-black.svg';
+    import xiaohongshuBlackIcon from '@/assets/icons/xiaohongshu-black.svg';
     import { regions, indexToCountry } from '@/libs/utils';
     import { Book, Captions, Clipboard, DollarSign, File, FileTextIcon, Globe, Link, RadioTower, Share2 } from 'lucide-vue-next';
+    import { useArtistStore } from "@/stores/artist.js";
 
+    const artistStore = useArtistStore()
     const platform = ref([])
     const post = ref({
       title: '',
       description: '',
+      hashtag: [],
       text: '',
       url: '',
       file: null,
@@ -25,6 +30,7 @@
       { name: "Instagram", icon: instagramIcon, color: "#FF0069", blackIcon: instagramBlackIcon },
       { name: "Tiktok", icon: tiktokIcon, color: "#000000", blackIcon: tiktokBlackIcon },
       { name: "Youtube", icon: youtubeIcon, color: "#FF0000", blackIcon: youtubeBlackIcon },
+      { name: "Rednote", icon: xiaohongshuIcon, color: "#FF2442", blackIcon: xiaohongshuBlackIcon},
       { name: "Bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
     ]
 
@@ -91,6 +97,82 @@
         </v-card-title>
         <v-card-text>
         <v-expansion-panels  mandatory  v-model="state" >
+          <v-expansion-panel>
+             <v-expansion-panel-title>
+                <v-row no-gutters class="items-center">
+                <v-col class="d-flex justify-start" cols="12" lg="4">
+                  <span class="text-2xl font-medium">
+                    {{ $t('Select Artist') }}
+                  </span>
+                </v-col>
+                <v-col
+                  class="items-center lg:block hidden"
+                  cols="8"
+                >
+                  <v-fade-transition >
+                    <span
+                      v-if="!expanded"
+                      key="1"
+                      class="text-lg font-medium capitalize"
+                    >
+                      {{ artistStore.mid }}
+                    </span>
+                  </v-fade-transition>
+                </v-col>
+              </v-row>
+             </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-item-group multiple v-model="region">
+                <v-container class="max-w-screen-md">
+                  <v-row>
+                    <v-row v-for="(reg, i) in artistStore" :key="i" class="mb-5">
+                      <v-col md="2" cols="12">
+                        <span class="text-xl font-medium">
+                          {{ $t(reg) }}
+                        </span>
+                      </v-col>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                        <v-col
+                            v-for="(country, j) in regions[reg]"
+                            :key="j"
+                        >
+                          <v-item v-slot="{ isSelected, toggle }">
+                            <v-card
+                                flat
+                                class="d-flex align-center transition-all rounded-lg border-2 "
+                                :class="isSelected ? ' border-black' : 'border-neutral-200'"
+                                height="50"
+                                width="120"
+                                @click="toggle"
+                            >
+                              <v-scroll-y-transition>
+                                <div
+                                    class="flex-grow-1 text-center text-md font-medium"
+                                >
+                                  {{ $t(country) }}
+                                </div>
+                              </v-scroll-y-transition>
+                            </v-card>
+                          </v-item>
+                        </v-col>
+                      </div>
+
+                    </v-row>
+                  </v-row>
+                </v-container>
+              </v-item-group>
+              <div class="my-5 flex justify-center items-center">
+                <v-btn color='black'
+                       class="w-32 text-none rounded-pill text-white"
+                       @click="() => changeState('platform')">
+                  <span class="font-medium">
+                    {{ $t('Next') }}
+                  </span>
+                </v-btn>
+              </div>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+
           <v-expansion-panel value="region" class="mb-5">
             <v-expansion-panel-title v-slot="{ expanded }">
               <v-row no-gutters class="items-center">
@@ -122,7 +204,7 @@
                     <v-row v-for="(reg, i) in Object.keys(regions)" :key="i" class="mb-5">
                       <v-col md="2" cols="12">
                         <span class="text-xl font-medium">
-                          {{ reg }}
+                          {{ $t(reg) }}
                         </span>
                       </v-col>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -143,7 +225,7 @@
                                   <div
                                     class="flex-grow-1 text-center text-md font-medium"
                                   >
-                                    {{ country }}
+                                    {{ $t(country) }}
                                   </div>
                                 </v-scroll-y-transition>
                               </v-card>
@@ -172,7 +254,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-                    {{ $t('Recommended Platform') }}
+                    {{ $t('Select Platform') }}
                   </span>
                 </v-col>
                 <v-col
@@ -362,6 +444,18 @@
                   :rules="[v => !!v || 'Post description is required']"
                 ></v-text-field>
                 <div class="text-xl font-medium mb-1">
+                  {{ $t('Hashtags') }}
+                </div>
+                <v-textarea
+                    v-model="post.hashtag"
+                    variant="outlined"
+                    rounded="xl"
+                    rows="3"
+                    dense
+                    placeholder="Hashtags you want to include in your posts/reels"
+                    :rules="[v => !!v || 'Post text is required']"
+                ></v-textarea>
+                <div class="text-xl font-medium mb-1">
                   {{ $t('Content') }}
                 </div>
                 <v-textarea
@@ -382,7 +476,7 @@
                   rounded="xl"
                   dense
                   prepend-inner-icon="mdi-link"
-                  placeholder="Link"
+                  placeholder="Are there any links you’d like to share with us, for example cloud folders?"
                 ></v-text-field>
                 <v-file-input
                   v-model="post.file"

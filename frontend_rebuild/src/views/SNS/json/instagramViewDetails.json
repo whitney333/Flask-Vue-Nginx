@@ -4,9 +4,9 @@
         "title": "Instagram Follower",
         "type": "Followers",
         "tooltipText": "Number of followers on Instagram",
-        "fetchURL": "/instagram/chart/follower",
-        "fetchFollowerType": "result",
-        "followerDataType": "follower_count",
+        "fetchURL": "/instagram/v1/follower",
+        "fetchFollowerType": "data",
+        "followerDataType": "follower",
         "fetchDateType": "datetime"
     },
     "instagramThreadsFollowerValue": {
@@ -14,9 +14,9 @@
         "title": "Instagram Threads Follower",
         "type": "Threads Followers",
         "tooltipText": "Number of followers on Instagram Threads",
-        "fetchURL": "/instagram/threads/follower",
-        "fetchFollowerType": "result",
-        "followerDataType": "threads_followers",
+        "fetchURL": "/instagram/v1/threads-follower",
+        "fetchFollowerType": "data",
+        "followerDataType": "threads_follower",
         "fetchDateType": "datetime"
     },
     "instagramPostsValue": {
@@ -24,23 +24,23 @@
         "title": "Instagram Posts",
         "type": "Posts",
         "tooltipText": "Number of posts on Instagram",
-        "fetchURL": "/instagram/chart/follower",
-        "fetchFollowerType": "result",
-        "followerDataType": "media_count",
+        "fetchURL": "/instagram/v1/post-count",
+        "fetchFollowerType": "data",
+        "followerDataType": "posts_count",
         "fetchDateType": "datetime"
     },
     "instagramLikesValue": {
         "chart": "instagramLikes",
         "title": "Instagram Total Posts Likes",
         "type": "Likes",
-        "tooltipText": "Number of latest 50 posts likes on Instagram",
-        "fetchURL": "/instagram/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_like",
+        "tooltipText": "Number of latest 12 posts likes on Instagram",
+        "fetchURL": "/instagram/v1/like",
+        "fetchFollowerType": "data",
+        "followerDataType": "total_likes",
         "fetchDateType": "datetime",
         "secondChat": {
             "chart": "instagramAvgLikes",
-            "followerDataType": "avg_like",
+            "followerDataType": "likes_per_post",
             "fetchDateType": "datetime",
             "type": "Likes per post"
         }
@@ -49,14 +49,14 @@
         "chart": "instagramComments",
         "title": "Instagram Total Posts Comments",
         "type": "Comments",
-        "tooltipText": "Number of latest 50 posts comments on Instagram",
-        "fetchURL": "/instagram/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_comment",
+        "tooltipText": "Number of latest 12 posts comments on Instagram",
+        "fetchURL": "/instagram/v1/comment",
+        "fetchFollowerType": "data",
+        "followerDataType": "total_comments",
         "fetchDateType": "datetime",
         "secondChat": {
-            "chart": "instagramAvgLikes",
-            "followerDataType": "avg_comment",
+            "chart": "instagramAvgComments",
+            "followerDataType": "comments_per_post",
             "fetchDateType": "datetime",
             "type": "Comments per post"
         }
@@ -65,7 +65,7 @@
         "chart": "instagramEngagementRate",
         "title": "Instagram Engagement Rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagement rate on Instagram",
+        "tooltipText": "Average engagement rate of the latest 12 posts on Instagram",
         "fetchURL": "/instagram/chart",
         "fetchFollowerType": "result",
         "followerDataType": "eng_rate",

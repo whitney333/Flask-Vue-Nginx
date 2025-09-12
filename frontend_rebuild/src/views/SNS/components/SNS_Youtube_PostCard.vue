@@ -5,6 +5,7 @@
   const { post } = defineProps({
     post: Object
   })
+
   const showMore = ref(false)
   const title_temp = post.title.split("#")[0] !== "" ? post.title.split("#")[0] : post.title
   const title = title_temp.length > 67 ? `${title_temp.slice(0, 67).split(' ').slice(0, -1).join(' ')}...` : title_temp
@@ -59,7 +60,7 @@
           </div>
           <div class="text-gray-700 text-sm flex gap-2 w-full items-center">
             <Settings />
-            <span>{{ post.eng_rate }}</span>
+            <span>{{ post.eng_rate.toFixed(2) }}</span>
           </div>
         </div>
         <div class="text-sm flex items-center gap-1">

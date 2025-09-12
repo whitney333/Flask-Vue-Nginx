@@ -1,46 +1,79 @@
 <script setup>
+    import {computed, ref, watch} from 'vue';
     import WorksCard from './Works_card.vue';
     import musicJSON from '@/views/Works/json/MusicViewDetails.json'
     import WorksCardTopCities from './Works_cardTopCities.vue';
-    const spotifyUrl = `/spotify/index`
-    const melonUrl = `/melon/follower`
+    import axios from '@/axios';
+    import { useArtistStore } from "@/stores/artist";
+
+    const artistStore = useArtistStore()
+    const artistId = ref('1')
+    const end = new Date().toISOString().slice(0, 10)
+    const filter = ref('365d')
+    const spotifyUrl = `/spotify/v1`
+    console.log("artistId: ", artistId.value)
+    console.log("artistStore: ", artistStore.mid)
 
     const props = defineProps({
         iconSrc: String
     })
-
+    // console.log("music mid: ", artistStore.mid.value)
     const spotifyHexCode = ['#1db954', '#191414', '#1db954', '#191414', '#1db954']
     const melonHexCode = ['#00cf35']
     const melonIconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/melon.svg"
 
-    const end = new Date().toISOString().slice(0, 10)
-
-
-    const spotifyFollowersValue = {
+    const spotifyFollowersValue = computed(() => {
+      return {
         ...musicJSON.spotifyFollowersValue,
-        fetchURL: spotifyUrl,
-    }
-    const spotifyMonthlyListenersValue = {
+        fetchURL: `/spotify/v1/follower?artist_id=${artistStore.mid}`
+      }
+    })
+
+    const spotifyMonthlyListenersValue = computed(() => {
+      return {
         ...musicJSON.spotifyMonthlyListenersValue,
-        fetchURL: spotifyUrl
-    }
-    const spotifyFanConversionRateValue = {
+        fetchURL: `/spotify/v1/monthly-listener?artist_id=${artistStore.mid}`
+      }
+    })
+
+    const spotifyFanConversionRateValue = computed(() => {
+      return {
         ...musicJSON.spotifyFanConversionRateValue,
-        fetchURL: spotifyUrl
-    }
-    const spotifyTopCitiesValue = {
+        fetchURL: `/spotify/v1/conversion-rate?artist_id=${artistStore.mid}`
+      }
+    })
+
+    const spotifyTopCitiesValue = computed(() => {
+      return {
         ...musicJSON.spotifyTopCitiesValue,
-        fetchURL: spotifyUrl
-    }
-    const spotifyPopularityIndexValue = {
+        fetchURL: ``
+      }
+    })
+
+    const spotifyPopularityIndexValue = computed(() => {
+      return {
         ...musicJSON.spotifyPopularityIndexValue,
-        fetchURL: spotifyUrl
-    }
-    const melonFollowerValue = {
+        fetchURL: `/spotify/v1/popularity?artist_id=${artistStore.mid}`
+      }
+    })
+
+    const melonFollowerValue = computed(() => {
+      return {
         ...musicJSON.melonFollowerValue,
-        fetchURL: melonUrl
-    }
-    
+        fetchURL: `/melon/v1/follower?artist_id=${artistStore.mid}`
+      }
+    })
+
+    watch(
+        () => artistStore.mid,
+        (newMid) => {
+          if (newMid) {
+            console.log("Music component 拿到 mid:", newMid)
+          }
+        },
+        {immediate: true} // run at the first time
+    )
+
 
 </script>
 

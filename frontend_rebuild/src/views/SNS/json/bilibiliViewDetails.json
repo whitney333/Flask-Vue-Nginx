@@ -1,12 +1,12 @@
 {
-    "bilibiliTotalVideosValue": {
-        "chart": "bilibiliTotalVideos",
-        "title": "Bilibili Total Videos",
-        "type": "Video",
-        "tooltipText": "Number of Videos on Bilibili",
-        "fetchURL": "/bilibili/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "video_num",
+    "bilibiliTotalFollowersValue": {
+        "chart": "bilibiliTotalFollowers",
+        "title": "Bilibili Total Followers",
+        "type": "Follower",
+        "tooltipText": "Number of Followers on Bilibili",
+        "fetchURL": "/bilibili/v1/follower",
+        "fetchFollowerType": "data",
+        "followerDataType": "follower",
         "fetchDateType": "datetime"
     },
     "bilibiliTotalViewsValue": {
@@ -14,9 +14,9 @@
         "title": "Bilibili Total Views",
         "type": "Views",
         "tooltipText": "Number of Views on Bilibili",
-        "fetchURL": "/bilibili/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_views",
+        "fetchURL": "/bilibili/v1/view",
+        "fetchFollowerType": "data",
+        "followerDataType": "total_view",
         "fetchDateType": "datetime",
         "secondChat": {
             "chart": "bilibiliAvgViews",
@@ -30,8 +30,8 @@
         "title": "Bilibili Total Likes",
         "type": "Likes",
         "tooltipText": "Number of Likes on Bilibili",
-        "fetchURL": "/bilibili/chart",
-        "fetchFollowerType": "result",
+        "fetchURL": "/bilibili/v1/like",
+        "fetchFollowerType": "data",
         "followerDataType": "total_like",
         "fetchDateType": "datetime",
         "secondChat": {
@@ -46,8 +46,8 @@
         "title": "Bilibili Total Comments",
         "type": "Comments",
         "tooltipText": "Number of comments on Bilibili",
-        "fetchURL": "/bilibili/chart",
-        "fetchFollowerType": "result",
+        "fetchURL": "/bilibili/v1/comment",
+        "fetchFollowerType": "data",
         "followerDataType": "total_comment",
         "fetchDateType": "datetime",
         "secondChat": {
@@ -62,8 +62,8 @@
         "title": "Bilibili Total Shares",
         "type": "Shares",
         "tooltipText": "Number of shares on Bilibili",
-        "fetchURL": "/bilibili/chart",
-        "fetchFollowerType": "result",
+        "fetchURL": "/bilibili/v1/share",
+        "fetchFollowerType": "data",
         "followerDataType": "total_share",
         "fetchDateType": "datetime",
         "secondChat": {
@@ -78,12 +78,12 @@
         "title": "Bilibili Total Bullet Chats",
         "type": "Danmus",
         "tooltipText": "Number of Bullet Chats on Bilibili",
-        "fetchURL": "/bilibili/chart",
-        "fetchFollowerType": "result",
+        "fetchURL": "/bilibili/v1/danmu",
+        "fetchFollowerType": "data",
         "followerDataType": "total_danmu",
         "fetchDateType": "datetime",
         "secondChat": {
-            "chart": "bilibiliAvgSaves",
+            "chart": "bilibiliAvgDanmus",
             "followerDataType": "avg_danmu",
             "fetchDateType": "datetime",
             "type": "Danmus per video"
@@ -92,43 +92,43 @@
     "bilibiliTotalCoinsValue": {
         "chart": "bilibiliTotalCoins",
         "title": "Bilibili Total Coins",
-        "type": "Saves",
-        "tooltipText": "Number of saves on TikTok",
-        "fetchURL": "/tiktok/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_save",
+        "type": "Coins",
+        "tooltipText": "Number of coins on TikTok",
+        "fetchURL": "/bilibili/v1/coin",
+        "fetchFollowerType": "data",
+        "followerDataType": "total_coin",
         "fetchDateType": "datetime",
         "secondChat": {
-            "chart": "bilibiliAvgSaves",
-            "followerDataType": "avg_save",
+            "chart": "bilibiliAvgCoins",
+            "followerDataType": "avg_coin",
             "fetchDateType": "datetime",
-            "type": "Saves per video"
+            "type": "Coins per video"
         }
     },
     "bilibiliTotalCollectsValue": {
         "chart": "bilibiliTotalCollects",
         "title": "Bilibili Total Collects",
-        "type": "Saves",
-        "tooltipText": "Number of saves on TikTok",
-        "fetchURL": "/tiktok/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_save",
+        "type": "Collects",
+        "tooltipText": "Number of collects on TikTok",
+        "fetchURL": "/bilibili/v1/collect",
+        "fetchFollowerType": "data",
+        "followerDataType": "total_collect",
         "fetchDateType": "datetime",
         "secondChat": {
-            "chart": "bilibiliAvgSaves",
-            "followerDataType": "avg_save",
+            "chart": "bilibiliAvgCollects",
+            "followerDataType": "avg_collect",
             "fetchDateType": "datetime",
-            "type": "Saves per video"
+            "type": "Collects per video"
         }
     },
     "bilibiliEngagementRateValue": {
         "chart": "bilibiliEngagementRate",
         "title": "Bilibili Engagement Rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagment rate on Tiktok",
-        "fetchURL": "/tiktok/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "eng_rate",
+        "tooltipText": "Average engagement rate on Tiktok",
+        "fetchURL": "/bilibili/v1/engagement-rate",
+        "fetchFollowerType": "data",
+        "followerDataType": "engagement_rate",
         "fetchDateType": "datetime",
         "percentageData": true
     },

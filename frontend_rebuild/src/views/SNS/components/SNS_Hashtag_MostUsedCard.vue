@@ -1,6 +1,7 @@
 <script setup>
     import axios from '@/axios';
-    import { onMounted, reactive, ref } from 'vue';
+    import { onMounted, reactive, ref, watch } from 'vue';
+    import { useArtistStore } from '@/stores/artist'
 
     const props = defineProps({
         value: Object,
@@ -10,6 +11,8 @@
     const loadingCard = ref(true)
 
     const series = ref([])
+    // const artistId = ref("1")
+    const artistStore = useArtistStore()
     const recent10Series = ref(null)
     const recent30Series = ref(null)
     const allSeries = ref(null)
@@ -24,9 +27,9 @@
         try {
             loadingCard.value = true
             selection.value = '10_hashtags'
-            const data = await axios.get(`/${props.value.apiType}/hashtags/most-used/recent-ten-posts`)
-            const result = data.data.result
-            
+            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-five?artist_id=${artistStore.mid}`)
+            const result = data.data.data
+            console.log(result)
     
             const hashtags = result.map((e, i) => {
                 return {
@@ -34,7 +37,7 @@
                     y: e.count,
                 };
             });
-    
+
           // update the series with axios data
             series.value = [
                 {
@@ -56,8 +59,8 @@
         try{
             loadingCard.value = true
             selection.value = '30_hashtags'
-            const data = await axios.get(`/${props.value.apiType}/hashtags/most-used/recent-thirty-posts`)
-            const result = data.data.result
+            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-eight?artist_id=${artistStore.mid}`)
+            const result = data.data.data
     
             const hashtags = result.map((e, i) => {
                 return {
@@ -77,10 +80,8 @@
             
         } catch(e) {
             console.error(e);
-            
         }
         }
-
     const fetchAllHashtag = async () => {
         if (allSeries.value) {
             series.value = allSeries.value
@@ -89,8 +90,8 @@
         try{
             loadingCard.value = true
             selection.value = 'all'
-            const data = await axios.get(`/${props.value.apiType}/hashtags/most-used/overall-posts`)
-            const result = data.data.result
+            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-twelve?artist_id=${artistStore.mid}`)
+            const result = data.data.data
     
             const hashtags = result.map((e, i) => {
                 return {
@@ -110,7 +111,6 @@
             
         } catch(e) {
             console.error(e);
-            
         }
     }
 
@@ -121,6 +121,18 @@
         },
         dataLabels: {
             enabled: false
+        },
+        noData: {
+          text: 'No relevant data',
+          align: 'center',
+          verticalAlign: 'middle',
+          offsetX: 0,
+          offsetY: 0,
+          style: {
+            fontSize: '14px',
+            fontFamily: 'Cairo, sans-serif',
+            fontWeight: 600,
+          }
         },
         plotOptions: {
             bar: {
@@ -158,7 +170,7 @@
             offsetY: 0,
             style: {
                 color: undefined,
-                fontSize: '12px',
+                fontSize: '14px',
                 fontFamily: 'Cairo, sans-serif',
                 fontWeight: 600,
               // cssClass: 'apexcharts-xaxis-title',
@@ -185,7 +197,16 @@
         fetch10Hashtag()
     })
 
-
+    watch(
+        () => artistStore.mid,
+        (newMid) => {
+          if (newMid) {
+            // console.log("🎯 hashtag mid changed:", newMid)
+            fetch10Hashtag()
+          }
+        },
+        {immediate: true}
+    )
 
 </script>
 
