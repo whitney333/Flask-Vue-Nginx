@@ -59,7 +59,11 @@
             <span class="text-balance"> {{ hashtags }} </span>
           </div>
         </div>
-        <v-scroll v-if="showMore" class="text-gray-900 shadow-md  mt-2 xl:mt-auto mb-2 rounded-lg leading-none h-32">{{ post.caption_text }}</v-scroll>
+        <v-scrollbar v-if="showMore" class="text-gray-900 shadow-md  mt-2 xl:mt-auto mb-2 rounded-lg leading-none h-32">
+          <div class="break-words overflow-y-auto h-full">
+            {{ post.caption_text }}
+          </div>
+        </v-scrollbar>
           <!-- <img class="w-10 h-10 rounded-full mr-4" src="/img/jonathan.jpg" alt="Avatar of Jonathan Reinink"> -->
         <div class="text-sm flex items-center gap-1">
           <!-- <Button class=" w-32" @click="handleShowMore"> {{ showMore ? "Hide Caption" : "Show Caption" }}</Button> -->
