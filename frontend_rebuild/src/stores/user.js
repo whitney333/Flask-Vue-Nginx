@@ -19,7 +19,7 @@ export const useUserStore = defineStore("user", {
       this.photo = user.photo;
       this.tenant = user.tenant;
       this.followedArtists = user.followedArtists || [];
-      this.firebaseToken = user.firebase_token;
+      this.firebaseToken = user.firebaseToken;
     },
     reset() {
       this.firebase_id = null

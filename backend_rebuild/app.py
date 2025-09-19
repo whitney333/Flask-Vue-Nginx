@@ -27,16 +27,16 @@ def create_app():
     firebase_admin.initialize_app(cred)
 
     # register blueprints
-    app.register_blueprint(melon_bp, url_prefix="/melon")
-    app.register_blueprint(spotify_bp, url_prefix="/spotify")
-    app.register_blueprint(youtube_bp, url_prefix="/youtube")
-    app.register_blueprint(instagram_bp, url_prefix="/instagram")
-    app.register_blueprint(tiktok_bp, url_prefix="/tiktok")
-    app.register_blueprint(user_bp, url_prefix="/user")
-    app.register_blueprint(trending_artist_bp, url_prefix="/trending-artist")
-    app.register_blueprint(artist_bp, url_prefix="/artist")
-    app.register_blueprint(bilibili_bp, url_prefix="/bilibili")
-    app.register_blueprint(tenant_bp)
+    app.register_blueprint(melon_bp, url_prefix="/api/melon")
+    app.register_blueprint(spotify_bp, url_prefix="/api/spotify")
+    app.register_blueprint(youtube_bp, url_prefix="/api/youtube")
+    app.register_blueprint(instagram_bp, url_prefix="/api/instagram")
+    app.register_blueprint(tiktok_bp, url_prefix="/api/tiktok")
+    app.register_blueprint(user_bp, url_prefix="/api/user")
+    app.register_blueprint(trending_artist_bp, url_prefix="/api/trending-artist")
+    app.register_blueprint(artist_bp, url_prefix="/api/artist")
+    app.register_blueprint(bilibili_bp, url_prefix="/api/bilibili")
+    app.register_blueprint(tenant_bp, url_prefix="/api/tenant")
 
     # init DB
     try:

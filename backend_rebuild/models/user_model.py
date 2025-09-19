@@ -6,7 +6,7 @@ from .artist_model import Artists
 class Users(Document):
     firebase_id = StringField(required=True, unique=True)
     name = StringField(required=True)
-    image_url = URLField(required=True)
+    image_url = URLField(default=None)
     email = EmailField(required=True, unique=True)
     # [user, admin] role
     admin = BooleanField(required=True)

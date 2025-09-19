@@ -65,7 +65,8 @@
                 tenant: selectedTenantId.value, // company id
                 image_url: currentUser.photoURL,
                 email: currentUser.email,
-                followed_artist: selectedArtists.value
+                followed_artist: selectedArtists.value,
+                firebaseToken: idToken
             }
 
             // send register details to backend
