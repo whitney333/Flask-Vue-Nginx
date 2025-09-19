@@ -29,7 +29,7 @@
             selection.value = '10_hashtags'
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-five?artist_id=${artistStore.mid}`)
             const result = data.data.data
-            console.log(result)
+            // console.log(result)
     
             const hashtags = result.map((e, i) => {
                 return {

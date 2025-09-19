@@ -45,7 +45,7 @@
         () => artistStore.mid,
         (newMid) => {
           if (newMid) {
-            console.log("🎯 mid changed:", newMid)
+            // console.log("🎯 mid changed:", newMid)
             // console.log("cardValueLists updated:", cardValueLists.value)
           }
         },
