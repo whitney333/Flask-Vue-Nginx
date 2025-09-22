@@ -59,6 +59,7 @@
                 // photoURL: "https://example.com/jane-q-user/profile.jpg"
             })
 
+            const idToken = await currentUser.getIdToken();
             const userDetails = {
                 firebaseId: currentUser.uid,
                 name: fullName,
