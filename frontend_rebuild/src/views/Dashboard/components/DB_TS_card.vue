@@ -6,6 +6,7 @@ import AreaCharts from '@/components/AreaCharts.vue';
 
 const props = defineProps({
   value: {type: Object, required: true}
+
 })
 
 const latest_date = ref("")
@@ -127,6 +128,7 @@ chartOptions.value = {
 
 const getData = async () => {
     loadingBar.value = true
+<<<<<<< HEAD
     // clean old data
     series.value = []
     index_number.value = 0
@@ -199,7 +201,6 @@ const getData = async () => {
     },
     {immediate: true} // execute when first enter
   )
-
 </script>
 
 <template>

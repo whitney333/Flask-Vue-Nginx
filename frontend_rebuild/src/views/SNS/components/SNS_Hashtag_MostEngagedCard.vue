@@ -10,6 +10,7 @@
 
     const loadingCard = ref(true)
     const series = ref([])
+
     // const artistId = ref("1")
     const artistStore = useArtistStore()
     const chartOptions = ref({})
@@ -26,10 +27,10 @@
         try {
             loadingCard.value = true
             selection.value = '10_hashtags'
+
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-engaged-five?artist_id=${artistStore.mid}`)
             const result = data.data.data
-            
-    
+
             const hashtags = result.map((e, i) => {
                 return {
                     x: e._id,
@@ -54,6 +55,7 @@
             
             loadingCard.value = true
             selection.value = '30_hashtags'
+
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-engaged-eight?artist_id=${artistStore.mid}`)
             const result =  data.data.data
     
@@ -76,10 +78,12 @@
             console.error(e);
         }
     }
+
     const fetchAllHashtag = async () => {
         try{
             loadingCard.value = true
             selection.value = 'all'
+
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-engaged-twelve?artist_id=${artistStore.mid}`)
             const result =  data.data.data
     

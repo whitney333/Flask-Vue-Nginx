@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import 'firebase/auth'; // Import only what you need
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-
 const firebase = async () => {
     const firebaseConfig = {
         apiKey: import.meta.env.VITE_API_FIREBASE_API_KEY,

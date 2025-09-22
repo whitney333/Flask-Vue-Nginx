@@ -41,6 +41,7 @@
         },
     ])
 
+
     const confirmPasswordRules = computed(() => [
       v => !!v || 'Confirm Password is required.',
       v => v === password.value || 'Passwords do not match.'
@@ -92,6 +93,7 @@
                 provider = new FacebookAuthProvider()
                 break;
         }
+
       try {
         const result = await signInWithPopup(getAuth(), provider)
         // console.log(result.user);

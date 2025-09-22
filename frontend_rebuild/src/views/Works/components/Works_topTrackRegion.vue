@@ -11,8 +11,10 @@
     const trackList = ref([])
     const country = ref('KR')
     const end_date = ref('')
+
     // const artistId = ref('1')
     const artistStore = useArtistStore()
+
     const drange = ref('')
     const chartOptions = ref({})
     const series = ref({})
@@ -47,10 +49,12 @@
     const getTopTrackRegion = async () => {
         try {
             loadingCard.value = true
+
             const res = await axios.get(`/spotify/v1/region/top-tracks?artist_id=${artistStore.mid}&country=KR`, {setTimeout: 10000})
             tracks.value = res.data.data[0]["track_info"]
             // console.log(tracks)
             trackList.value = res.data["track_list_result"][0]["tracks"]
+
             const formattedData = tracks.value.map((e, i) => {
                 return {
                     x: e.region,
@@ -76,7 +80,7 @@
             loadingCard.value = true
             const date = new Date()
             end_date.value = date.toISOString().split('T')[0]
-    
+
             const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${country.value}`, {setTimeout: 5000})
             selected.value = res.data.data[0]["top_track"][0]["track"]
 
@@ -99,6 +103,7 @@
     }) 
 
     watch(selected, getTopTrackRegion)
+
     watch(
         () => artistStore.mid,
         async (newMid) => {
@@ -110,6 +115,7 @@
         },
         {immediate: true}
     )
+
 </script>
 
 <template>

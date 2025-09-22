@@ -12,6 +12,7 @@
     })
     const first = ref(1)
     const posts = ref([])
+
     const artistStore = useArtistStore()
     // const artistId = ref("1")
 

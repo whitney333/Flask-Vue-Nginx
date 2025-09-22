@@ -125,6 +125,7 @@
     }
   } 
 
+
   // previous fetch news trending
   const fetchTheQoo = async () => {
     try {
@@ -158,6 +159,7 @@
   onMounted(() => {
     fetchAll()
   })
+
 
   // convert datetime into YYYY-MM-DD
   function formatDate(dateStr) {

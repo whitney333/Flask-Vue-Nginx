@@ -6,11 +6,11 @@
              browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
     import { useRouter } from 'vue-router';
     import { useUserStore } from "@/stores/user.js";
-
     const valid = ref(false)
     const email = ref('')
     const password = ref('')
     const router = useRouter()
+
     const userStore = useUserStore()
     const errorMsg = ref()
     const loadingBar = ref(false)
@@ -122,6 +122,7 @@
             loadingBar.value = false
         }
     }
+
     // Third Party login
     const handleProviderLogin = async (providerName) => {       
         let provider = null

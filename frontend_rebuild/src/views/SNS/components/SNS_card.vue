@@ -8,9 +8,11 @@
         iconSrc: String,
     })
     const series = ref([])
+
     const artistId = ref("1")
     const date_end = new Date().toISOString().slice(0, 10);
     const filter = ref("7d")
+
     const latest_date = ref("")
     const index_number = ref("")
     const last_month_data = ref("")

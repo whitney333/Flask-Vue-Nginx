@@ -85,7 +85,6 @@
             // An error occurred
             // ...
             console.error(error);
-
         }
         
     }
@@ -128,7 +127,6 @@
         selectedArtists.value = []
       }
     })
-
 
 </script>
 

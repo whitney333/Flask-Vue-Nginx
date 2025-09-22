@@ -11,6 +11,7 @@
     import { useArtistStore } from "@/stores/artist.js";
 
     const artistStore = useArtistStore()
+
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg"
     const colors = ["#000000", "#000000"]
     const posts = ref([])
