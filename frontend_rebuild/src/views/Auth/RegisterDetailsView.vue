@@ -59,13 +59,15 @@
                 // photoURL: "https://example.com/jane-q-user/profile.jpg"
             })
 
+            const idToken = await currentUser.getIdToken();
             const userDetails = {
                 firebaseId: currentUser.uid,
                 name: fullName,
                 tenant: selectedTenantId.value, // company id
                 image_url: currentUser.photoURL,
                 email: currentUser.email,
-                followed_artist: selectedArtists.value
+                followed_artist: selectedArtists.value,
+                firebaseToken: idToken
             }
 
             // send register details to backend

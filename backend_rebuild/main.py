@@ -5,8 +5,6 @@ from libs.utils import auth_required
 
 app=create_app()
 
-CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
-
 
 @app.route('/')
 def hello():

@@ -84,9 +84,15 @@ def connect_docdb():
         )
 
 def connect_db():
+    # Dynamically load .env.dev or .env.prod
+    environment = os.getenv("FLASK_ENV", "development")  # default to 'dev'
+    env_file = f".env.{environment}"
+
+    load_dotenv(dotenv_path=env_file)
+
     # Connect to DocumentDB
     mongo_client = connect(
-        host =  "mongodb://43.198.77.59:27017/",
+        host =  os.getenv(key='DB_URI'),
         port = 27017,
         db = "general",
         username = os.getenv(key='DB_USER'),

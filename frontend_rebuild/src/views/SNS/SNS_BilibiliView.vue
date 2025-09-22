@@ -11,6 +11,7 @@
 
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/bilibili-logo.svg"
     const platform ="bilibili"
+    const colors = ["#286ed6", "#49e1fc"]
     const artistStore = useArtistStore()
 
      // date value
@@ -40,8 +41,8 @@
         () => artistStore.mid,
         (newMid) => {
           if (newMid) {
-            console.log("🎯 mid changed:", newMid)
-            console.log("cardValueLists updated:", cardValueLists.value)
+            // console.log("🎯 mid changed:", newMid)
+            // console.log("cardValueLists updated:", cardValueLists.value)
           }
         },
         {immediate: true}
