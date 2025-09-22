@@ -20,8 +20,13 @@ const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-d
             md="3"
             class="flex items-center justify-center md:justify-start"
           >
-            <v-avatar size="64">
-              <v-img :src="userStore.photo || defaultAvatar" alt="Profile"/>
+            <v-avatar size="64" class="bg-primary text-white font-weight-bold">
+              <template v-if="userStore.photo">
+                <v-img :src="userStore.photo" alt="Profile"/>
+              </template>
+              <template v-else>
+                {{ userStore.name?.charAt(0).toUpperCase() || "U" }}
+              </template>
             </v-avatar>
           </v-col>
 
