@@ -9,6 +9,7 @@ instance/*
 .env.development
 .env.production
 firebase/venv/serviceAccountKey.json
+cert
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
