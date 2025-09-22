@@ -1,5 +1,4 @@
 <script setup>
-<<<<<<< HEAD
   import axios from '@/axios';
   import { onMounted, ref, watch } from 'vue';
   import getUnicodeFlagIcon from 'country-flag-icons/unicode'

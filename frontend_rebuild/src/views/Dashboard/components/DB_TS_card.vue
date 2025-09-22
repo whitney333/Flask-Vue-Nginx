@@ -128,7 +128,7 @@ chartOptions.value = {
 
 const getData = async () => {
     loadingBar.value = true
-<<<<<<< HEAD
+
     // clean old data
     series.value = []
     index_number.value = 0
