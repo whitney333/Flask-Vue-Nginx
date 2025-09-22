@@ -103,7 +103,7 @@ class UserController:
     def create_user(cls):
         # get data
         data = request.get_json()
-        print(data)
+        # print(data)
         try:
             if not data.get("firebaseId") or not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
                 return jsonify({
