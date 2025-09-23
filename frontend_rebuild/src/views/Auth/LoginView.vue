@@ -87,7 +87,7 @@
             const getFollowedArtists = await axios.get(
                 "/user/v1/followed_artists", {
               headers: {
-                Authorization: `Bearer ${idToken}`,
+                Authorization: `Bearer ${result.user.accessToken}`,
                 timeout: 10000
               }
             });
