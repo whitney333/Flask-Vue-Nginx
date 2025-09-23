@@ -22,7 +22,6 @@
     const artists = ref([])
     const selectedArtists = ref([])
     const { currentUser } = getAuth()
-    const profile = await currentProfile()
 
     const nameRules = ref([
         value => {
@@ -35,16 +34,16 @@
         },
     ])
 
-    if(profile) {
-        router.push("/dashboard")
-    }
-    
-    if (!currentUser) {
-        router.push("/auth/login")
-    } else {
-        name.firstname = currentUser?.displayName?.split(" ")[0]
-        name.lastname = currentUser?.displayName?.split(" ")[1]
-    }
+    // if(profile) {
+    //     router.push("/dashboard")
+    // }
+    //
+    // if (!currentUser) {
+    //     router.push("/auth/login")
+    // } else {
+    //     name.firstname = currentUser?.displayName?.split(" ")[0]
+    //     name.lastname = currentUser?.displayName?.split(" ")[1]
+    // }
 
     const handleCreateAccount = async () => {
         if (!nameRules.value.every((rule) => rule(name.firstname) && rule(name.lastname))){
@@ -89,12 +88,43 @@
         
     }
 
+    // onMounted(async () => {
+    //   try {
+    //     const res = await axios.get("/user/v1/company")
+    //
+    //     companies.value = res.data.data || []
+    //
+    //   } catch (err) {
+    //     console.error("Error fetching tenant companies:", err)
+    //   }
+    // })
+
     onMounted(async () => {
+      const auth = getAuth()
+      const currentUser = auth.currentUser
+
+      if (!currentUser) {
+        console.log("No currentUser, redirecting...")
+        return router.push("/auth/login")
+      }
+
+      try {
+        const profile = await currentProfile()
+        if (profile) {
+          console.log("Profile exists, redirecting dashboard...")
+          return router.push("/dashboard")
+        }
+      } catch (err) {
+        console.error("currentProfile error:", err)
+      }
+
+      // 初始化名字顯示
+      name.firstname = currentUser?.displayName?.split(" ")[0] || ''
+      name.lastname = currentUser?.displayName?.split(" ")[1] || ''
+
       try {
         const res = await axios.get("/user/v1/company")
-
         companies.value = res.data.data || []
-
       } catch (err) {
         console.error("Error fetching tenant companies:", err)
       }
