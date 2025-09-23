@@ -100,6 +100,7 @@ const getCurrentUser = () => {
 
 router.beforeEach(async (to, from, next) => {
     const auth = getAuth()
+    console.log(">>> navigating to:", to.path, "from:", from.path)
 
     // wait Firebase to initialize
     const user = await new Promise(resolve => {
@@ -108,23 +109,39 @@ router.beforeEach(async (to, from, next) => {
             resolve(u)
         })
     })
+    console.log("resolved user:", user)
 
     // if not login
     if (!user) {
         if (to.path === '/auth/login' || to.path === '/auth/register') {
+            console.log("not logged in, allow:", to.path)
             return next()
         }
         // forced to return to /login
+        console.log("not logged in, redirect to /auth/login")
         return next('/auth/login')
     }
 
     // if login, check profile
-    const profile = await currentProfile()
+    let profile = null
+
+    try {
+        profile = await currentProfile()
+        console.log("profile result:", profile)
+    } catch (err) {
+        console.error("currentProfile error:", err)
+        return next('/auth/login') // fallback 避免卡死
+    }
+
+
+    // const profile = await currentProfile()
     if (!profile && to.path !== '/auth/register/details') {
+         console.log("no profile, redirect to /auth/register/details")
         return next('/auth/register/details')
     }
 
     // already login, and profile exists
+    console.log("all checks passed, proceed")
     next()
 })
 
