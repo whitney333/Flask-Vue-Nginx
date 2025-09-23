@@ -405,6 +405,21 @@
                 <span style="color: #757575;">
                 {{ $t("Pronouns")}}
                 </span>
+                <v-tooltip location="bottom">
+                  <template v-slot:activator="{ props: activatorProps }">
+                    <v-icon
+                        size="20"
+                        class="mx-1"
+                        v-bind="activatorProps"
+                        icon="mdi-information-outline"
+                    />
+                  </template>
+                  <span>
+                    M = Male<br/>
+                    F = Female<br/>
+                    C = Group
+                  </span>
+                </v-tooltip>
                 <br />
                 <span :class="['text-body-1']">
                   {{    artistInfo.pronouns ? artistInfo.pronouns : "-" }}
