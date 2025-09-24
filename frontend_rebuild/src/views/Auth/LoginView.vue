@@ -72,26 +72,24 @@
               {firebase_id: result.user.uid},
               {
                 headers: {
-                  "Authorization": `Bearer ${idToken}`,
-                  "Content-Type": "application/json"
+                  Authorization: `Bearer ${idToken}`
                 }
               }
           );
-            // console.log("resp: ", response)
+            console.log("resp: ", response)
           // const token = response.data;
           // if data exists then return
           const {exists} = response.data
-          // console.log("resp: ", response.data)
+          console.log("resp: ", response.data)
 
           // get followed artists list
           if (exists === true) {
             const getFollowedArtists = await axios.get(
                 "/user/v1/followed_artists", {
               headers: {
-                "Authorization": `Bearer ${idToken}`,
-                "Content-Type": "application/json"
-              },
+                Authorization: `Bearer ${idToken}`,
                 timeout: 10000
+              }
             });
             // store followed artist
             userStore.setFollowedArtists(getFollowedArtists.data.data || []);
@@ -156,8 +154,7 @@
                 "/user/v1/auth/check",
                 {firebase_id: result.user.uid},
                 {headers: {
-                        "Authorization": `Bearer ${idToken}`,
-                        "Content-Type": "application/json"
+                        Authorization: `Bearer ${idToken}`
                 }}
             );
             // const token = response.data;
@@ -170,10 +167,9 @@
               const getFollowedArtists = await axios.get(
                   "/user/v1/followed_artists", {
                 headers: {
-                  "Authorization": `Bearer ${idToken}`,
-                  "Content-Type": "application/json"
-                },
-                  timeout: 10000
+                Authorization: `Bearer ${idToken}`,
+                timeout: 10000
+                }
               });
               // store followed artist
               userStore.setFollowedArtists(getFollowedArtists.data.data || []);
