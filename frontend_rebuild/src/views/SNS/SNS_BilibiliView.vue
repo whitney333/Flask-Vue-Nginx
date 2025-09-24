@@ -21,6 +21,7 @@
       if (!artistStore.mid) return []
       const keys = [
         bilibiliJSON.bilibiliTotalFollowersValue,
+        bilibiliJSON.bilibiliTotalVideosValue,
         bilibiliJSON.bilibiliTotalViewsValue,
         bilibiliJSON.bilibiliTotalLikesValue,
         bilibiliJSON.bilibiliTotalCommentsValue,
@@ -47,7 +48,7 @@
         },
         {immediate: true}
     )
-    
+
 </script>
 
 <template>

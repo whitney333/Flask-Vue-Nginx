@@ -6,11 +6,11 @@
              browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
     import { useRouter } from 'vue-router';
     import { useUserStore } from "@/stores/user.js";
-
     const valid = ref(false)
     const email = ref('')
     const password = ref('')
     const router = useRouter()
+
     const userStore = useUserStore()
     const errorMsg = ref()
     const loadingBar = ref(false)
@@ -87,7 +87,7 @@
             const getFollowedArtists = await axios.get(
                 "/user/v1/followed_artists", {
               headers: {
-                Authorization: `Bearer ${idToken}`,
+                Authorization: `Bearer ${result.user.accessToken}`,
                 timeout: 10000
               }
             });
@@ -122,6 +122,7 @@
             loadingBar.value = false
         }
     }
+
     // Third Party login
     const handleProviderLogin = async (providerName) => {       
         let provider = null
@@ -208,7 +209,7 @@
                     <img :src='mishkanLogo' alt="Mishkan"/>
                     <span class='text-h5'>{{ $t('Log in')}}</span>
                     <br />
-                    <v-form ref="form" v-model="valid" @submit.prevent class="mb-2">
+                    <v-form ref="form" v-model="valid" @submit.prevent="handleLogin" class="mb-2">
                         <div class='flex-col flex justify-center ga-3'>
                             <div>
                             <v-text-field
@@ -246,7 +247,7 @@
                             <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
-                            <v-btn @click="handleLogin" color="warning" block :disabled="loadingBar">{{ $t('Login') }}</v-btn>
+                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Login') }}</v-btn>
                             <v-divider class='my-4'>
                                 <span style="color: #757575;">{{ $t('or continue with') }}</span>
                             </v-divider>

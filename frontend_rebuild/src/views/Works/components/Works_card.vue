@@ -155,6 +155,7 @@ import {computed, onMounted, ref, watch} from 'vue';
     const fetchData = async () => {
         try {
             loadingBar.value = true
+
             const res = await axios.get(`${props.value.fetchURL}&date_end=${props.end}&filter=${props.value.range}`, {setTimeout: 10000})
             
             data.value = res.data[props.value.fetchFollowerType]
@@ -264,6 +265,7 @@ import {computed, onMounted, ref, watch} from 'vue';
     const indexDifference = () => {
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
     }
+
 
   watch(
       () => props.value.fetchURL,

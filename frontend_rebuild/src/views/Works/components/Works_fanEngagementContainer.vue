@@ -17,6 +17,7 @@
     const props = defineProps({
         iconSrc: String
     })
+
     // console.log("music mid: ", artistStore.mid.value)
     const spotifyHexCode = ['#1db954', '#191414', '#1db954', '#191414', '#1db954']
     const melonHexCode = ['#00cf35']
@@ -73,7 +74,6 @@
         },
         {immediate: true} // run at the first time
     )
-
 
 </script>
 

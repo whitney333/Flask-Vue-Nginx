@@ -9,7 +9,6 @@ import { useArtistStore } from '@/stores/artist'
 import {getAuth} from "firebase/auth";
 import axios from "@/axios.js";
 
-
 const { t, locale } = useI18n({ useScope: 'global' })
 const props = defineProps({
     isLoggedIn: Boolean,
@@ -119,7 +118,6 @@ const languages = [
                 <v-list density="compact" >
                   <router-link to="/profile" style="text-decoration: none; color: inherit;">
                   <v-list-item
-
                       prepend-icon="mdi-account">
                     <v-list-item-title >Profile</v-list-item-title>
                   </v-list-item>

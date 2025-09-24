@@ -11,6 +11,7 @@
     const loadingCard = ref(true)
 
     const series = ref([])
+
     // const artistId = ref("1")
     const artistStore = useArtistStore()
     const recent10Series = ref(null)
@@ -27,6 +28,7 @@
         try {
             loadingCard.value = true
             selection.value = '10_hashtags'
+
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-five?artist_id=${artistStore.mid}`)
             const result = data.data.data
             // console.log(result)
@@ -59,6 +61,7 @@
         try{
             loadingCard.value = true
             selection.value = '30_hashtags'
+
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-eight?artist_id=${artistStore.mid}`)
             const result = data.data.data
     
@@ -82,6 +85,7 @@
             console.error(e);
         }
         }
+
     const fetchAllHashtag = async () => {
         if (allSeries.value) {
             series.value = allSeries.value
@@ -90,6 +94,7 @@
         try{
             loadingCard.value = true
             selection.value = 'all'
+
             const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-twelve?artist_id=${artistStore.mid}`)
             const result = data.data.data
     
@@ -170,7 +175,7 @@
             offsetY: 0,
             style: {
                 color: undefined,
-                fontSize: '14px',
+                fontSize: '12px',
                 fontFamily: 'Cairo, sans-serif',
                 fontWeight: 600,
               // cssClass: 'apexcharts-xaxis-title',

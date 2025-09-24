@@ -10,6 +10,7 @@
     const userStore = useUserStore()
     const artistStore = useArtistStore()
 
+
     const router = useRouter()
     const isLoggedIn = ref(false)
     let auth
@@ -29,12 +30,16 @@
     const handleSignOut = async () => {        
         try {
             await signOut(auth)
+
             userStore.reset()
             artistStore.reset()
             router.push("/auth/login")
             console.log("Logout success!");
             console.log("artist: ", artistStore)
             console.log("user: ", userStore)
+
+            router.push("/auth/login")
+            console.log("Logout success!");
             
         } catch(e) {
             console.error("Sign-out error: ", e);

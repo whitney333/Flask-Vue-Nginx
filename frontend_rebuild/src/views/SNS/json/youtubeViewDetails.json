@@ -33,7 +33,7 @@
         "chart": "youtubeTotalVideoViews",
         "title": "YouTube Total Videos Views",
         "type": "Views",
-        "tooltipText": "Number of latest 7 video views on YouTube",
+        "tooltipText": "Number of latest 50 video views on YouTube",
         "fetchURL": "/youtube/v1/video-view",
         "fetchFollowerType": "data",
         "followerDataType": "total_video_view",

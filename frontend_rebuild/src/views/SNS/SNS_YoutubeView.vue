@@ -9,11 +9,12 @@
     import { computed, watch, ref } from 'vue';
     import axios from '@/axios';
     import { useArtistStore } from '@/stores/artist'
-    
+
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg"
     const colors = ["#D62828", "#FCBF49"]
     const posts = ref([])
     const platform = "youtube"
+
     const artistStore = useArtistStore()
     // date value
     const today = new Date().toISOString().slice(0, 10)

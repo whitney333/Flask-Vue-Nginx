@@ -17,6 +17,7 @@
     const { profile } = defineProps({
         profile: Object
     })
+
     const artistStore = useArtistStore()
      // date value
     const today = new Date().toISOString().slice(0, 10)

@@ -16,6 +16,7 @@
     import { useArtistStore } from "@/stores/artist.js";
 
     const artistStore = useArtistStore()
+
     const platform = ref([])
     const post = ref({
       title: '',
@@ -172,7 +173,6 @@
               </div>
             </v-expansion-panel-text>
           </v-expansion-panel>
-
           <v-expansion-panel value="region" class="mb-5">
             <v-expansion-panel-title v-slot="{ expanded }">
               <v-row no-gutters class="items-center">
@@ -254,7 +254,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-                    {{ $t('Select Platform') }}
+                    {{ $t('Recommended Platform') }}
                   </span>
                 </v-col>
                 <v-col

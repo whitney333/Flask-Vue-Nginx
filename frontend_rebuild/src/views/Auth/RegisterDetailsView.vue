@@ -22,7 +22,6 @@
     const artists = ref([])
     const selectedArtists = ref([])
     const { currentUser } = getAuth()
-    const profile = await currentProfile()
 
     const nameRules = ref([
         value => {
@@ -35,16 +34,16 @@
         },
     ])
 
-    if(profile) {
-        router.push("/dashboard")
-    }
-    
-    if (!currentUser) {
-        router.push("/auth/login")
-    } else {
-        name.firstname = currentUser?.displayName?.split(" ")[0]
-        name.lastname = currentUser?.displayName?.split(" ")[1]
-    }
+    // if(profile) {
+    //     router.push("/dashboard")
+    // }
+    //
+    // if (!currentUser) {
+    //     router.push("/auth/login")
+    // } else {
+    //     name.firstname = currentUser?.displayName?.split(" ")[0]
+    //     name.lastname = currentUser?.displayName?.split(" ")[1]
+    // }
 
     const handleCreateAccount = async () => {
         if (!nameRules.value.every((rule) => rule(name.firstname) && rule(name.lastname))){
@@ -85,17 +84,47 @@
             // An error occurred
             // ...
             console.error(error);
-
         }
-        
+
     }
 
+    // onMounted(async () => {
+    //   try {
+    //     const res = await axios.get("/user/v1/company")
+    //
+    //     companies.value = res.data.data || []
+    //
+    //   } catch (err) {
+    //     console.error("Error fetching tenant companies:", err)
+    //   }
+    // })
+
     onMounted(async () => {
+      const auth = getAuth()
+      const currentUser = auth.currentUser
+
+      if (!currentUser) {
+        console.log("No currentUser, redirecting...")
+        return router.push("/auth/login")
+      }
+
+      try {
+        const profile = await currentProfile()
+        if (profile) {
+          console.log("Profile exists, redirecting dashboard...")
+          return router.push("/dashboard")
+        }
+      } catch (err) {
+        console.error("currentProfile error:", err)
+      }
+
+      // 初始化名字顯示
+      name.firstname = currentUser?.displayName?.split(" ")[0] || ''
+      name.lastname = currentUser?.displayName?.split(" ")[1] || ''
+
       try {
         const res = await axios.get("/user/v1/company")
-
         companies.value = res.data.data || []
-
       } catch (err) {
         console.error("Error fetching tenant companies:", err)
       }
@@ -129,7 +158,6 @@
       }
     })
 
-
 </script>
 
 <template>
@@ -149,7 +177,7 @@
                     <img :src='mishkanLogo' alt="Mishkan"/>
                     <span :class="['text-h5']">{{ $t('Tell us more about you')}}</span>
                     <br />
-                    <v-form ref="form" v-model="valid" @submit.prevent class="mb-2">
+                    <v-form ref="form" v-model="valid" @submit.prevent="handleCreateAccount" class="mb-2">
                         <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
                             <div>
                                 <div class='d-flex ga-3'>
@@ -227,7 +255,7 @@
                               <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
-                            <v-btn @click="handleCreateAccount" color="warning" block :disabled="loadingBar">{{ $t('Register') }}</v-btn>
+                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Register') }}</v-btn>
                         </div>
                     </v-form>
                     </div>
