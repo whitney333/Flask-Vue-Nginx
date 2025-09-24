@@ -1,6 +1,7 @@
 <script setup>
-import axios from '@/axios';
-import { onMounted, ref, watch } from 'vue';
+    import axios from '@/axios';
+    import { onMounted, ref, watch } from 'vue';
+    import { useArtistStore } from "@/stores/artist.js";
 
     const props = defineProps({
         iconSrc: String
@@ -10,6 +11,10 @@ import { onMounted, ref, watch } from 'vue';
     const trackList = ref([])
     const country = ref('KR')
     const end_date = ref('')
+
+    // const artistId = ref('1')
+    const artistStore = useArtistStore()
+
     const drange = ref('')
     const chartOptions = ref({})
     const series = ref({})
@@ -44,9 +49,12 @@ import { onMounted, ref, watch } from 'vue';
     const getTopTrackRegion = async () => {
         try {
             loadingCard.value = true
-            const res = await axios.get(`/spotify/top-track/region?track=${selected.value}`, {setTimeout: 10000})
-            tracks.value = res.data['result'][0]["track_info"]
-            trackList.value = res.data["track_select_list"][0]["track"]
+
+            const res = await axios.get(`/spotify/v1/region/top-tracks?artist_id=${artistStore.mid}&country=KR`, {setTimeout: 10000})
+            tracks.value = res.data.data[0]["track_info"]
+            // console.log(tracks)
+            trackList.value = res.data["track_list_result"][0]["tracks"]
+
             const formattedData = tracks.value.map((e, i) => {
                 return {
                     x: e.region,
@@ -72,9 +80,10 @@ import { onMounted, ref, watch } from 'vue';
             loadingCard.value = true
             const date = new Date()
             end_date.value = date.toISOString().split('T')[0]
-    
-            const res = await axios.get(`/spotify/top-track?end=${end_date.value}&country=${country.value}&drange=${drange.value}`, {setTimeout: 5000})
-            selected.value = res.data["posts"][0]["top_track"][0]["track"]
+
+            const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${country.value}`, {setTimeout: 5000})
+            selected.value = res.data.data[0]["top_track"][0]["track"]
+
             loadingCard.value = false
 
         } catch (e) {
@@ -94,6 +103,18 @@ import { onMounted, ref, watch } from 'vue';
     }) 
 
     watch(selected, getTopTrackRegion)
+
+    watch(
+        () => artistStore.mid,
+        async (newMid) => {
+          if (newMid) {
+            console.log("🎯 mid changed:", newMid)
+            await getTopSong()
+            await getTopTrackRegion()
+          }
+        },
+        {immediate: true}
+    )
 
 </script>
 

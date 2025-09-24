@@ -1,15 +1,26 @@
 <script setup>
     import PageHolder from '@/components/PageHolder.vue'
     import SNSCard from '@/views/SNS/components/SNS_card.vue'
+    import SNSAllPosts from '@/views/SNS/components/SNS_AllPosts.vue'
     import SNSCardHolder from '@/views/SNS/components/SNS_card_holder.vue'
     import SNSHashtagAnalytics from '@/views/SNS/components/SNS_HashtagAnalytics.vue';
     import SNSTopicAnalytics from '@/views/SNS/components/SNS_TopicAnalytics.vue';
     import bilibiliJSON from './json/bilibiliViewDetails.json'
-
+    import { useArtistStore } from "@/stores/artist.js";
+    import {computed, watch} from "vue";
 
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/bilibili-logo.svg"
     const platform ="bilibili"
-    const cardValueLists = [
+    const colors = ["#286ed6", "#49e1fc"]
+    const artistStore = useArtistStore()
+
+     // date value
+    const today = new Date().toISOString().slice(0, 10)
+    const cardValueLists = computed(() => {
+      // if mid not exists, do not render the chart
+      if (!artistStore.mid) return []
+      const keys = [
+        bilibiliJSON.bilibiliTotalFollowersValue,
         bilibiliJSON.bilibiliTotalVideosValue,
         bilibiliJSON.bilibiliTotalViewsValue,
         bilibiliJSON.bilibiliTotalLikesValue,
@@ -19,8 +30,25 @@
         bilibiliJSON.bilibiliTotalCoinsValue,
         bilibiliJSON.bilibiliTotalCollectsValue,
         bilibiliJSON.bilibiliEngagementRateValue,
-    ]
-    
+      ]
+
+      return keys.map((base) => ({
+          ...base,
+          fetchURL: `${base.fetchURL}?date_end=${today}&filter=365d&artist_id=${artistStore.mid}`,
+      }))
+    })
+
+    watch(
+        () => artistStore.mid,
+        (newMid) => {
+          if (newMid) {
+            // console.log("🎯 mid changed:", newMid)
+            // console.log("cardValueLists updated:", cardValueLists.value)
+          }
+        },
+        {immediate: true}
+    )
+
 </script>
 
 <template>
@@ -39,6 +67,6 @@
         <v-divider></v-divider>
         <!-- <SNSHashtagAnalytics :iconSrc="iconSrc" :value="tiktokJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics> -->
         <v-divider></v-divider>
-        <SNSAllPosts :platform="platform"></SNSAllPosts>
+<!--        <SNSAllPosts :platform="platform"></SNSAllPosts>-->
     </v-container>
 </template>

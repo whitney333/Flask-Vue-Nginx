@@ -4,9 +4,9 @@
         "title": "YouTube Subscribers",
         "type": "Subscribers",
         "tooltipText": "Number of Subscribers on YouTube",
-        "fetchURL": "/youtube/stats/channel",
-        "fetchFollowerType": "result",
-        "followerDataType": "subscriber",
+        "fetchURL": "/youtube/v1/channel",
+        "fetchFollowerType": "data",
+        "followerDataType": "follower",
         "fetchDateType": "datetime"
     },
     "youtubeTotalChannelVideosValue": {
@@ -14,9 +14,9 @@
         "title": "YouTube Total Channel Videos",
         "type": "Views",
         "tooltipText": "Number of videos on YouTube",
-        "fetchURL": "/youtube/stats/channel",
-        "fetchFollowerType": "result",
-        "followerDataType": "video_num",
+        "fetchURL": "/youtube/v1/channel",
+        "fetchFollowerType": "data",
+        "followerDataType": "video_count",
         "fetchDateType": "datetime"
     },
     "youtubeTotalChannelViewsValue": {
@@ -24,25 +24,19 @@
         "title": "YouTube Total Channel Views",
         "type": "Total Channel Views",
         "tooltipText": "Number of channel views on YouTube",
-        "fetchURL": "/youtube/stats/channel",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_channel_view",
-        "fetchDateType": "datetime",
-        "secondChat": {
-            "chart": "channel_view_difference",
-            "followerDataType": "channel_view_difference",
-            "fetchDateType": "datetime",
-            "type": "Daily Change"
-        }
+        "fetchURL": "/youtube/v1/channel",
+        "fetchFollowerType": "data",
+        "followerDataType": "view_count",
+        "fetchDateType": "datetime"
     },
     "youtubeTotalVideoViewsValue": {
         "chart": "youtubeTotalVideoViews",
         "title": "YouTube Total Videos Views",
         "type": "Views",
         "tooltipText": "Number of latest 50 video views on YouTube",
-        "fetchURL": "/youtube/stats/video",
-        "fetchFollowerType": "result",
-        "followerDataType": "total_view",
+        "fetchURL": "/youtube/v1/video-view",
+        "fetchFollowerType": "data",
+        "followerDataType": "total_video_view",
         "fetchDateType": "datetime"
     },
     "youtubeTotalVideoLikesValue": {
@@ -50,8 +44,8 @@
         "title": "YouTube Total Videos Likes",
         "type": "Total Likes",
         "tooltipText": "Number of latest 50 video likes on YouTube",
-        "fetchURL": "/youtube/stats/video",
-        "fetchFollowerType": "result",
+        "fetchURL": "/youtube/v1/video-index",
+        "fetchFollowerType": "data",
         "followerDataType": "total_like",
         "fetchDateType": "datetime",
         "secondChat": {
@@ -66,16 +60,36 @@
         "title": "YouTube Total Videos Comments",
         "type": "Total Comments",
         "tooltipText": "Number of latest 50 video comments on YouTube",
-        "fetchURL": "/youtube/stats/video",
-        "fetchFollowerType": "result",
+        "fetchURL": "/youtube/v1/video-index",
+        "fetchFollowerType": "data",
         "followerDataType": "total_comment",
         "fetchDateType": "datetime",
         "secondChat": {
-            "chart": "tiktokAvgSaves",
+            "chart": "youtubeAvgComment",
             "followerDataType": "avg_comment",
             "fetchDateType": "datetime",
             "type": "Comments per video"
         }
+    },
+    "youtubeTotalChannelHashtags": {
+        "chart": "youtubeTotalChannelHashtags",
+        "title": "YouTube Total Channel Hashtags",
+        "type": "Hashtags",
+        "tooltipText": "How many channels include the relevant hashtags",
+        "fetchURL": "/youtube/v1/channel",
+        "fetchFollowerType": "data",
+        "followerDataType": "channel_hashtag",
+        "fetchDateType": "datetime"
+    },
+    "youtubeTotalVideoHashtags": {
+        "chart": "youtubeTotalVideoHashtags",
+        "title": "YouTube Total Video Hashtags",
+        "type": "Hashtags",
+        "tooltipText": "How many videos include the relevant hashtags",
+        "fetchURL": "/youtube/v1/channel",
+        "fetchFollowerType": "data",
+        "followerDataType": "video_hashtag",
+        "fetchDateType": "datetime"
     },
 
     "hashtagAnalyticsValue": {

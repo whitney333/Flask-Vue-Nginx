@@ -3,7 +3,11 @@ import { useRoute, useRouter } from 'vue-router';
 import LangSwitcher from './LangSwitcher.vue'
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
 import { useI18n } from 'vue-i18n'
-import { ref, watch } from 'vue';
+import {ref, watch, computed, reactive, onMounted} from 'vue';
+import { useUserStore } from "@/stores/user"
+import { useArtistStore } from '@/stores/artist'
+import {getAuth} from "firebase/auth";
+import axios from "@/axios.js";
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const props = defineProps({
@@ -11,6 +15,9 @@ const props = defineProps({
     handleSignOut: Function
 })
 
+// init user data & followed_artist ids
+const userStore = useUserStore()
+const artistStore = useArtistStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -40,8 +47,24 @@ const languages = [
     watch(lang, () => {
         locale.value = lang.value[0]
     })
-    
+
+    const fetchUserProfile = () => {
+        router.push("/profile")
+    }
+    function selectArtist(artistId) {
+      // update artist id
+      artistStore.setMid(artistId)
+      // console.log("cur: ", artistId)
+    }
+    const followedArtists = computed(() => userStore.followedArtists);
+    // console.log(userStore.followedArtists)
+    watch(() => userStore.followedArtists, (val) => {
+      console.log("AppBar followedArtists:", val)
+    })
+
+
 </script>
+
 <template>
     <v-app-bar :elevation="1" app :style="{ padding: '0px 20px' }">        
         <v-app-bar-title class="text-h5">{{ route.name }}</v-app-bar-title>
@@ -61,13 +84,44 @@ const languages = [
                     <v-list-item-title>{{ language.title }}</v-list-item-title>
                     </v-list-item>
                 </v-list>
-
+            </v-menu>
+            <!--  User followed artists list -->
+            <v-menu>
+              <template v-slot:activator="{ props }">
+                <v-btn v-bind="props" icon="mdi-heart-circle"></v-btn>
+              </template>
+              <v-list v-if="followedArtists.length > 0">
+                <v-list-item
+                    v-for="artist in followedArtists"
+                    :key="artist.artist_id"
+                    :prepend-avatar="artist.image"
+                    @click="selectArtist(artist.artist_id)"
+                >
+                <v-list-item-title class="text-body-1 font-weight-medium">
+                  {{ artist.english_name }}
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-grey">
+                  {{ artist.korean_name }}
+                </v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+              <v-list v-else>
+                <v-list-item>
+                  <v-list-item-title>No followed artists</v-list-item-title>
+                </v-list-item>
+              </v-list>
             </v-menu>
             <v-menu v-if="isLoggedIn">
                 <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" icon="mdi-account"></v-btn>
                 </template>
                 <v-list density="compact" >
+                  <router-link to="/profile" style="text-decoration: none; color: inherit;">
+                  <v-list-item
+                      prepend-icon="mdi-account">
+                    <v-list-item-title >Profile</v-list-item-title>
+                  </v-list-item>
+                  </router-link>
                     <v-list-item
                         @click="handleSignOut()"  
                         prepend-icon="mdi-logout">

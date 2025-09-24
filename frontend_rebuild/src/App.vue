@@ -4,6 +4,12 @@
     import AppBar from './components/AppBar.vue';
     import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
     import { onMounted, ref } from 'vue';
+    import { useArtistStore } from "@/stores/artist.js";
+    import { useUserStore } from "@/stores/user.js";
+
+    const userStore = useUserStore()
+    const artistStore = useArtistStore()
+
 
     const router = useRouter()
     const isLoggedIn = ref(false)
@@ -24,6 +30,14 @@
     const handleSignOut = async () => {        
         try {
             await signOut(auth)
+
+            userStore.reset()
+            artistStore.reset()
+            router.push("/auth/login")
+            console.log("Logout success!");
+            console.log("artist: ", artistStore)
+            console.log("user: ", userStore)
+
             router.push("/auth/login")
             console.log("Logout success!");
             

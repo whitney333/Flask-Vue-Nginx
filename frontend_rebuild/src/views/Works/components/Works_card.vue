@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, onMounted, ref } from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
     import axios from '@/axios';
     const props = defineProps({
         value: Object,
@@ -155,7 +155,8 @@
     const fetchData = async () => {
         try {
             loadingBar.value = true
-            const res = await axios.get(`${props.value.fetchURL}?end=${props.end}&range=${props.value.range}`, {setTimeout: 10000})
+
+            const res = await axios.get(`${props.value.fetchURL}&date_end=${props.end}&filter=${props.value.range}`, {setTimeout: 10000})
             
             data.value = res.data[props.value.fetchFollowerType]
             latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
@@ -264,6 +265,15 @@
     const indexDifference = () => {
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
     }
+
+
+  watch(
+      () => props.value.fetchURL,
+      (newURL) => {
+        if (newURL) fetchData(newURL);
+      },
+      {immediate: true}
+  );
 
 </script>
 

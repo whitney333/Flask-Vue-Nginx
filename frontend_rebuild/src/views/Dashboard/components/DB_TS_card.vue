@@ -1,16 +1,12 @@
-
-
-
 <!-- Dashboard Top Statics Card -->
-
-
 <script setup>
 import axios from '@/axios';
-import { computed, onMounted, ref } from 'vue';
+import { watch, computed, onMounted, ref } from 'vue';
 import AreaCharts from '@/components/AreaCharts.vue';
 
 const props = defineProps({
-  value: Object
+  value: {type: Object, required: true}
+
 })
 
 const latest_date = ref("")
@@ -22,6 +18,7 @@ const loadingBar = ref(true)
 const series = ref([])
 const chartOptions = ref({})
 const follower = ref({})
+
 const formatNumber = computed(() =>
     {
       if (String(index_number.value).length < 4) {
@@ -131,31 +128,79 @@ chartOptions.value = {
 
 const getData = async () => {
     loadingBar.value = true
-    const data = await axios.get(props.value.fetchURL, {setTimeout: 10000})
-    follower.value = data.data[props.value.fetchFollowerType]
-    index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
 
-    let formattedData = follower.value.map((e, i) => {
+    // clean old data
+    series.value = []
+    index_number.value = 0
+
+    try {
+      const data = await axios.get(props.value.fetchURL, {setTimeout: 10000})
+      follower.value = data.data[props.value.fetchFollowerType]
+      index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
+
+      let formattedData = follower.value.map((e, i) => {
         return {
-            x: e[props.value.fetchDateType],
-            y: e[props.value.followerDataType],
+          x: e[props.value.fetchDateType],
+          y: e[props.value.followerDataType],
         };
-    });
-    // update the series with axios data
-    series.value = [
+      });
+
+      //update the series with axios data
+      series.value = [
         {
-            name: props.value.type,
-            data: formattedData,
+          name: props.value.type,
+          data: formattedData,
         }
-    ]
+      ]
+
+    } catch (err) {
+      console.error("Error fetching data:", err)
+    } finally {
+      loadingBar.value = false
+    }
+
+    // follower.value = data.data[props.value.fetchFollowerType]
+    // index_number.value = follower.value[follower.value.length - 1][props.value.followerDataType]
+
+    // let formattedData = follower.value.map((e, i) => {
+    //     return {
+    //         x: e[props.value.fetchDateType],
+    //         y: e[props.value.followerDataType],
+    //     };
+    // });
+
+    // update the series with axios data
+    // series.value = [
+    //     {
+    //         name: props.value.type,
+    //         data: formattedData,
+    //     }
+    // ]
     loadingBar.value = false
 }
 
 
   onMounted(() => {
-    getData()
+    getData(props.value.fetchURL)
   })
 
+  watch(
+    () => props.value.fetchURL,
+    async (newUrl, oldUrl) => {
+      if (newUrl && newUrl !== oldUrl) {
+        // console.log("🔄 fetchURL changed:", newUrl)
+        series.value = []
+        index_number.value = 0
+        try {
+          await getData(newUrl)
+        } catch (err) {
+          console.log("Error in watcher callback: ", err)
+        }
+
+      }
+    },
+    {immediate: true} // execute when first enter
+  )
 </script>
 
 <template>

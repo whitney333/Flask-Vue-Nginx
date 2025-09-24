@@ -1,12 +1,18 @@
 <script setup>
-    import { computed, onMounted, ref } from 'vue';
+    import { computed, onMounted, ref, watch } from 'vue';
     import axios from '@/axios';
+
     const props = defineProps({
         value: Object,
         colors: Object,
         iconSrc: String,
     })
     const series = ref([])
+
+    const artistId = ref("1")
+    const date_end = new Date().toISOString().slice(0, 10);
+    const filter = ref("7d")
+
     const latest_date = ref("")
     const index_number = ref("")
     const last_month_data = ref("")
@@ -152,70 +158,95 @@
     }
 
     const fetchData = async () => {
-        try {
-            loadingBar.value = true
-            const res = await axios.get(props.value.fetchURL, {setTimeout: 10000})
-            data.value = res.data[props.value.fetchFollowerType]
-            latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
-            first_day.value = data.value[0][props.value.fetchDateType]
-            if (data.value.length > 30) {
-                one_month.value = data.value[data.value.length - 30][props.value.fetchDateType]
-            } else {
-                one_month.value = data.value[0][props.value.fetchDateType]
-            }
-            if (data.value.length > 90) {
-                three_months.value = data.value[data.value.length - 90][props.value.fetchDateType]
-            } else {
-                three_months.value = data.value[0][props.value.fetchDateType]
-            }
-            if (data.value.length > 180) {
-                six_months.value = data.value[data.value.length - 180][props.value.fetchDateType]
-            } else {
-                six_months.value = data.value[0][props.value.fetchDateType]
-            }
-            
-            index_number.value = data.value[data.value.length - 1][props.value.followerDataType]
-            last_month_data.value = data.value[data.value.length - 30][props.value.followerDataType]
-
-            const formattedData = data.value.map((e, i) => {
-                return {
-                    x: e[props.value.fetchDateType],
-                    y: e[props.value.followerDataType],
-                };
-            });
-            
-
-            if (props.value.secondChat) {
-                const formattedData2 = data.value.map((e, i) => {
-                    return {
-                        x: e[props.value.secondChat.fetchDateType],
-                        y: e[props.value.secondChat.followerDataType],
-                    };
-                })
-
-                series.value = [
-                    {
-                        name: props.value.type,
-                        data: formattedData,
-                    },
-                    {
-                        name: props.value.secondChat.type,
-                        data: formattedData2
-                    }
-                ]
-            } else {
-                series.value = [
-                    {
-                        name: props.value.type,
-                        data: formattedData,
-                    }
-                ]
-            }
-            // update the series with axios data
-            loadingBar.value = false
-        } catch (e) {
-            console.error(e);
+      try {
+        loadingBar.value = true
+        const res = await axios.get(props.value.fetchURL,
+            // {params: {
+            //     artist_id: artistId.value,
+            //     date_end: date_end,
+            //     filter: filter.value
+            // }},
+            {setTimeout: 10000})
+        if (!res || !res.data) {
+          console.warn("Response is empty or invalid");
+          data.value = []
+          latest_date.value = null
+          first_day.value = null
+          one_month.value = null
+          three_months.value = null
+          six_months.value = null
+          index_number.value = null
+          last_month_data.value = null
+          series.value = []
+          loadingBar.value = false
+          return
         }
+
+        data.value = res.data[props.value.fetchFollowerType] || []
+
+        if (data.value.length === 0) {
+          console.warn("No data found for the given type")
+          latest_date.value = null
+          first_day.value = null
+          one_month.value = null
+          three_months.value = null
+          six_months.value = null
+          index_number.value = null
+          last_month_data.value = null
+          series.value = []
+          loadingBar.value = false
+          return
+        }
+
+        latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
+        first_day.value = data.value[0][props.value.fetchDateType]
+
+        one_month.value = data.value.length > 30 ? data.value[data.value.length - 30][props.value.fetchDateType] : data.value[0][props.value.fetchDateType]
+        three_months.value = data.value.length > 90 ? data.value[data.value.length - 90][props.value.fetchDateType] : data.value[0][props.value.fetchDateType]
+        six_months.value = data.value.length > 180 ? data.value[data.value.length - 180][props.value.fetchDateType] : data.value[0][props.value.fetchDateType]
+
+        index_number.value = data.value[data.value.length - 1][props.value.followerDataType]
+        last_month_data.value = data.value.length > 7 ? data.value[data.value.length - 7][props.value.followerDataType] : index_number.value
+
+        const formattedData = data.value.map((e, i) => {
+          return {
+            x: e[props.value.fetchDateType],
+            y: e[props.value.followerDataType],
+          };
+        });
+
+
+        if (props.value.secondChat) {
+          const formattedData2 = data.value.map((e, i) => {
+            return {
+              x: e[props.value.secondChat.fetchDateType],
+              y: e[props.value.secondChat.followerDataType],
+            };
+          })
+
+          series.value = [
+            {
+              name: props.value.type,
+              data: formattedData,
+            },
+            {
+              name: props.value.secondChat.type,
+              data: formattedData2
+            }
+          ]
+        } else {
+          series.value = [
+            {
+              name: props.value.type,
+              data: formattedData,
+            }
+          ]
+        }
+        // update the series with axios data
+        loadingBar.value = false
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     const updateData = (timeline) => {
@@ -262,6 +293,18 @@
     const indexDifference = () => {
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
     }
+
+    watch(
+        () => props.value.fetchURL,
+        (newURL) => {
+          // clean old data
+          series.value = []
+          if (newURL) {
+            fetchData(newURL);
+          }
+        },
+        {immediate: true}
+    );
 </script>
 
 <template>
