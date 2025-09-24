@@ -68,7 +68,7 @@
 
           // POST firebase_id to check if user exists
           const response = await axios.post(
-              "/user/v1/auth/check",
+              "/api/user/v1/auth/check",
               {firebase_id: result.user.uid},
               {
                 headers: {
@@ -86,7 +86,7 @@
           // get followed artists list
           if (exists === true) {
             const getFollowedArtists = await axios.get(
-                "/user/v1/followed_artists", {
+                "/api/user/v1/followed_artists", {
               headers: {
                 "Authorization": `Bearer ${idToken}`,
                 "Content-Type": "application/json"
