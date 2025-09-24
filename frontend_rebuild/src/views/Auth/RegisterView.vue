@@ -186,7 +186,7 @@
                     <img :src='mishkanLogo' alt="Mishkan"/>
                     <span :class="['text-h5']">{{ $t('Create Account')}}</span>
                     <br />
-                    <v-form ref="form" v-model="valid" @submit.prevent class="mb-2">
+                    <v-form ref="form" v-model="valid" @submit.prevent="handleRegister" class="mb-2">
                         <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
                             <div>
                                 <v-text-field
@@ -232,7 +232,7 @@
                                 <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
-                            <v-btn @click="handleRegister" color="warning" block :disabled="loadingBar">{{ $t('Create Account') }}</v-btn>
+                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Create Account') }}</v-btn>
                             <v-divider :class="['my-4']">
                                 <span style="color: #757575;">{{ $t('or continue with') }}</span>
                             </v-divider>
