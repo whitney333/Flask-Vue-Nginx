@@ -4,7 +4,6 @@ from models.artist_model import Artists
 import datetime
 from mongoengine import ValidationError, DoesNotExist
 from flask import request, jsonify, g
-import uuid
 from functools import wraps
 from firebase_admin import auth
 from bson import json_util
@@ -219,15 +218,19 @@ class UserController:
 
     @classmethod
     def get_user_followed_artist_by_id(cls):
-        user = Users.objects(firebase_id=g.firebase_id).first()
+        if not getattr(g, "firebase_id", None):
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
 
-        if not user or not user.followed_artist:
+        user = Users.objects(firebase_id=g.firebase_id).first()
+        print("g.firebase_id: ", g.firebase_id)
+        if not user:
             return jsonify({
                 "status": "error",
-                "message": "No followed artists"
+                "message": "User not found"
             }), 404
+        followed = getattr(user, "followed_artist", []) or []
         # find all followed artist. return Artist object
-        followed = user.followed_artist
+        # followed = user.followed_artist
 
         artist_data = list()
         # get user followed artist
@@ -247,12 +250,12 @@ class UserController:
     @classmethod
     def check_user_exists(cls):
         data = request.get_json()
-        print("here", data)
         firebase_uid = data.get("firebase_id")
+
+        # firebase_uid = g.firebase_id
         user = Users.objects(firebase_id=firebase_uid).first()
 
         if user:
-            print(user)
             return jsonify({"exists": True})
         else:
             # no user data in database yet
