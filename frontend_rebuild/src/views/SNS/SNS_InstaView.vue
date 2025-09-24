@@ -77,11 +77,7 @@
         <v-divider></v-divider>
         <SNSHashtagAnalytics :iconSrc="iconSrc" :colors="colors" :value="instaJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics>
         <v-divider></v-divider>
-<<<<<<< HEAD
 <!--        <SNSTopicAnalytics :iconSrc="iconSrc" :colors="colors" :value="instaJSON.topAnalyticsValue"></SNSTopicAnalytics>-->
-=======
-        <SNSTopicAnalytics :iconSrc="iconSrc" :colors="colors" :value="instaJSON.topAnalyticsValue"></SNSTopicAnalytics>
->>>>>>> 3f258875d1e2733f3adbbcbd783eb3241815569b
         <v-divider></v-divider>
         <SNSAllPosts :platform="platform"></SNSAllPosts>
     </v-container>

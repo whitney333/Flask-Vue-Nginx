@@ -4,21 +4,6 @@
   import { useRouter } from 'vue-router';
 
   console.log("Running Layout...");
-  
-
-  const router = useRouter()
-  const { currentUser } = getAuth()
-
-  if (!currentUser) {
-    router.push('/auth/login')
-  } else {
-    const profile = await currentProfile()
-
-    if (!profile) {
-      router.push('/auth/register/details')
-    }
-
-  }
 
   // const router = useRouter()
   // const { currentUser } = getAuth()
