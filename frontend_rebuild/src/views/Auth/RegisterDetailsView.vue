@@ -70,10 +70,18 @@
             }
 
             // send register details to backend
-            const res = await axios.post('/user/v1/auth/register', userDetails)
+            const res = await axios.post(
+                '/user/v1/auth/register',
+                userDetails
+            )
             // fetch current user data from backend
             // get data from /v1/auth/firebaseId
-            const user_profile = await axios.get(`/user/v1/auth/${currentUser.uid}`)
+            const user_profile = await axios.get(
+                `/user/v1/auth/${currentUser.uid}`,
+                {headers: {
+                    "Content-Type": "application/json"
+                  }}
+            )
             console.log("user profile: ", user_profile)
             userStore.setFollowedArtists(user_profile.data.data["followed_artist"])
 
