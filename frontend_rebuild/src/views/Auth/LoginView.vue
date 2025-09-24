@@ -63,7 +63,7 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: result.user.accessToken
+              firebaseToken: idToken
             })
 
           // POST firebase_id to check if user exists
@@ -72,7 +72,7 @@
               {firebase_id: result.user.uid},
               {
                 headers: {
-                  Authorization: `Bearer ${result.user.accessToken}`
+                  Authorization: `Bearer ${idToken}`
                 }
               }
           );
@@ -87,7 +87,7 @@
             const getFollowedArtists = await axios.get(
                 "/user/v1/followed_artists", {
               headers: {
-                Authorization: `Bearer ${result.user.accessToken}`,
+                Authorization: `Bearer ${idToken}`,
                 timeout: 10000
               }
             });
