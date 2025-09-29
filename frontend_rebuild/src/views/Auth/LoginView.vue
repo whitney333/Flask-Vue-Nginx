@@ -196,10 +196,10 @@
     <v-container
         fluid
         class='fill-height align-start bg-grey-lighten-4'>
-        
+
         <v-card
             :loading="loadingBar"
-            class='ma-auto pb-10 pt-5'
+            class="ma-auto pb-10 pt-5 w-full max-w-[400px]"
             :width="450"
             rounded="xl"
         >
@@ -209,13 +209,12 @@
                     <img :src='mishkanLogo' alt="Mishkan"/>
                     <span class='text-h5'>{{ $t('Log in')}}</span>
                     <br />
-                    <v-form ref="form" v-model="valid" @submit.prevent="handleLogin" class="mb-2">
+                    <v-form ref="form" v-model="valid" @submit.prevent="handleLogin" class="w-full px-4">
                         <div class='flex-col flex justify-center ga-3'>
                             <div>
                             <v-text-field
                                 v-model="email"
-                                class='mb-1'
-                                :width="350"
+                                class='mb-1 w-full'
                                 :rules="emailRules"
                                 :label="$t('Email')"
                                 type="text"
@@ -226,8 +225,7 @@
                             ></v-text-field>
                             <v-text-field
                                 v-model="password"
-                                class='mb-1'
-                                :width="350"
+                                class='mb-1 w-full'
                                 :rules="passwordRules"
                                 type="password"
                                 :label="$t('Password')"
@@ -255,7 +253,7 @@
                     </v-form>
                         <div class="flex justify-space-around ga-3">
                             <v-btn size="large" color="#DB4437" :width="170" prepend-icon="mdi-google" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Google')" type="submit">Google</v-btn>
-                            <v-btn size="large" color="#1877F2" :width="170" prepend-icon="mdi-facebook" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Facebook')" type="submit">Facebook</v-btn>
+<!--                            <v-btn size="large" color="#1877F2" :width="170" prepend-icon="mdi-facebook" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Facebook')" type="submit">Facebook</v-btn>-->
                         </div>
                         <br />
                         <div class="flex flex-row align-center justify-center">
