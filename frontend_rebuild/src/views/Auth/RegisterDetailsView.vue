@@ -167,8 +167,7 @@
         
         <v-card
             :loading="loadingBar"
-            :class="['ma-auto', 'pb-10', 'pt-5']"
-            :width="450"
+            class="ma-auto pb-10 pt-5 w-full max-w-[400px]"
             rounded="xl"
         >
             <template v-slot:text>
@@ -177,14 +176,13 @@
                     <img :src='mishkanLogo' alt="Mishkan"/>
                     <span :class="['text-h5']">{{ $t('Tell us more about you')}}</span>
                     <br />
-                    <v-form ref="form" v-model="valid" @submit.prevent="handleCreateAccount" class="mb-2">
+                    <v-form ref="form" v-model="valid" @submit.prevent="handleCreateAccount" class="mb-2 w-full">
                         <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
                             <div>
                                 <div class='d-flex ga-3'>
                                     <v-text-field
                                         v-model="name.firstname"
-                                        :class="['mb-1']"
-                                        :width="150"
+                                        :class="['mb-1', 'w-full']"
                                         :rules="nameRules"
                                         :label="$t('First Name')"
                                         type="text"
@@ -195,8 +193,7 @@
                                     ></v-text-field>
                                     <v-text-field
                                         v-model="name.lastname"
-                                        :class="['mb-1']"
-                                        :width="150"
+                                        :class="['mb-1', 'w-full']"
                                         :rules="nameRules"
                                         :label="$t('Last Name')"
                                         type="text"
