@@ -516,7 +516,7 @@
         <v-slide-group
           show-arrows
           v-model="model"
-          :class="['pa-4']"
+          :class="['pa-4', 'mobile-slide-group']"
           selected-class="bg-success"
         >
         <v-slide-group-item
@@ -529,7 +529,6 @@
             />
         </v-slide-group-item>
       </v-slide-group>
-
       </template>
     </v-card>
     </v-container>
@@ -547,5 +546,10 @@
 .artist-item:hover {
   background-color: rgba(255, 255, 255, 0.05);
   cursor: pointer;
+}
+.mobile-slide-group {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

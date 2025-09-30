@@ -174,8 +174,7 @@
         
         <v-card
             :loading="loadingBar"
-            :class="['ma-auto', 'pb-10', 'pt-5']"
-            :width="450"
+            class="ma-auto pb-10 pt-5 w-full max-w-[400px]"
             rounded="xl"
         >
             <template v-slot:text>
@@ -184,13 +183,12 @@
                     <img :src='mishkanLogo' alt="Mishkan"/>
                     <span :class="['text-h5']">{{ $t('Create Account')}}</span>
                     <br />
-                    <v-form ref="form" v-model="valid" @submit.prevent class="mb-2">
+                    <v-form ref="form" v-model="valid" @submit.prevent class="mb-2 w-full">
                         <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
                             <div>
                                 <v-text-field
                                     v-model="email"
-                                    :class="['mb-1']"
-                                    :width="350"
+                                    :class="['mb-1', 'w-full']"
                                     :rules="emailRules"
                                     :label="$t('Email')"
                                     type="text"
@@ -201,8 +199,7 @@
                                 ></v-text-field>
                                 <v-text-field
                                     v-model="password"
-                                    :class="['mb-1']"
-                                    :width="350"
+                                    :class="['mb-1', 'w-full']"
                                     :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                                     :type="showPassword ? 'text' : 'password'"
                                     @click:append="showPassword = !showPassword"
@@ -215,8 +212,7 @@
                                 ></v-text-field>
                                 <v-text-field
                                     v-model="passwordConfirm"
-                                    :class="['mb-1']"
-                                    :width="350"
+                                    :class="['mb-1', 'w-full']"
                                     :rules="confirmPasswordRules"
                                     :append-icon="showConfirmedPassword ? 'mdi-eye' : 'mdi-eye-off'"
                                     :type="showConfirmedPassword ? 'text' : 'password'"
@@ -236,9 +232,9 @@
                             </v-divider>
                         </div>
                     </v-form>
-                        <div class="d-flex justify-space-around ga-3">
-                            <v-btn size="large" color="#DB4437" :width="170" prepend-icon="mdi-google" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Google')" type="submit">Google</v-btn>
-                            <v-btn size="large" color="#1877F2" :width="170" prepend-icon="mdi-facebook" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Facebook')" type="submit">Facebook</v-btn>
+                        <div class="d-flex justify-space-around ga-3 w-full">
+                            <v-btn size="large" color="#DB4437" prepend-icon="mdi-google" variant="outlined" class="flex-1" @click="() => handleProviderLogin('Google')" type="submit">Google</v-btn>
+                            <v-btn size="large" color="#1877F2" prepend-icon="mdi-facebook" variant="outlined" class="flex-1" @click="() => handleProviderLogin('Facebook')" type="submit">Facebook</v-btn>
                         </div>
                         <br />
                         <div class="d-flex flex-row align-center justify-center">

@@ -1,9 +1,16 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { ref, watch, defineEmits } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useDisplay } from 'vuetify'
+  import LangSwitcher from "@/components/LangSwitcher.vue";
 
   const mishkanIcon = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/sidebar_logo.svg"
-  const drawer = ref(true)
+
+  const props = defineProps({
+    modelValue: Boolean
+  })
+  const emit = defineEmits(['update:modelValue'])
+  const drawer = ref(props.modelValue)
   const rail = ref(true)
   const isHovered = ref(false);
   const router = useRouter()
@@ -91,6 +98,15 @@
     ],
   )
 
+  watch(() => props.modelValue, (val) => {
+    drawer.value = val
+  })
+  watch(drawer, (val) => {
+    emit('update:modelValue', val)
+  })
+
+  const display = useDisplay()
+
   const handleMouseEnter = () => {
     isHovered.value = true;
   };
@@ -115,14 +131,13 @@
  <template>
       <v-navigation-drawer
         fill-height
+        mobile-breakpoint="960"
         expand-on-hover
-        mobile-breakpoint="xs"
-        rail
-        permanent
+        :rail="display.mdAndUp.value"
+        :temporary="display.smAndDown.value"
         app
         :color="`#212121`"
         v-model="drawer"
-        :mini-variant.sync="mini"
       >
         <v-list>
           <v-list-item>
@@ -187,6 +202,13 @@
             </v-list-group>
           </template>
         </v-list>
+
+        <v-spacer />
+
+        <!-- only display in mobile version -->
+        <div v-show="display.smAndDown.value" class="drawer-bottom">
+          <LangSwitcher/>
+        </div>
       </v-navigation-drawer>
   </template>
 

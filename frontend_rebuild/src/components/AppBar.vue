@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router';
 import LangSwitcher from './LangSwitcher.vue'
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
 import { useI18n } from 'vue-i18n'
-import {ref, watch, computed, reactive, onMounted} from 'vue';
+import {ref, watch, defineEmits, computed, reactive, onMounted} from 'vue';
 import { useUserStore } from "@/stores/user"
 import { useArtistStore } from '@/stores/artist'
 import {getAuth} from "firebase/auth";
@@ -13,8 +13,11 @@ import axios from "@/axios.js";
 const { t, locale } = useI18n({ useScope: 'global' })
 const props = defineProps({
     isLoggedIn: Boolean,
-    handleSignOut: Function
+    handleSignOut: Function,
+    drawer: { type: Boolean, required: true }
 })
+defineEmits(["toggle-drawer"])
+
 
 // init user data & followed_artist ids
 const userStore = useUserStore()
@@ -67,9 +70,16 @@ const languages = [
 </script>
 
 <template>
-    <v-app-bar :elevation="1" app :style="{ padding: '0px 20px' }">        
-        <v-app-bar-title class="text-h5">{{ route.name }}</v-app-bar-title>
-        <template v-slot:append>
+    <v-app-bar :elevation="1" app :style="{ padding: '0px 20px' }">
+      <!-- display  hamburger menu in mobile version -->
+      <v-app-bar-nav-icon
+           class="d-md-none"
+           @click="$emit('toggle-drawer')"
+      />
+      <v-app-bar-title class="text-h5">{{ route.name }}</v-app-bar-title>
+      <!-- display in desktop version -->
+      <template v-slot:append>
+
             <v-menu>
                 <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" icon="mdi-web"></v-btn>
