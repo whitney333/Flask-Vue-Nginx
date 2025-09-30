@@ -63,7 +63,7 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: result.user.accessToken
+              firebaseToken: idToken
             })
 
           // POST firebase_id to check if user exists
@@ -72,24 +72,23 @@
               {firebase_id: result.user.uid},
               {
                 headers: {
-                  Authorization: `Bearer ${result.user.accessToken}`
+                  Authorization: `Bearer ${idToken}`
                 }
               }
           );
-            console.log("resp: ", response)
+
           // const token = response.data;
           // if data exists then return
           const {exists} = response.data
-          console.log("resp: ", response.data)
 
           // get followed artists list
           if (exists === true) {
             const getFollowedArtists = await axios.get(
-                "/user/v1/followed_artists", {
-              headers: {
-                Authorization: `Bearer ${result.user.accessToken}`,
-                timeout: 10000
-              }
+                "/user/v1/followed_artists",
+                {headers: {
+                Authorization: `Bearer ${idToken}`,
+              },
+              timeout: 10000
             });
             // store followed artist
             userStore.setFollowedArtists(getFollowedArtists.data.data || []);
@@ -160,17 +159,17 @@
             // const token = response.data;
             // if data exists then return
             const { exists } = response.data
-            // console.log("resp: ", response.data)
+            console.log("resp: ", response.data)
 
             // get followed artists list
             if (exists === true) {
               const getFollowedArtists = await axios.get(
-                  "/user/v1/followed_artists", {
-                headers: {
-                Authorization: `Bearer ${idToken}`,
-                timeout: 10000
-                }
-              });
+                  "/user/v1/followed_artists",
+                  {headers: {
+                     Authorization: `Bearer ${idToken}`,
+                  }}
+              );
+
               // store followed artist
               userStore.setFollowedArtists(getFollowedArtists.data.data || []);
               console.log("Followed Artists in store:", userStore.followedArtists);
@@ -254,6 +253,7 @@
                         <div class="flex justify-space-around ga-3">
                             <v-btn size="large" color="#DB4437" :width="170" prepend-icon="mdi-google" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Google')" type="submit">Google</v-btn>
 <!--                            <v-btn size="large" color="#1877F2" :width="170" prepend-icon="mdi-facebook" variant="outlined" class="px-auto text-none" @click="() => handleProviderLogin('Facebook')" type="submit">Facebook</v-btn>-->
+
                         </div>
                         <br />
                         <div class="flex flex-row align-center justify-center">

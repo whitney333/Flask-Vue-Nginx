@@ -3,7 +3,10 @@
   import { getAuth } from 'firebase/auth';
   import { useRouter } from 'vue-router';
 
-  console.log("Running Layout...");
+
+  // console.log("Running Layout...");
+  //
+  //
 
   // const router = useRouter()
   // const { currentUser } = getAuth()

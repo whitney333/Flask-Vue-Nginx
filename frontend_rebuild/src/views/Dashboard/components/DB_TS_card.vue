@@ -176,7 +176,6 @@ const getData = async () => {
     //         data: formattedData,
     //     }
     // ]
-    loadingBar.value = false
 }
 
 
