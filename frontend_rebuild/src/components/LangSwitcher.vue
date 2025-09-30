@@ -1,66 +1,58 @@
-<template>
-  <div class="locale-changer">
-    <v-row justify="space-around">
-      <v-menu
-          close-on-content-click
-          rounded="xl"
-          offset-y
-      >
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn
-              small
-              elevation="0"
-              v-bind="attrs"
-              v-on="on"
-              icon
-              class="mr-10"
-          >
-            <v-icon>mdi-translate</v-icon>
-          </v-btn>
-        </template>
-        <v-list flat>
-          <v-list-item-group
-              v-model="$i18n.locale"
-              color="deep-purple darken-1"
-              mandatory
-          >
-            <v-list-item
-                v-for="(lang, i) in langs"
-                :key="`Lang${i}`"
-                :value="lang.name"
-            >
-              <v-list-item-icon>
-                <v-img :src="lang.flag"
-                  width="15px" height="15px"
-                ></v-img>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title>{{ lang.show }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
-        </v-list>
-      </v-menu>
-    </v-row>
-  </div>
-</template>
-<script>
-export default {
-  name: "LangSwitcher",
-  data() {
-    return {
-      langs: [
-        {'name': 'kr',
-         'show': '한국어',
-         'flag': 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/flags/kr.svg'
-        },
-        {'name': 'en',
-         'show': 'English',
-         'flag': 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/flags/us.svg'}
-      ]
-    }
-  }
+<script setup>
+import { useI18n } from 'vue-i18n'
+import getUnicodeFlagIcon from 'country-flag-icons/unicode'
+import {ref, onMounted} from "vue";
+
+const { locale } = useI18n()
+const languages = [
+    {
+        lang: 'English',
+        value: 'en',
+        title: `${getUnicodeFlagIcon(countriesFlag['United Kingdom'])} English`
+    },
+    {
+        lang: '한국어',
+        value: 'kr',
+        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} 한국어`,
+    }]
+
+const lang = ref('en')
+
+const currentFlag = computed(() => {
+  const lang = languages.find(l => l.code === locale.value)
+  return lang ? lang.flag : '🌐'
+})
+
+function setLang(code) {
+  locale.value = code
 }
+
+onMounted(() => {
+  const saved = localStorage.getItem('locale')
+  if (saved) locale.value = saved
+})
+
 </script>
+
+<template>
+  <v-menu>
+    <template v-slot:activator="{ props }">
+      <v-btn v-bind="props" icon>
+        {{ currentFlag }}
+      </v-btn>
+    </template>
+
+    <v-list>
+      <v-list-item
+          v-for="lang in languages"
+          :key="lang.name"
+          @click="setLang(lang.name)"
+      >
+        <v-list-item-title>{{ lang.show }} {{ lang.flag }}</v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
+</template>
+
 <style scoped>
 </style>

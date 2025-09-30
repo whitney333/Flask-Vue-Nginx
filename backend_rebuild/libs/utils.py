@@ -49,7 +49,8 @@ def auth_required(f):
 
         try:
             decoded_token = verify_firebase_token(token)
-            print(decoded_token)
+            if not decoded_token:
+                return jsonify({"error": "Invalid token"}), 401
         except Exception as e:
             return jsonify({"error": f"Invalid token: {str(e)}"}), 401
 

@@ -60,9 +60,9 @@
     fluid
     :class="['bg-grey-lighten-4']">
         <div
-        class="flex w-full justify-center my-10">
+        class="flex justify-center my-10">
             <div
-            class="ga-4 justify-center flex flex-wrap ">
+            class="gap-4 justify-center flex flex-wrap ">
                 <div v-for="(card, index) in cardValueLists" :key="index">
                     <SNSCard :iconSrc="iconSrc" :colors="colors" :value="card" ></SNSCard>
                 </div>
