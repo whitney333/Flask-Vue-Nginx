@@ -9,3 +9,20 @@ campaign_api = Api(campaign_bp)
 @campaign_bp.route("/v1/create", methods=["POST"])
 def create_campaign():
     return CampaignController.create_campaign()
+
+@campaign_bp.route("/v1/read", methods=["GET"])
+def get_all_campaign_by_user_id():
+    result = CampaignController.get_all_campaign_by_user_id()
+
+    return result
+
+@campaign_bp.route("/v1/cancel/<string:campaign_id>", methods=["PATCH"])
+def cancel_campaign(campaign_id):
+    result = CampaignController.cancel_campaign(campaign_id)
+
+    return result
+
+@campaign_bp.route("/v1/detail/<string:campaign>", methods=["GET"])
+def get_per_campaign_detail():
+    pass
+

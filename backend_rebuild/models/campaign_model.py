@@ -24,13 +24,28 @@ class CampaignPost(EmbeddedDocument):
     cost_per_reach = Decimal128Field()
     cost_per_view = Decimal128Field()
 
+class CampaignTotalCountry(EmbeddedDocument):
+    name = StringField(required=False)
+    count = IntField(required=False)
+    region = StringField(required=False)
+
+class CampaignTotalPlatform(EmbeddedDocument):
+    name = StringField(required=False)
+    count = IntField(required=False)
 
 class Campaign(Document):
     campaign_id = StringField(required=True, unique=True)
     user_id = ReferenceField(Users, required=True)
     created_at = DateTimeField(default=datetime.now())
-    artist = ReferenceField(Artists, required=True)
+    status = StringField(required=True)
+    artist_id = ReferenceField(Artists, required=True)
+    artist_en_name = StringField(required=True)
+    artist_kr_name = StringField(required=True)
     platform = ListField(required=True)
     region = ListField(required=True)
     budget = StringField(required=True)
-    post = ListField(EmbeddedDocumentField(CampaignPost))
+    post = ListField(EmbeddedDocumentField(CampaignPost), default=lambda: [])
+    total_cost = FloatField(null=True, required=False)
+    total_reach = IntField(null=True, required=False)
+    total_country = ListField(EmbeddedDocumentField(CampaignTotalCountry), default=lambda: [])
+    total_platform = ListField(EmbeddedDocumentField(CampaignTotalPlatform), default=lambda: [])
