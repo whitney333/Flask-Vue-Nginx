@@ -15,7 +15,10 @@
     import { Book, Captions, Clipboard, DollarSign, File, FileTextIcon, Globe, Box, Link, RadioTower, Share2 } from 'lucide-vue-next';
     import { useArtistStore } from "@/stores/artist.js";
     import { useUserStore } from "@/stores/user.js";
+    import axios from '@/axios';
+    import { useRouter } from 'vue-router';
 
+    const router = useRouter()
     const artistStore = useArtistStore()
     const userStore = useUserStore()
     const followedArtists = userStore.followedArtists
@@ -38,11 +41,17 @@
       { name: "Bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
     ]
 
-    
+    const snackbar = ref({
+      show: false,
+      text: "",
+      color: "green",
+    });
+    const campaign_init_status = "submitted"
+    const loading = ref(false)
     const region = ref([])
     // default expand the artist panel
     const state = ref('artist')
-    const budgetRange = ['Less than US$50', 'US$50 - US$500', 'US$500 - US$5,000', 'More than US$5000']
+    const budgetRange = ['Less than US$100', 'US$100 - US$1,000', 'US$1,000 - US$5,000', 'US$5,000 - US$10,000', 'More than US$10,000']
     const budget = ref(budgetRange[0])
 
     const screenWidth = ref(window.innerWidth);
@@ -84,6 +93,8 @@
 
     const onSubmitted = () => {
       console.log('Submitted', {
+        firebase_id: userStore.firebase_id,
+        email: userStore.email,
         artist: selectedArtist.value,
         region: region.value.map((r) => indexToCountry[r]),
         platform: platform.value.map((i) => platforms[i].name),
@@ -93,9 +104,42 @@
     }
 
     const submitCampaign = async () => {
-      const res = await axios.post(
+      try {
+        const data = {
+          firebase_id: userStore.firebase_id,
+          email: userStore.email,
+          artist_id: selectedArtist.value.artist_id,
+          artist_en_name: selectedArtist.value.english_name,
+          artist_kr_name: selectedArtist.value.korean_name,
+          region: region.value.map((r) => indexToCountry[r]),
+          platform: platform.value.map((i) => platforms[i].name),
+          budget: budget.value,
+          status: campaign_init_status
+        }
+        const res = await axios.post(
+            "/campaign/v1/create",
+            data,
+            {
+              headers: {
+                "Authorization": `Bearer ${userStore.firebaseToken}`,
+                "Content-Type": "application/json"
+              }
+            }
+        )
+        // created success
+        snackbar.value.text = "Campaign created successfully!";
+        snackbar.value.color = "green";
+        snackbar.value.show = true;
 
-      )
+        setTimeout(() => {
+          router.push("/campaign/posts");
+        }, 2000);
+      } catch (err) {
+        // create failed
+        snackbar.value.text = "Failed to create campaign!";
+        snackbar.value.color = "red";
+        snackbar.value.show = true;
+      }
     }
 
 
@@ -406,7 +450,7 @@
                 </div>
                 <v-row>
                   <v-col cols="12">
-                    <v-select 
+                    <v-select
                       class="mx-auto font-sans"
                       bg-color="#FFFFFF"
                       :minWidth="200"
@@ -677,9 +721,11 @@
                     </span>
                   </v-btn>
                   <v-btn color='black'
-                  class="w-32 text-none rounded-pill text-white"
-                  @click="onSubmitted">
-                    <span class="font-medium">
+                    class="w-32 text-none rounded-pill text-white"
+                    @click="submitCampaign"
+                    :loading="loading"
+                  >
+                    <span v-if="!loading" class="font-medium">
                       {{ $t('Submit') }}
                     </span>
                   </v-btn>
@@ -692,7 +738,14 @@
         </v-card-text>
 
       </v-card>
-
+      <v-snackbar
+          v-model="snackbar.show"
+          :timeout="2000"
+          :color="snackbar.color"
+          class="text-white"
+      >
+        {{ snackbar.text }}
+      </v-snackbar>
     </v-container>
 </template>
 

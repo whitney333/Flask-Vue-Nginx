@@ -22,23 +22,23 @@ const selectedCampaign = ref(null)
 //     { id: 1, title: 'Post 1', description: 'Description 1', platform: 'tiktok', countries: ['Taiwan', 'Hong Kong', 'Japan'], budget: 'US$50 - US$500' },
 // ];
 
-// open cancel dialog
-const openCancelDialog = (campaignId) => {
-  console.log("openCancelDialog got id:", campaignId);
-  targetCampaignId.value = campaignId
-  showCancelDialog.value = true
-};
-
 // open detail dialog
 const openDialog = (campaign) => {
-  console.log("openDialog got id:", campaign);
+  // console.log("openDialog got id:", campaign);
   selectedCampaign.value = campaign
   dialog.value = true
 }
 
+// open cancel dialog
+const openCancelDialog = (campaignId) => {
+  // console.log("openCancelDialog got id:", campaignId);
+  targetCampaignId.value = campaignId
+  showCancelDialog.value = true
+};
+
 // soft delete campaign
-const confirmCancel = async (campaignId) => {
-  console.log("confirmCancel got id:", campaignId);
+const confirmCancel = async () => {
+  // console.log("confirmCancel got id:", targetCampaignId.value);
   try {
     if (!targetCampaignId.value) {
       console.error("No campaign ID found")
@@ -46,7 +46,7 @@ const confirmCancel = async (campaignId) => {
     }
 
     const res = await axios.patch(
-        `/campaign/v1/cancel/${campaignId}`,
+        `/campaign/v1/cancel/${targetCampaignId.value}`,
         {status: "cancelled"},
         {headers: {
             Authorization:  `Bearer ${userStore.firebaseToken}`,
@@ -54,6 +54,11 @@ const confirmCancel = async (campaignId) => {
           }}
     )
     // console.log(res.data)
+    //change status to cancelled
+    const campaign = campaigns.value.find(
+        (c) => c.campaign_id === targetCampaignId.value
+    );
+    if (campaign) campaign.status = "cancelled";
     showCancelDialog.value = false
     alert("Campaign cancelled successfully!")
   } catch (err) {
@@ -74,6 +79,7 @@ const getAllCampaign = async () => {
     )
 
     campaigns.value = res.data.data
+    console.log(campaigns.value)
   } catch (err) {
     console.error("Error loading campaigns:", err)
   }
@@ -276,7 +282,7 @@ const getStatusColor = (status) => {
               </v-dialog>
               <!-- open cancel dialog -->
               <v-btn
-                  @click="openCancelDialog(campaign)"
+                  @click="openCancelDialog(campaign.campaign_id)"
                   color="red"
                   variant="outlined"
               >
