@@ -28,9 +28,7 @@
       title: '',
       description: '',
       hashtag: [],
-      text: '',
       url: '',
-      file: null,
     })
 
     const platforms = [
@@ -40,6 +38,15 @@
       { name: "Rednote", icon: xiaohongshuIcon, color: "#FF2442", blackIcon: xiaohongshuBlackIcon},
       { name: "Bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
     ]
+
+    const addHashtag = (event) => {
+      const value = event.target.value.trim()
+      if (value && !post.value.hashtag.includes(value)) {
+        const formatted = value.startsWith('#') ? value : `#${value}`
+        post.value.hashtag.push(formatted)
+      }
+      event.target.value = ''
+    }
 
     const snackbar = ref({
       show: false,
@@ -114,8 +121,10 @@
           region: region.value.map((r) => indexToCountry[r]),
           platform: platform.value.map((i) => platforms[i].name),
           budget: budget.value,
+          info: post.value,
           status: campaign_init_status
         }
+        // console.log("cp: ", data)
         const res = await axios.post(
             "/campaign/v1/create",
             data,
@@ -155,7 +164,7 @@
         >
         <v-card-title class="my-5">
           <span class="text-h4">
-            {{ $t('Create Your Post') }}
+            {{ $t('campaign.create_your_post') }}
           </span>
         </v-card-title>
         <v-card-text>
@@ -166,7 +175,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-                    {{ $t('Select Artist') }}
+                    {{ $t('campaign.select_artist') }}
                   </span>
                 </v-col>
                 <v-col
@@ -233,7 +242,7 @@
                   class="w-32 text-none rounded-pill text-white"
                   @click="() => changeState('region')">
                     <span class="font-medium">
-                      {{ $t('Next') }}
+                      {{ $t('campaign.next') }}
                     </span>
                   </v-btn>
                 </div>
@@ -248,7 +257,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-                    {{ $t('Select Region') }}
+                    {{ $t('campaign.select_region') }}
                   </span>
                 </v-col>
                 <v-col
@@ -261,7 +270,7 @@
                       key="1"
                       class="text-lg font-medium capitalize"
                     >
-                      {{ region == '' ? '' :  region.map((r) => indexToCountry[r]).join(' | ')}}
+                      {{ region == '' ? '' :  region.map((r) => $t(`\country.${indexToCountry[r]}`)).join(' | ')}}
                     </span>
                   </v-fade-transition>
                 </v-col>
@@ -275,12 +284,12 @@
                     <v-row v-for="(reg, i) in Object.keys(regions)" :key="i" class="mb-5">
                       <v-col md="2" cols="12">
                         <span class="text-xl font-medium">
-                          {{ $t(reg) }}
+                          {{ $t(`country.${reg}`) }}
                         </span>
                       </v-col>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                           <v-col
-                            v-for="(country, j) in regions[reg]"
+                            v-for="(_country, j) in regions[reg]"
                             :key="j"
                           >
                             <v-item v-slot="{ isSelected, toggle }">
@@ -296,7 +305,7 @@
                                   <div
                                     class="flex-grow-1 text-center text-md font-medium"
                                   >
-                                    {{ $t(country) }}
+                                    {{ $t(`country.${_country}`) }}
                                   </div>
                                 </v-scroll-y-transition>
                               </v-card>
@@ -315,7 +324,7 @@
                       class="w-32 text-none rounded-pill"
                       @click="() => changeState('artist')">
                     <span class="font-medium">
-                      {{ $t('Previous') }}
+                      {{ $t('campaign.previous') }}
                     </span>
                   </v-btn>
                 </div>
@@ -324,7 +333,7 @@
                          class="w-32 text-none rounded-pill text-white"
                          @click="() => changeState('platform')">
                   <span class="font-medium">
-                    {{ $t('Next') }}
+                    {{ $t('campaign.next') }}
                   </span>
                   </v-btn>
                 </div>
@@ -337,7 +346,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-                    {{ $t('Select Platform') }}
+                    {{ $t('campaign.select_platform') }}
                   </span>
                 </v-col>
                 <v-col
@@ -350,7 +359,7 @@
                       key="1"
                       class="text-lg font-medium capitalize"
                     >
-                      {{ platform == '' ? '' : platform.map((i) => platforms[i].name).join(' | ') }}
+                      {{ platform == '' ? '' : platform.map((i) => $t(`\sns.${platforms[i].name}`)).join(' | ') }}
                     </span>
                   </v-fade-transition>
                 </v-col>
@@ -401,7 +410,7 @@
                   class="w-32 text-none rounded-pill"
                   @click="() => changeState('region')">
                     <span class="font-medium">
-                      {{ $t('Previous') }}
+                      {{ $t('campaign.previous') }}
                     </span>
                   </v-btn>
                 </div>
@@ -410,7 +419,7 @@
                   class="w-32 text-none rounded-pill text-white"
                   @click="() => changeState('budget')">
                     <span class="font-medium">
-                      {{ $t('Next') }}
+                      {{ $t('campaign.next') }}
                     </span>
                   </v-btn>
                 </div>
@@ -423,7 +432,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-                    {{ $t('Budget') }}
+                    {{ $t('campaign.budget') }}
                   </span>
                 </v-col>
                 <v-col
@@ -446,7 +455,7 @@
             <v-expansion-panel-text>
               <v-container class="max-w-screen-md">
                 <div class="text-xl font-medium text-center mb-5">
-                  Enter your budget
+                  {{ $t("campaign.enter_your_budget") }}
                 </div>
                 <v-row>
                   <v-col cols="12">
@@ -474,15 +483,15 @@
                   class="w-32 text-none rounded-pill"
                   @click="() => changeState('platform')">
                     <span class="font-medium">
-                      {{ $t('Previous') }}
+                      {{ $t('campaign.previous') }}
                     </span>
                   </v-btn>
 
                   <v-btn color='black'
                   class="w-32 text-none rounded-pill text-white"
-                  @click="() => changeState('complete')">
+                  @click="() => changeState('post')">
                     <span class="font-medium">
-                      {{ $t('Next') }}
+                      {{ $t('campaign.next') }}
                     </span>
                   </v-btn>
 
@@ -491,43 +500,43 @@
             </v-expansion-panel-text>
           </v-expansion-panel>
           <!--  post panel  -->
-<!--          <v-expansion-panel value="post" class="mb-5" >-->
-<!--            <v-expansion-panel-title v-slot="{ expanded }">-->
-<!--              <v-row no-gutters class="items-center">-->
-<!--                <v-col class="d-flex justify-start" cols="12" lg="4">-->
-<!--                  <span class="text-2xl font-medium">-->
-<!--                    {{ $t('Post') }}-->
-<!--                  </span>-->
-<!--                </v-col>-->
-<!--              </v-row>-->
-<!--            </v-expansion-panel-title>-->
-<!--            <v-expansion-panel-text>-->
-<!--              <v-container class="max-w-screen-md">-->
-<!--                <div class="text-xl font-medium mb-1">-->
-<!--                  {{ $t('Title') }}-->
-<!--                </div>-->
-<!--                <v-text-field-->
-<!--                  v-model="post.title"-->
-<!--                  variant="outlined"-->
-<!--                  rounded="xl"-->
-<!--                  dense-->
-<!--                  placeholder="Title"-->
-<!--                  :rules="[v => !!v || 'Post title is required']"-->
-<!--                ></v-text-field>-->
-<!--                <div class="text-xl font-medium mb-1">-->
-<!--                  {{ $t('Description') }}-->
-<!--                </div>-->
-<!--                <v-text-field-->
-<!--                  v-model="post.description"-->
-<!--                  variant="outlined"-->
-<!--                  rounded="xl"-->
-<!--                  dense-->
-<!--                  placeholder="Description"-->
-<!--                  :rules="[v => !!v || 'Post description is required']"-->
-<!--                ></v-text-field>-->
-<!--                <div class="text-xl font-medium mb-1">-->
-<!--                  {{ $t('Hashtags') }}-->
-<!--                </div>-->
+          <v-expansion-panel value="post" class="mb-5" >
+            <v-expansion-panel-title v-slot="{ expanded }">
+              <v-row no-gutters class="items-center">
+                <v-col class="d-flex justify-start" cols="12" lg="4">
+                  <span class="text-2xl font-medium">
+                    {{ $t('campaign.post') }}
+                  </span>
+                </v-col>
+              </v-row>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-container class="max-w-screen-md">
+                <div class="text-xl font-medium mb-1">
+                  {{ $t('campaign.title') }}
+                </div>
+                <v-text-field
+                  v-model="post.title"
+                  variant="outlined"
+                  rounded="xl"
+                  dense
+                  placeholder="Title"
+                  :rules="[v => !!v || 'Post title is required']"
+                ></v-text-field>
+                <div class="text-xl font-medium mb-1">
+                  {{ $t('campaign.description') }}
+                </div>
+                <v-text-field
+                  v-model="post.description"
+                  variant="outlined"
+                  rounded="xl"
+                  dense
+                  placeholder="Description"
+                  :rules="[v => !!v || 'Post description is required']"
+                ></v-text-field>
+                <div class="text-xl font-medium mb-1">
+                  {{ $t('campaign.hashtags') }}
+                </div>
 <!--                <v-textarea-->
 <!--                    v-model="post.hashtag"-->
 <!--                    variant="outlined"-->
@@ -535,8 +544,20 @@
 <!--                    rows="3"-->
 <!--                    dense-->
 <!--                    placeholder="Hashtags you want to include in your posts/reels"-->
-<!--                    :rules="[v => !!v || 'Post text is required']"-->
+<!--                    :rules="[v => !!v || 'Hashtags are required']"-->
 <!--                ></v-textarea>-->
+                <v-combobox
+                    v-model="post.hashtag"
+                    variant="outlined"
+                    rounded="xl"
+                    multiple
+                    chips
+                    deletable-chips
+                    clearable
+                    placeholder="Press Enter to add hashtag"
+                    :rules="[v => v.length > 0 || 'At least one hashtag required']"
+                    @keydown.enter.prevent="addHashtag"
+                ></v-combobox>
 <!--                <div class="text-xl font-medium mb-1">-->
 <!--                  {{ $t('Content') }}-->
 <!--                </div>-->
@@ -549,17 +570,17 @@
 <!--                  placeholder="What is on your mind?"-->
 <!--                  :rules="[v => !!v || 'Post text is required']"-->
 <!--                ></v-textarea>-->
-<!--                <div class="text-xl font-medium mb-1">-->
-<!--                  {{ $t('URL') }}-->
-<!--                </div>-->
-<!--                <v-text-field-->
-<!--                  v-model="post.url"-->
-<!--                  variant="outlined"-->
-<!--                  rounded="xl"-->
-<!--                  dense-->
-<!--                  prepend-inner-icon="mdi-link"-->
-<!--                  placeholder="Are there any links you’d like to share with us, for example cloud folders?"-->
-<!--                ></v-text-field>-->
+                <div class="text-xl font-medium mb-1">
+                  {{ $t('campaign.url') }}
+                </div>
+                <v-text-field
+                  v-model="post.url"
+                  variant="outlined"
+                  rounded="xl"
+                  dense
+                  prepend-inner-icon="mdi-link"
+                  placeholder="Are there any links you’d like to share with us, for example cloud folders?"
+                ></v-text-field>
 <!--                <v-file-input-->
 <!--                  v-model="post.file"-->
 <!--                  dense-->
@@ -571,36 +592,36 @@
 <!--                  placeholder="Upload file"-->
 <!--                  label="Attached file"-->
 <!--                ></v-file-input>-->
-<!--              </v-container>-->
-<!--              <div class="my-5 flex justify-center items-center gap-10">-->
-<!--                <v-btn-->
-<!--                variant="outlined"-->
-<!--                color='black'-->
-<!--                class="w-32 text-none rounded-pill"-->
-<!--                @click="() => changeState('budget')">-->
-<!--                  <span class="font-medium">-->
-<!--                    {{ $t('Previous') }}-->
-<!--                  </span>-->
-<!--                </v-btn>-->
+              </v-container>
+              <div class="my-5 flex justify-center items-center gap-10">
+                <v-btn
+                variant="outlined"
+                color='black'
+                class="w-32 text-none rounded-pill"
+                @click="() => changeState('budget')">
+                  <span class="font-medium">
+                    {{ $t('campaign.previous') }}
+                  </span>
+                </v-btn>
 
-<!--                <v-btn color='black'-->
-<!--                class="w-32 text-none rounded-pill text-white"-->
-<!--                @click="() => changeState('complete')">-->
-<!--                  <span class="font-medium">-->
-<!--                    {{ $t('Next') }}-->
-<!--                  </span>-->
-<!--                </v-btn>-->
-<!--              </div>-->
+                <v-btn color='black'
+                class="w-32 text-none rounded-pill text-white"
+                @click="() => changeState('complete')">
+                  <span class="font-medium">
+                    {{ $t('campaign.next') }}
+                  </span>
+                </v-btn>
+              </div>
 
-<!--            </v-expansion-panel-text>-->
-<!--          </v-expansion-panel>-->
+            </v-expansion-panel-text>
+          </v-expansion-panel>
           <!--  complete panel  -->
           <v-expansion-panel value="complete" class="mb-5" >
             <v-expansion-panel-title v-slot="{ expanded }">
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="4">
                   <span class="text-h5">
-                    {{ $t('Complete') }}
+                    {{ $t('campaign.complete') }}
                   </span>
                 </v-col>
               </v-row>
@@ -609,13 +630,13 @@
               <!-- Review all selected data -->
               <v-container class="max-w-screen-md">
                 <p class="text-3xl font-medium my-5">
-                  {{ $t('Details') }}
+                  {{ $t('campaign.details') }}
                 </p>
                 <div class="grid lg:grid-cols-4 grid-flow-cols-1 gap-3">
                   <span className="text-lg text-gray-500 col-span-1">
                     <div class="flex items-center gap-2">
                       <Box class="size-4"/>
-                      {{ $t('Artist') }}
+                      {{ $t('campaign.artist') }}
                     </div>
                   </span>
                   <span class="text-lg col-span-3">
@@ -624,25 +645,25 @@
                   <span className="text-lg text-gray-500 col-span-1">
                     <div class="flex items-center gap-2">
                       <Globe class="size-4"/>
-                      {{ $t('Regions') }}
+                      {{ $t('campaign.regions') }}
                     </div>
                   </span>
                   <span class="text-lg col-span-3">
-                        {{ region.map((r) => indexToCountry[r]).join(', ') || $t('') }}
+                        {{ region.map((r) => $t(indexToCountry[r])).join(', ') || $t('') }}
                   </span>
                   <span className="text-lg text-gray-500 col-span-1">
                     <div class="flex items-center gap-2">
                       <Share2 class="size-4"/>
-                      {{ $t('Platforms') }}
+                      {{ $t('campaign.platforms') }}
                     </div>
                   </span>
                   <span class="text-lg col-span-3">
-                      {{ platform.map((i) => platforms[i].name).join(', ') || $t('') }}
+                      {{ platform.map((i) => $t(platforms[i].name)).join(', ') || $t('') }}
                   </span>
                   <span className="text-lg text-gray-500 col-span-1">
                     <div class="flex items-center gap-2">
                       <DollarSign class="size-4"/>
-                      {{ $t('Budget') }}
+                      {{ $t('campaign.budget') }}
                     </div>
                   </span>
                   <span class="text-lg col-span-3">
@@ -650,42 +671,51 @@
                   </span>
                 </div>
 
-<!--                <p class="text-3xl font-medium mb-5 mt-7">-->
-<!--                  {{ $t('Post') }}-->
-<!--                </p>-->
-<!--                <div class="grid lg:grid-cols-4 grid-flow-cols-1 gap-3">-->
-<!--                  <span className="text-lg text-gray-500 col-span-1">-->
-<!--                    <div class="flex items-center gap-2">-->
-<!--                      <Clipboard class="size-4"/>-->
-<!--                      {{ $t('Title') }}-->
-<!--                    </div>-->
-<!--                  </span> -->
-<!--                  <span class="text-lg col-span-4">-->
-<!--                    {{ post.title || $t('') }}-->
-<!--                  </span>-->
-<!--                  <span className="text-lg text-gray-500 col-span-1">-->
-<!--                    <div class="flex items-center gap-2">-->
-<!--                      <Captions class="size-4"/>-->
-<!--                      {{ $t('Description') }}-->
-<!--                    </div>-->
-<!--                  </span> -->
-<!--                  <span class="text-lg col-span-4">-->
-<!--                    {{ post.description || $t('') }}-->
-<!--                  </span>-->
-<!--                  <span className="text-lg text-gray-500 col-span-1">-->
-<!--                    <div class="flex items-center gap-2">-->
-<!--                      <Link class="size-4"/>-->
-<!--                      {{ $t('URL') }}-->
-<!--                    </div>-->
-<!--                  </span>-->
-<!--                  <span class="text-lg col-span-4">-->
-<!--                    <span v-if="post.url" @click="handleVisit" class="cursor-pointer hover:underline">-->
-<!--                      {{ post.url }}-->
-<!--                    </span>-->
-<!--                    <span class="text-lg" v-else>-->
-<!--                      {{ $t('') }}-->
-<!--                    </span>-->
-<!--                  </span>-->
+                <p class="text-3xl font-medium mb-5 mt-7">
+                  {{ $t('campaign.post') }}
+                </p>
+                <div class="grid lg:grid-cols-4 grid-flow-cols-1 gap-3">
+                  <span className="text-lg text-gray-500 col-span-1">
+                    <div class="flex items-center gap-2">
+                      <Clipboard class="size-4"/>
+                      {{ $t('campaign.title') }}
+                    </div>
+                  </span>
+                  <span class="text-lg col-span-4">
+                    {{ post.title || $t('') }}
+                  </span>
+                  <span className="text-lg text-gray-500 col-span-1">
+                    <div class="flex items-center gap-2">
+                      <Captions class="size-4"/>
+                      {{ $t('campaign.description') }}
+                    </div>
+                  </span>
+                  <span class="text-lg col-span-4">
+                    {{ post.description || $t('') }}
+                  </span>
+                  <span className="text-lg text-gray-500 col-span-1">
+                    <div class="flex items-center gap-2">
+                      <Captions class="size-4"/>
+                      {{ $t('campaign.hashtags') }}
+                    </div>
+                  </span>
+                  <span class="text-lg col-span-4">
+                    {{ post.hashtag || $t('') }}
+                  </span>
+                  <span className="text-lg text-gray-500 col-span-1">
+                    <div class="flex items-center gap-2">
+                      <Link class="size-4"/>
+                      {{ $t('campaign.url') }}
+                    </div>
+                  </span>
+                  <span class="text-lg col-span-4">
+                    <span v-if="post.url" @click="handleVisit" class="cursor-pointer hover:underline">
+                      {{ post.url }}
+                    </span>
+                    <span class="text-lg" v-else>
+                      {{ $t('') }}
+                    </span>
+                  </span>
 <!--                  <span className="text-lg text-gray-500 col-span-1">-->
 <!--                    <div class="flex items-center gap-2">-->
 <!--                      <File class="size-4"/>-->
@@ -704,7 +734,7 @@
 <!--                  <v-textarea rows="2" rounded="xl" auto-grow variant="outlined" :model-value="post.text || $t('')" class="text-lg col-span-5" readonly>-->
 <!--                  </v-textarea>-->
 
-<!--                </div>-->
+                </div>
               </v-container>
 
               <div class="flex justify-center items-center gap-10">
@@ -715,9 +745,9 @@
                   variant="outlined"
                   color='black'
                   class="w-32 text-none rounded-pill "
-                  @click="() => changeState('budget')">
+                  @click="() => changeState('post')">
                     <span class="font-medium">
-                      {{ $t('Previous') }}
+                      {{ $t('campaign.previous') }}
                     </span>
                   </v-btn>
                   <v-btn color='black'
@@ -726,7 +756,7 @@
                     :loading="loading"
                   >
                     <span v-if="!loading" class="font-medium">
-                      {{ $t('Submit') }}
+                      {{ $t('campaign.submit') }}
                     </span>
                   </v-btn>
                 </div>
@@ -740,9 +770,10 @@
       </v-card>
       <v-snackbar
           v-model="snackbar.show"
-          :timeout="2000"
+          :timeout="5000"
           :color="snackbar.color"
           class="text-white"
+          location="top"
       >
         {{ snackbar.text }}
       </v-snackbar>
