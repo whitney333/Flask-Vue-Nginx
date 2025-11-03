@@ -136,9 +136,9 @@
 
         try {
             const result = await signInWithPopup(getAuth(), provider)
-            // console.log(result.user);
-            const idToken = await result.user.getIdToken();
 
+            const idToken = await result.user.getIdToken();
+            console.log("tk: ", idToken)
             // store to userStore
             userStore.setUser({
               firebase_id: result.user.uid,
@@ -159,7 +159,7 @@
             // const token = response.data;
             // if data exists then return
             const { exists } = response.data
-            console.log("resp: ", response.data)
+            // console.log("resp: ", response.data)
 
             // get followed artists list
             if (exists === true) {
@@ -172,7 +172,7 @@
 
               // store followed artist
               userStore.setFollowedArtists(getFollowedArtists.data.data || []);
-              console.log("Followed Artists in store:", userStore.followedArtists);
+              // console.log("Followed Artists in store:", userStore.followedArtists);
               // redirect to /dashboard
               router.push("/dashboard");
             } else {

@@ -14,7 +14,7 @@ const firebase = async () => {
     };
 
     initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    getAuth(app);
     console.log("Firebase running...");
 
 }
