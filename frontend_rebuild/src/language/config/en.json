@@ -182,7 +182,10 @@
     "press_enter_to_add_hashtag": "Press Enter to add hashtag",
     "post": "Post",
     "complete": "Complete",
-    "details": "Details"
+    "details": "Details",
+    "no_campaigns": "No campaigns yet",
+    "no_campaigns_hint": "Start by creating your first campaign.",
+    "create_first_campaign": "Create Campaign"
   },
   "Log in": "Log in",
   "Email": "Email",
