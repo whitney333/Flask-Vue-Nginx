@@ -38,9 +38,9 @@
             userStore.reset()
             artistStore.reset()
             router.push("/auth/login")
-            console.log("Logout success!");
-            console.log("artist: ", artistStore)
-            console.log("user: ", userStore)
+            // console.log("Logout success!");
+            // console.log("artist: ", artistStore)
+            // console.log("user: ", userStore)
             
         } catch(e) {
             console.error("Sign-out error: ", e);
