@@ -229,7 +229,7 @@ const getData = async () => {
             <AreaCharts width="100%" height="100%" :series="series" :chartOptions="chartOptions" ></AreaCharts>
         </v-card-text>
     </v-card>
-    
+
 </template>
 
 <style scoped>
