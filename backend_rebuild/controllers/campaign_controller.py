@@ -5,7 +5,46 @@ from flask import request, jsonify
 from firebase_admin import auth
 import datetime
 import uuid
+from bson import ObjectId, Decimal128
 
+
+def convert_value(v):
+    """
+    convert value to SON-friendly
+    """
+    if isinstance(v, ObjectId):
+        return str(v)
+    elif isinstance(v, datetime.datetime):
+        return v.isoformat()
+    elif isinstance(v, Decimal128):
+        return float(v.to_decimal())
+    elif isinstance(v, list):
+        return [convert_value(i) for i in v]
+    elif isinstance(v, dict):
+        return {k: convert_value(val) for k, val in v.items()}
+    else:
+        return v
+
+def serialize_post(post):
+    """
+    convert CampaignPost to JSON-friendly dict
+    """
+    data = post.to_mongo().to_dict()
+    data.pop("_id", None)
+
+    return convert_value(data)
+
+def serialize_campaign(campaign):
+    """
+    serialize CampaignPost
+    """
+    data = campaign.to_mongo().to_dict()
+    data.pop("_id", None)
+
+    data = convert_value(data)
+
+    data["post"] = [serialize_post(p) for p in campaign.post]
+    return data
 
 class CampaignController:
 
@@ -42,7 +81,7 @@ class CampaignController:
             # print(artist_objId.id)
             # generate campaign id
             random_uuid = str(uuid.uuid4())
-            campaign_id = "CP-" + random_uuid[:8]
+            campaign_id = random_uuid[:8]
 
             # store data
             new_campaign = Campaign(
@@ -56,6 +95,7 @@ class CampaignController:
                 region = data.get("region"),
                 budget = data.get("budget"),
                 status = data.get("status"),
+                info = data.get("info"),
                 post = [],
                 total_cost = None,
                 total_reach = None,
@@ -97,7 +137,7 @@ class CampaignController:
                 return jsonify({"error": f"Invalid token: {str(e)}"}), 401
 
             data = request.get_json()
-            print("data: ", data)
+            # print("data: ", data)
             status = data.get("status")
 
             # find the campaign
@@ -152,7 +192,7 @@ class CampaignController:
             campaigns = Campaign.objects(user_id=user_objId).only(
                 # keep needed fields
                 "campaign_id", "created_at", "artist_en_name", "artist_kr_name",
-                "platform", "region", "budget", "status"
+                "platform", "region", "budget", "info", "status"
             ).order_by("-created_at")
             campaign = [
                 {
@@ -163,6 +203,7 @@ class CampaignController:
                     "platform": c.platform,
                     "region": c.region,
                     "budget": c.budget,
+                    "info": c.info,
                     "status": c.status} for c in campaigns
             ]
 
@@ -173,27 +214,40 @@ class CampaignController:
 
         except Exception as e:
             return jsonify({
-                "err": str(e)
+                "error": str(e)
             }), 500
 
     @classmethod
-    def get_per_campaign_by_campaign_id(cls):
+    def get_per_campaign_by_campaign_id(cls, campaign_id):
         try:
             # get token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            # id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            #
+            # if not id_token:
+            #     return jsonify({"error": "Missing token"}), 401
 
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
+            # try:
+            #     # verify token, get user firebase_id
+            #     decoded_token = auth.verify_id_token(id_token)
+            #     uid = decoded_token["uid"]
+            # except Exception as e:
+            #     return jsonify({"error": f"Invalid token: {str(e)}"}), 401
 
-            try:
-                # verify token, get user firebase_id
-                decoded_token = auth.verify_id_token(id_token)
-                uid = decoded_token["uid"]
-            except Exception as e:
-                return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+            campaign = Campaign.objects(campaign_id=campaign_id).first()
 
+            if not campaign:
+                return jsonify({"error": "Campaign not found"}), 404
+
+            data = serialize_campaign(campaign)
+
+            print(data)
+            print(type(data))
+            return jsonify({
+                "status": "success",
+                "data": data
+            }), 200
         except Exception as e:
             return jsonify({
-                "err": str(e)
+                "error": str(e)
             }), 500
 

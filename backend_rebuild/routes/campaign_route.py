@@ -22,7 +22,8 @@ def cancel_campaign(campaign_id):
 
     return result
 
-@campaign_bp.route("/v1/detail/<string:campaign>", methods=["GET"])
-def get_per_campaign_detail():
-    pass
+@campaign_bp.route("/v1/detail/<string:campaign_id>", methods=["GET"])
+def get_per_campaign_detail(campaign_id):
+    result = CampaignController.get_per_campaign_by_campaign_id(campaign_id)
 
+    return result

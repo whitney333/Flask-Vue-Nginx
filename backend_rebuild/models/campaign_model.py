@@ -7,27 +7,34 @@ class CampaignPost(EmbeddedDocument):
     "Embedded document for post details"
     kol_account = StringField(required=True)
     platform = StringField(required=True)
-    content_type = StringField(required=True)
-    promo = StringField(required=True) # promo IP
+    status = StringField(required=True)
+    type = StringField(required=True)
+    artist = StringField(required=True) # promo IP
+    content = StringField(required=True)
     used_hashtag = ListField()
     hashtag_reach = IntField()
-    target_region = StringField(required=True)
-    post_url = StringField(required=True)
-    post_date = DateTimeField(required=True)
+    target_country = StringField(required=True)
+    url = StringField(required=True)
+    post_created_at = DateTimeField(required=True)
     cost = Decimal128Field(required=True)
     reach = IntField(required=True)
     one_hour_view = IntField()
-    twentyfour_hr_view = IntField()
+    twentyfour_hour_view = IntField()
     latest_view = IntField()
     reaction = IntField()
     engagement = StringField()
-    cost_per_reach = Decimal128Field()
-    cost_per_view = Decimal128Field()
+    cost_per_reach = FloatField(null=True)
+    cost_per_view = FloatField(null=True)
+    notes = StringField()
 
 class CampaignTotalCountry(EmbeddedDocument):
     name = StringField(required=False)
     count = IntField(required=False)
     region = StringField(required=False)
+
+class CampaignTotalRegion(EmbeddedDocument):
+    name = StringField(required=False)
+    count = IntField(required=False)
 
 class CampaignTotalPlatform(EmbeddedDocument):
     name = StringField(required=False)
@@ -45,7 +52,9 @@ class Campaign(Document):
     region = ListField(required=True)
     budget = StringField(required=True)
     post = ListField(EmbeddedDocumentField(CampaignPost), default=lambda: [])
+    info = DictField(required=True)
     total_cost = FloatField(null=True, required=False)
     total_reach = IntField(null=True, required=False)
     total_country = ListField(EmbeddedDocumentField(CampaignTotalCountry), default=lambda: [])
+    total_region = ListField(EmbeddedDocumentField(CampaignTotalRegion), default=lambda: [])
     total_platform = ListField(EmbeddedDocumentField(CampaignTotalPlatform), default=lambda: [])
