@@ -183,7 +183,10 @@
     "press_enter_to_add_hashtag": "해시태그를 추가하려면 Enter 키를 누릅니다",
     "post": "캠페인 게시물",
     "complete": "완료",
-    "details": "세부 사항"
+    "details": "세부 사항",
+    "no_campaigns": "아직 캠페인이 없습니다.",
+    "no_campaigns_hint": "먼저 첫 캠페인을 만들어보세요.",
+    "create_first_campaign": "캠페인 만들기"
   },
   "Log in": "로그인",
   "Email": "이메일",
