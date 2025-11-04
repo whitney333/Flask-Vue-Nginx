@@ -7,6 +7,7 @@ import TikTokIcon from "@/assets/icons/tiktok.svg";
 import XiaohongshuIcon from "@/assets/icons/xiaohongshu.svg";
 import BilibiliIcon from "@/assets/icons/bilibili.svg";
 import YoutubeIcon from "@/assets/icons/youtube.svg"
+import { useUserStore } from "@/stores/user.js";
 
 
 const props = defineProps({
@@ -16,6 +17,7 @@ const props = defineProps({
   },
 });
 
+const userStore = useUserStore()
 const rowData = ref([])
 
 const kolAccountRenderer = (params) => {
@@ -212,9 +214,13 @@ const fetchData = async (campaignId) => {
   if (!campaignId) return;
   try {
     const res = await axios.get(
-        `/api/campaign/v1/detail/${campaignId}`
+        `/api/campaign/v1/detail/${campaignId}`,
+        {headers: {
+            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Content-Type": "application/json"
+          }}
     )
-
+    // console.log("api: ", res)
     const data = res.data.data.post || []
 
     rowData.value = data.map(item => ({

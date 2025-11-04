@@ -171,87 +171,8 @@
         </v-card-title>
         <v-card-text>
         <v-expansion-panels  mandatory  v-model="state" >
-<<<<<<< HEAD
-          <v-expansion-panel>
-             <v-expansion-panel-title>
-                <v-row no-gutters class="items-center">
-                <v-col class="d-flex justify-start" cols="12" lg="4">
-                  <span class="text-2xl font-medium">
-                    {{ $t('Select Artist') }}
-                  </span>
-                </v-col>
-                <v-col
-                  class="items-center lg:block hidden"
-                  cols="8"
-                >
-                  <v-fade-transition >
-                    <span
-                      v-if="!expanded"
-                      key="1"
-                      class="text-lg font-medium capitalize"
-                    >
-                      {{ artistStore.mid }}
-                    </span>
-                  </v-fade-transition>
-                </v-col>
-              </v-row>
-             </v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <v-item-group multiple v-model="region">
-                <v-container class="max-w-screen-md">
-                  <v-row>
-                    <v-row v-for="(reg, i) in artistStore" :key="i" class="mb-5">
-                      <v-col md="2" cols="12">
-                        <span class="text-xl font-medium">
-                          {{ $t(reg) }}
-                        </span>
-                      </v-col>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                        <v-col
-                            v-for="(country, j) in regions[reg]"
-                            :key="j"
-                        >
-                          <v-item v-slot="{ isSelected, toggle }">
-                            <v-card
-                                flat
-                                class="d-flex align-center transition-all rounded-lg border-2 "
-                                :class="isSelected ? ' border-black' : 'border-neutral-200'"
-                                height="50"
-                                width="120"
-                                @click="toggle"
-                            >
-                              <v-scroll-y-transition>
-                                <div
-                                    class="flex-grow-1 text-center text-md font-medium"
-                                >
-                                  {{ $t(country) }}
-                                </div>
-                              </v-scroll-y-transition>
-                            </v-card>
-                          </v-item>
-                        </v-col>
-                      </div>
-
-                    </v-row>
-                  </v-row>
-                </v-container>
-              </v-item-group>
-              <div class="my-5 flex justify-center items-center">
-                <v-btn color='black'
-                       class="w-32 text-none rounded-pill text-white"
-                       @click="() => changeState('platform')">
-                  <span class="font-medium">
-                    {{ $t('Next') }}
-                  </span>
-                </v-btn>
-              </div>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-          <v-expansion-panel value="region" class="mb-5">
-=======
           <!--  artist panel  -->
           <v-expansion-panel value="artist" class="mb-5">
->>>>>>> feature/campaign_analyze
             <v-expansion-panel-title v-slot="{ expanded }">
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">

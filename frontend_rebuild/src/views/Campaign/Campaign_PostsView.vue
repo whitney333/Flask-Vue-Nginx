@@ -90,6 +90,23 @@ const getAllCampaign = async () => {
   }
 }
 
+// get single campaign performance
+const getSingleCampaignPerformance = async () => {
+  try {
+    const res = await axios.get(
+        `/campaign/v1/${selectedCampaign?.campaign_id}`,
+        {headers: {
+            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Content-Type": "application/json"
+          }}
+    )
+    console.log("cp: ", res)
+    console.log("cp1 :", res.data.data)
+  } catch (err) {
+    console.error("Error loading campaigns:", err)
+  }
+}
+
 onMounted(() => {
   getAllCampaign()
 })
@@ -236,7 +253,7 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignPlatformPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                             <CampaignPercentCard
                                 :value="{
@@ -246,7 +263,7 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignRegionPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                             <CampaignPercentCard
                                 :value="{
@@ -256,7 +273,7 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignCountryPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                             <CampaignPercentCard
                                 :value="{
@@ -266,11 +283,11 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignCountryPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                           </div>
                           <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                            <CampaignDataTable :campaign-id="selectedCampaign?.campaign_id"/>
+                            <CampaignDataTable :campaignId="selectedCampaign?.campaign_id"/>
                           </div>
                         </v-card-text>
 
