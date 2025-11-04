@@ -222,7 +222,7 @@ const fetchData = async (campaignId) => {
     )
     // console.log("api: ", res)
     const data = res.data.data.post || []
-
+    // console.log("cp: ", data)
     rowData.value = data.map(item => ({
       artist: item.artist,
       content: item.content,

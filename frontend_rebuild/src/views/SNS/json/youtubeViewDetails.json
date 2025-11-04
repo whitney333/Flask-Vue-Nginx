@@ -83,7 +83,7 @@
     },
     "youtubeTotalVideoHashtags": {
         "chart": "youtubeTotalVideoHashtags",
-        "title": "YouTube Total Video Hashtags",
+        "title": "YouTube Total Videos Hashtags",
         "type": "Hashtags",
         "tooltipText": "How many videos include the relevant hashtags",
         "fetchURL": "/youtube/v1/channel",
