@@ -14,7 +14,6 @@ import * as directives from 'vuetify/directives'
 import '@mdi/font/css/materialdesignicons.css'
 import i18n from './i18n'; // Path to your i18n setup file
 import './assets/tailwind.css'; // Import Tailwind
-import {createHead} from '@unhead/vue/client'
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import "/node_modules/ag-grid-community/styles/ag-theme-quartz.css";
 // window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
@@ -27,7 +26,6 @@ const vuetify = createVuetify({
 firebase()
 const app = createApp(App);
 const pinia = createPinia();
-const head = createHead();
 
 // register ag-grid
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -38,8 +36,5 @@ app.use(router);
 app.use(vuetify);
 app.use(VueApexCharts);
 app.use(i18n);
-app.use(head);
 app.use(pinia);
 app.mount('#app');
-
-
