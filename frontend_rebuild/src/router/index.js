@@ -52,8 +52,8 @@ const routes = [
     { path: '/campaign', name: 'Campaign', component: Works_Layout, meta: { requireAuth: true,},
       children: [
         { path: 'analytics', name: 'Campaign Performance', component: ComingSoonView, meta: { requireAuth: true,}},
-        { path: 'posts', name: 'Campaign Posts', component: ComingSoonView, meta: { requireAuth: true }},
-        {path: 'posts/create', name: 'Campaign Create Posts', component: ComingSoonView, meta: { requireAuth: true }}
+        { path: 'posts', name: 'Campaign Posts', component: Campaign_PostsView, meta: { requireAuth: true }},
+        {path: 'posts/create', name: 'Campaign Create Posts', component: Campaign_CreatePostView, meta: { requireAuth: true }}
       ]
     },
     { path: '/trending-artists', name: 'Trending Artists', component: ComingSoonView, meta: { requireAuth: true, }},
