@@ -280,14 +280,12 @@
                     </v-btn>
                 </div>
             </div>
-          <div class="chart-container">
             <apexchart
                 width="100%"
                 height="180%"
                 :options="chartOptions"
                 :series="series">
             </apexchart>
-          </div>
         </template>
     </v-card>
 </template>
