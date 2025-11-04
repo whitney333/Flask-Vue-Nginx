@@ -1,7 +1,7 @@
 {
     "tiktokFollowerValue": {
         "chart": "tiktokFollower",
-        "title": "Tiktok Follower",
+        "title": "Tiktok Followers",
         "type": "Followers",
         "tooltipText": "Number of followers on Tiktok",
         "fetchURL": "/tiktok/v1/follower",
@@ -11,7 +11,7 @@
     },
     "tiktokHashtagValue": {
         "chart": "tiktokHashtag",
-        "title": "Tiktok Hashtag",
+        "title": "Tiktok Hashtags",
         "type": "Hashtags",
         "tooltipText": "Number of hashtags on Tiktok",
         "fetchURL": "/tiktok/v1/hashtag",

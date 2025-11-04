@@ -176,7 +176,7 @@ const closePerformanceDialog = () => {
           <v-progress-circular indeterminate color="black" size="48"/>
         </div>
         <!-- if data exists -->
-        <template v-else-if="campaigns && campaigns.length > 0">
+        <template v-if="campaigns && campaigns.length > 0">
           <v-row dense>
             <v-col
                 v-for="campaign in campaigns"

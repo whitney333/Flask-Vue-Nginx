@@ -240,8 +240,8 @@ class CampaignController:
 
             data = serialize_campaign(campaign)
 
-            print(data)
-            print(type(data))
+            # print(data)
+            # print(type(data))
             return jsonify({
                 "status": "success",
                 "data": data
