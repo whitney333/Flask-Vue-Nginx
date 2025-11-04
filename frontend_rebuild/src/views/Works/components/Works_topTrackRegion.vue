@@ -17,7 +17,7 @@
 
     const drange = ref('')
     const chartOptions = ref({})
-    const series = ref({})
+    const series = ref([])
     const loadingCard = ref(true)
     const upperCaseFirstLetter = (word) => {
         return word.charAt(0).toUpperCase() + word.slice(1)
@@ -52,7 +52,7 @@
 
             const res = await axios.get(`/spotify/v1/region/top-tracks?artist_id=${artistStore.mid}&country=KR`, {setTimeout: 10000})
             tracks.value = res.data.data[0]["track_info"]
-            // console.log(tracks)
+            // console.log("tracks:", tracks.value)
             trackList.value = res.data["track_list_result"][0]["tracks"]
 
             const formattedData = tracks.value.map((e, i) => {
@@ -108,7 +108,7 @@
         () => artistStore.mid,
         async (newMid) => {
           if (newMid) {
-            console.log("🎯 mid changed:", newMid)
+            // console.log("🎯 mid changed:", newMid)
             await getTopSong()
             await getTopTrackRegion()
           }

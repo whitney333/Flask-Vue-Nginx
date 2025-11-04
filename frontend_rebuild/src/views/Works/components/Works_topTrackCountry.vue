@@ -20,7 +20,7 @@
     // const drange = ref('')
 
     const chartOptions = ref({})
-    const series = ref({})
+    const series = ref([])
     const loadingCard = ref(true)
     const upperCaseFirstLetter = (word) => {
         return word.charAt(0).toUpperCase() + word.slice(1)
@@ -235,7 +235,7 @@
         () => artistStore.mid,
         async (newMid) => {
           if (newMid) {
-            console.log("🎯 mid changed:", newMid)
+            // console.log("🎯 mid changed:", newMid)
             await getTopSong()
             await getTopTrackRegion()
           }

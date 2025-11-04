@@ -1,0 +1,32 @@
+{
+  "campaignRegionPercentage": {
+    "chart": "campaignTotalRegion",
+    "title": "Included Regions(%)",
+    "type": "Region",
+    "tooltipText": "",
+    "fetchURL": "/campaign/v1/detail/{campaign_id}",
+    "fetchFollowerType": "data",
+    "followerDataType": "total_region"
+  },
+  "campaignCountryPercentage": {
+    "chart": "campaignTotalCountry",
+    "title": "Included Countries(%)",
+    "type": "Country",
+    "tooltipText": "",
+    "fetchURL": "/campaign/v1/detail/{campaign_id}",
+    "fetchFollowerType": "data",
+    "followerDataType": "total_country"
+  },
+  "campaignPlatformPercentage": {
+    "chart": "campaignTotalPlatform",
+    "title": "Included Platforms(%)",
+    "type": "Platform",
+    "tooltipText": "",
+    "fetchURL": "/campaign/v1/detail/{campaign_id}",
+    "fetchFollowerType": "data",
+    "followerDataType": "total_platform"
+  },
+  "campaignPostDetails": {
+
+  }
+}

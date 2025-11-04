@@ -69,7 +69,7 @@ class UserController:
 
             # get email
             data = request.get_json()
-            print(data)
+            # print(data)
             email = data.get("email")
 
             if not email:
@@ -250,6 +250,7 @@ class UserController:
     @classmethod
     def check_user_exists(cls):
         data = request.get_json()
+
         firebase_uid = data.get("firebase_id")
 
         # firebase_uid = g.firebase_id

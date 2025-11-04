@@ -1,16 +1,31 @@
 <script setup>
+import { ref, onMounted } from 'vue'
+import axios from '@/axios'
+import CampaignPercentCard from '@/views/Campaign/components/Campaign_PercentCard.vue'
+
+const loading = ref(true)
+const countryData = ref(null)
+const error = ref(null)
+
+const fetchCountryData = async () => {
+  loading.value = true
+  try {
+
+  } catch (err) {
+    console.error(err)
+    error.value = 'Failed to load data'
+  } finally {
+    loading.value = false
+  }
+}
+
 </script>
 
 <template>
-    <v-container
-        fluid
-        :class="['fill-height', 'align-start', 'bg-grey-lighten-4']">
-            <v-card
-            flat
-            class="bg-[#F5F5F5]">
-                <template v-slot:title>
-                    <span class="text-h4">{{ $t('Report') }}</span>
-                </template>
-            </v-card>
-    </v-container>
+   <v-container
+    fluid
+    class="bg-[#F5F5F5]"
+   >
+
+  </v-container>
 </template>
