@@ -9,6 +9,7 @@ from routes.trending_artist_route import *
 from routes.artist_route import *
 from routes.bilibili_route import *
 from routes.tenant_route import *
+from routes.campaign_route import *
 from db_connect import connect_db
 from config import  Config
 from flask_cors import CORS
@@ -37,6 +38,7 @@ def create_app():
     app.register_blueprint(artist_bp, url_prefix="/api/artist")
     app.register_blueprint(bilibili_bp, url_prefix="/api/bilibili")
     app.register_blueprint(tenant_bp, url_prefix="/api/tenant")
+    app.register_blueprint(campaign_bp, url_prefix="/api/campaign")
 
     # init DB
     try:

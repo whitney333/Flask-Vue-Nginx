@@ -221,10 +221,10 @@ class CampaignController:
     def get_per_campaign_by_campaign_id(cls, campaign_id):
         try:
             # get token from header
-            # id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
-            #
-            # if not id_token:
-            #     return jsonify({"error": "Missing token"}), 401
+            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+
+            if not id_token:
+                return jsonify({"error": "Missing token"}), 401
 
             # try:
             #     # verify token, get user firebase_id
@@ -240,8 +240,8 @@ class CampaignController:
 
             data = serialize_campaign(campaign)
 
-            print(data)
-            print(type(data))
+            # print(data)
+            # print(type(data))
             return jsonify({
                 "status": "success",
                 "data": data
