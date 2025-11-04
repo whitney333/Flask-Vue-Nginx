@@ -348,11 +348,7 @@
               <v-row no-gutters class="items-center">
                 <v-col class="d-flex justify-start" cols="12" lg="4">
                   <span class="text-2xl font-medium">
-<<<<<<< HEAD
-                    {{ $t('Recommended Platform') }}
-=======
                     {{ $t('campaign.select_platform') }}
->>>>>>> feature/campaign_analyze
                   </span>
                 </v-col>
                 <v-col
