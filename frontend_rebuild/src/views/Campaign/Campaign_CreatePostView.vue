@@ -36,7 +36,7 @@
     const platforms = [
       { name: "Instagram", icon: instagramIcon, color: "#FF0069", blackIcon: instagramBlackIcon },
       { name: "Tiktok", icon: tiktokIcon, color: "#000000", blackIcon: tiktokBlackIcon },
-      { name: "Youtube", icon: youtubeIcon, color: "#FF0000", blackIcon: youtubeBlackIcon },
+      { name: "YouTube", icon: youtubeIcon, color: "#FF0000", blackIcon: youtubeBlackIcon },
       { name: "Rednote", icon: xiaohongshuIcon, color: "#FF2442", blackIcon: xiaohongshuBlackIcon},
       { name: "Bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
     ]
@@ -361,7 +361,7 @@
                       key="1"
                       class="text-lg font-medium capitalize"
                     >
-                      {{ platform == '' ? '' : platform.map((i) => $t(`\sns.${platforms[i].name}`)).join(' | ') }}
+                      {{ platform == '' ? '' : platform.map((i) => $t(`sns.${platforms[i].name}`)).join(' | ') }}
                     </span>
                   </v-fade-transition>
                 </v-col>
