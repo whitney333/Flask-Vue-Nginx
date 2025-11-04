@@ -159,7 +159,7 @@ const closePerformanceDialog = () => {
           <v-progress-circular indeterminate color="black" size="48"/>
         </div>
         <!-- if data exists -->
-        <template v-else-if="campaigns && campaigns.length > 0">
+        <template v-if="campaigns && campaigns.length > 0">
           <v-row dense>
             <v-col
                 v-for="campaign in campaigns"
@@ -236,7 +236,7 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignPlatformPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                             <CampaignPercentCard
                                 :value="{
@@ -246,7 +246,7 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignRegionPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                             <CampaignPercentCard
                                 :value="{
@@ -266,11 +266,11 @@ const closePerformanceDialog = () => {
                               tooltipText: campaignJSON.campaignCountryPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
-                                :campaignId="'c08d80e2'"
+                                :campaignId="selectedCampaign?.campaign_id"
                             />
                           </div>
                           <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                            <CampaignDataTable :campaign-id="selectedCampaign?.campaign_id"/>
+                            <CampaignDataTable :campaignId="selectedCampaign?.campaign_id"/>
                           </div>
                         </v-card-text>
 
