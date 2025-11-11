@@ -103,7 +103,8 @@
           email: result.user.email,
           name: result.user.displayName,
           photo: result.user.photoURL,
-          firebaseToken: idToken
+          firebaseToken: idToken,
+          admin: result.user.admin
         })
 
         // POST firebase_id to check if user exists
@@ -118,7 +119,8 @@
         );
         // const token = response.data;
         // if data exists then return
-        const {exists} = response.data
+        const {exists, admin} = response.data
+        userStore.admin = admin || false;
 
         // get followed artists list
         if (exists === true) {
@@ -136,9 +138,11 @@
           snackbarText.value = 'Welcome back! Redirecting to dashboard...'
           snackbarColor.value = 'success'
           snackbar.value = true
-          setTimeout(() => {
-            router.push("/dashboard")
-          }, 2000)
+          if (userStore.admin) {
+                router.push("/admin");
+              } else {
+                router.push("/dashboard");
+              }
 
         } else {
           // first time login > redirect to fill out company name & followed artists
