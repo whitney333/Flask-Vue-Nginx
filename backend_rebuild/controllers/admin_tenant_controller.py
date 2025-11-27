@@ -4,6 +4,8 @@ from models.artist_model import Artists
 from flask import jsonify, request
 from datetime import datetime, timezone
 from firebase_admin import auth
+from mongoengine.queryset.visitor import Q
+from mongoengine.errors import NotUniqueError
 import uuid
 import traceback
 import re
@@ -16,23 +18,27 @@ class AdminTenantController:
     @classmethod
     def getAllTenants(cls):
         """
-                Get all tenants
-                :return:
-                """
+            Get all tenants
+            :return:
+        """
         try:
             tenant_id = request.args.get("tenant_id")
             tenant_name = request.args.get("tenant_name")
+            status = request.args.get("status")
             sort_field = request.args.get("sort", "tenant_id")
             order = request.args.get("order", "asc")
 
             page = int(request.args.get("page", 1))
             limit = int(request.args.get("limit", 10))
 
+            # Query building
             query = {}
             if tenant_id:
                 query["tenant_id"] = tenant_id
             if tenant_name:
-                query["tenant_name"] = tenant_name
+                query["tenant_name__icontains"] = tenant_name
+            if status:
+                query["status__iexact"] = status
 
             tenants_query = Tenant.objects(**query)
 
@@ -156,7 +162,7 @@ class AdminTenantController:
         """
         try:
             data = request.get_json()
-            print(data)
+            # print(data)
             tenant_name = data.get("tenant_name")
 
             website = data.get("website")
@@ -164,8 +170,25 @@ class AdminTenantController:
 
             if not tenant_name:
                 return jsonify({
-                    "error": "tenant name and tenant number are required"
+                    "error": "tenant name is required"
                 }), 400
+
+            # check duplication
+            duplicate = Tenant.objects(
+                Q(tenant_name__iexact=tenant_name) |
+                Q(website__iexact=website) |
+                Q(email__iexact=email)
+            ).first()
+
+            if duplicate:
+                return jsonify({
+                    "error": "Tenant already exists",
+                    "duplicate": {
+                        "tenant_name": duplicate.tenant_name,
+                        "website": duplicate.website,
+                        "email": duplicate.email
+                    }
+                }), 409  # conflict
 
             # find the latest tenant number
             last_tenant = Tenant.objects().order_by("-tenant_id").first()
@@ -182,7 +205,10 @@ class AdminTenantController:
                 email = email
             )
 
-            new_tenant.save()
+            try:
+                new_tenant.save()
+            except NotUniqueError:
+                return jsonify({"error": "Tenant duplicated"}), 409
 
             return jsonify({
                 "message": "Tenant created successfully",
@@ -197,7 +223,7 @@ class AdminTenantController:
             }), 201
 
         except Exception as e:
-            print(traceback.format_exc())
+            # print(traceback.format_exc())
             return jsonify({
                 "error": str(e)
             }), 500

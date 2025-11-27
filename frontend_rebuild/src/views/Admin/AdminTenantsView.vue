@@ -2,7 +2,6 @@
 import {ref, onMounted, watch, computed} from "vue";
 import axios from "axios";
 import {useUserStore} from "@/stores/user.js";
-import {indexToCountry} from "@/libs/utils.js";
 
 
 const tenants = ref([]);
@@ -27,7 +26,10 @@ const selectedTenant = ref({
   status: ""
 });
 const detailLoading = ref(false);
-
+// cancel tenant
+const deleteDialog = ref(false)
+const selectedTenantId = ref(null)
+const selectedTenantName = ref('')
 // add new tenant
 const showDialog = ref(false);
 const newTenant = ref({
@@ -35,18 +37,35 @@ const newTenant = ref({
   website: "",
   email: ""
 });
-
+// alert message
+const snackbar = ref({
+  show: false,
+  message: "",
+  color: "info"
+});
+const showMessage = (msg, color = "info") => {
+  snackbar.value.message = msg;
+  snackbar.value.color = color;
+  snackbar.value.show = true;
+};
 
 // fetch all tenants
 const fetchTenants = async () => {
   loading.value = true;
   try {
     const res = await axios.get(
-        `/api/admin/v1/tenants?page=${page.value}&limit=${limit.value}`,
+        `/api/admin/v1/tenants`, {
+          params: {
+            page: page.value,
+            limit: limit.value,
+            tenant_name: filters.value.name,
+            status: filters.value.status
+          }
+        }
     )
     tenants.value = res.data.data;
     total.value = res.data.total;
-    // console.log("res: ", res.data)
+    // console.log("res: ", res)
 
   } catch (err) {
     console.error("Error fetching tenants:", err);
@@ -81,7 +100,6 @@ const openUpdateDialog = async (tenantId) => {
   }
 }
 
-
 // close dialog
 const closeDialog = () => {
   showUpdateDialog.value = false
@@ -91,7 +109,7 @@ const closeDialog = () => {
 // submit updated tenant details
 const submitUpdateTenant = async () => {
   try {
-    console.log(selectedTenant.value)
+    // console.log(selectedTenant.value)
     const token = userStore.firebaseToken
     const res = await axios.put(
         `/api/admin/v1/tenants/${selectedTenant.value.tenant_id}/update`,
@@ -143,21 +161,37 @@ const addTenant = async () => {
 
     // load all tenants again
     fetchTenants();
+
+    showMessage("Tenant created successfully.", "success")
   } catch (err) {
-    console.error("Create tenant error:", err);
+    if (err.response?.status === 409) {
+      showMessage("Tenant already exists. Please check tenant name, email and website.", "error")
+    } else if (err.response?.status === 400) {
+      showMessage("Please input tenant name.", "warning")
+    } else {
+      showMessage("Server error. Please try again later.", "error")
+    }
   } finally {
     loading.value = false
   }
 }
 
+// open delete dialog
+const openDeleteDialog = (tenantId) => {
+  selectedTenantId.value = tenantId.tenant_id;
+  selectedTenantName.value = tenantId.tenant_name;
+  deleteDialog.value = true;
+}
+
 // cancel tenant
-const cancelTenant = async (tenantId) => {
+const confirmCancelTenant = async () => {
   try {
     const token = userStore.firebaseToken;
-    await axios.patch(`/api/admin/v1/tenants/${tenantId}/cancel`,
+    await axios.patch(`/api/admin/v1/tenants/${selectedTenantId.value}/cancel`,
         {}, {
           headers: {Authorization: `Bearer ${token}`}
         })
+    deleteDialog.value = false;
     fetchTenants();
   } catch (err) {
     console.error("Cancel failed:", err);
@@ -168,6 +202,24 @@ const formatDate = (date) => {
   if (!date) return "-";
   return new Date(date).toLocaleString();
 };
+
+// filters
+const filters = ref({
+  name: "",
+  status: "",
+});
+
+const onFilterChange = () => {
+  page.value = 1;
+  fetchTenants();
+};
+
+const resetFilters = () => {
+  filters.value.name = "";
+  filters.value.status = "";
+  page.value = 1
+  fetchTenants()
+}
 
 onMounted(fetchTenants);
 
@@ -193,6 +245,55 @@ watch([page, limit], () => {
         </svg>
         Add New Tenant
       </button>
+    </div>
+    <!-- Filter -->
+    <div class="flex flex-wrap gap-4 mb-4 items-center">
+      <!-- Search tenant name -->
+      <v-text-field
+          v-model="filters.name"
+          label="Tenant Name"
+          density="comfortable"
+          variant="outlined"
+          prepend-inner-icon="mdi-magnify"
+          class="w-64"
+          rounded
+      />
+
+      <!-- Status filter -->
+      <v-select
+          v-model="filters.status"
+          label="Status"
+          density="comfortable"
+          variant="outlined"
+          :items="[
+            { title: 'All', value: '' },
+            { title: 'Active', value: 'active' },
+            { title: 'Suspended', value: 'suspended' },
+            { title: 'Closed', value: 'closed' }
+          ]"
+          class="w-40"
+          item-title="title"
+          item-value="value"
+          rounded
+      />
+
+      <v-btn
+          variant="outlined"
+          @click="resetFilters"
+          rounded
+          size="small"
+      >
+        Reset
+      </v-btn>
+      <v-btn
+          color="indigo"
+          class="text-white"
+          @click="onFilterChange"
+          rounded
+          size="small"
+      >
+        Submit
+      </v-btn>
     </div>
     <!-- open dialog: add new tenant -->
     <v-dialog v-model="showDialog" max-width="500px">
@@ -230,7 +331,15 @@ watch([page, limit], () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <!-- Filters -->
+    <!-- Snackbar -->
+    <v-snackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        timeout="1500"
+        location="top">
+      {{ snackbar.message }}
+    </v-snackbar>
+
 
     <!-- Table -->
     <div class="overflow-x-auto bg-white rounded-lg shadow">
@@ -279,10 +388,10 @@ watch([page, limit], () => {
               Update
             </button>
             <button
-                @click="cancelTanant(t.tenant_id)"
+                @click.stop="openDeleteDialog(t)"
                 class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-red-600 text-red-600 hover:bg-red-50 transition"
             >
-              Delete
+              Close
             </button>
           </td>
         </tr>
@@ -292,7 +401,19 @@ watch([page, limit], () => {
         </tbody>
       </table>
     </div>
-
+    <!-- Confirm cancel tenant dialog -->
+    <v-dialog v-model="deleteDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Delete Confirmation</v-card-title>
+        <v-card-text>
+          Are you sure you want to delete <b>{{ selectedTenantName }}</b>?
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn @click="deleteDialog = false">Cancel</v-btn>
+          <v-btn color="red" @click="confirmCancelTenant">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <!-- Update tenant details dialog -->
     <v-dialog v-model="showUpdateDialog" max-width="500px">
       <v-card>
