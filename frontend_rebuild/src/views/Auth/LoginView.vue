@@ -63,7 +63,9 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken
+              firebaseToken: idToken,
+              created_at: result.user.metadata.creationTime,
+              last_login_at: result.user.metadata.lastSignInTime
             })
 
           // POST firebase_id to check if user exists
@@ -100,7 +102,7 @@
             snackbarColor.value = 'success'
             snackbar.value = true
             if (userStore.admin) {
-                router.push("/admin");
+                router.push("/admin/campaigns");
               } else {
                 router.push("/dashboard");
               }
@@ -147,7 +149,9 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken
+              firebaseToken: idToken,
+              created_at: result.user.metadata.creationTime,
+              last_login_at: result.user.metadata.lastSignInTime
             })
 
             // POST firebase_id to check if user exists
@@ -177,7 +181,7 @@
               // console.log("Followed Artists in store:", userStore.followedArtists);
               // redirect to /dashboard
               if (userStore.admin) {
-                router.push("/admin");
+                router.push("/admin/campaigns");
               } else {
                 router.push("/dashboard");
               }

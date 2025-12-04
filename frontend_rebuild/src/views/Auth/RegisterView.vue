@@ -104,7 +104,9 @@
           name: result.user.displayName,
           photo: result.user.photoURL,
           firebaseToken: idToken,
-          admin: result.user.admin
+          admin: result.user.admin,
+          created_at: result.user.metadata.creationTime,
+          last_login_at: result.user.metadata.lastSignInTime
         })
 
         // POST firebase_id to check if user exists

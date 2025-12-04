@@ -66,7 +66,9 @@
                 image_url: currentUser.photoURL,
                 email: currentUser.email,
                 followed_artist: selectedArtists.value,
-                firebaseToken: idToken
+                firebaseToken: idToken,
+                created_at: currentUser.metadata.creationTime,
+                last_login_at: currentUser.metadata.lastSignInTime
             }
 
             // send register details to backend
@@ -74,7 +76,7 @@
             // fetch current user data from backend
             // get data from /v1/auth/firebaseId
             const user_profile = await axios.get(`/user/v1/auth/${currentUser.uid}`)
-            console.log("user profile: ", user_profile)
+            // console.log("user profile: ", user_profile)
             userStore.setFollowedArtists(user_profile.data.data["followed_artist"])
 
             // console.log("store followedArtists after set:", userStore.followedArtists)
