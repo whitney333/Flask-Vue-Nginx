@@ -11,6 +11,8 @@ class Users(Document):
     # [user, admin] role
     admin = BooleanField(required=True)
     # user belongs to which company
-    tenant = ReferenceField(Tenant, required=True, reverse_delete_rule=CASCADE)
+    tenant = ReferenceField(Tenant, required=True)
     # artist list which the user follows 
     followed_artist = ListField(ReferenceField(Artists))
+    created_at = DateTimeField(null=True)
+    last_login_at = DateTimeField(null=True)
