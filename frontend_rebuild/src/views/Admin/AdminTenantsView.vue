@@ -247,53 +247,103 @@ watch([page, limit], () => {
       </button>
     </div>
     <!-- Filter -->
-    <div class="flex flex-wrap gap-4 mb-4 items-center">
+    <div class="flex flex-wrap gap-4 mb-4 items-end">
       <!-- Search tenant name -->
-      <v-text-field
-          v-model="filters.name"
-          label="Tenant Name"
-          density="comfortable"
-          variant="outlined"
-          prepend-inner-icon="mdi-magnify"
-          class="w-64"
-          rounded
-      />
+      <div class="w-64 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Tenant Name</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+            <i class="mdi mdi-magnify"></i>
+          </span>
+          <input
+              v-model="filters.name"
+              type="text"
+              class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Search name..."
+          />
+        </div>
+      </div>
 
       <!-- Status filter -->
-      <v-select
-          v-model="filters.status"
-          label="Status"
-          density="comfortable"
-          variant="outlined"
-          :items="[
-            { title: 'All', value: '' },
-            { title: 'Active', value: 'active' },
-            { title: 'Suspended', value: 'suspended' },
-            { title: 'Closed', value: 'closed' }
-          ]"
-          class="w-40"
-          item-title="title"
-          item-value="value"
-          rounded
-      />
+      <div class="w-40 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Status</label>
+        <div class="relative">
+          <select
+              v-model="filters.status"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              :class="filters.status === '' ? 'text-gray-400' : 'text-gray-700'"
+          >
+             <!-- placeholder -->
+            <option value="" disabled selected hidden>Select Status</option>
+            <option value="">All</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="closed">Closed</option>
+          </select>
+          <!-- icon -->
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            <i class="mdi mdi-menu-down text-xl"></i>
+          </span>
+        </div>
+      </div>
 
-      <v-btn
-          variant="outlined"
+      <!-- Reset button -->
+      <button
+          class="h-[42px] px-4 text-sm border rounded-md hover:bg-gray-100 transition"
           @click="resetFilters"
-          rounded
-          size="small"
       >
         Reset
-      </v-btn>
-      <v-btn
-          color="indigo"
-          class="text-white"
+      </button>
+
+      <!-- Submit button -->
+      <button
+          class="h-[42px] px-4 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition"
           @click="onFilterChange"
-          rounded
-          size="small"
       >
         Submit
-      </v-btn>
+      </button>
+<!--      &lt;!&ndash; Search tenant name &ndash;&gt;-->
+<!--      <v-text-field-->
+<!--          v-model="filters.name"-->
+<!--          label="Tenant Name"-->
+<!--          density="comfortable"-->
+<!--          variant="outlined"-->
+<!--          prepend-inner-icon="mdi-magnify"-->
+<!--          class="w-64"-->
+<!--      />-->
+
+<!--      &lt;!&ndash; Status filter &ndash;&gt;-->
+<!--      <v-select-->
+<!--          v-model="filters.status"-->
+<!--          label="Status"-->
+<!--          density="comfortable"-->
+<!--          variant="outlined"-->
+<!--          :items="[-->
+<!--            { title: 'All', value: '' },-->
+<!--            { title: 'Active', value: 'active' },-->
+<!--            { title: 'Suspended', value: 'suspended' },-->
+<!--            { title: 'Closed', value: 'closed' }-->
+<!--          ]"-->
+<!--          class="w-40"-->
+<!--          item-title="title"-->
+<!--          item-value="value"-->
+<!--      />-->
+
+<!--      <v-btn-->
+<!--          variant="outlined"-->
+<!--          @click="resetFilters"-->
+<!--          size="small"-->
+<!--      >-->
+<!--        Reset-->
+<!--      </v-btn>-->
+<!--      <v-btn-->
+<!--          color="indigo"-->
+<!--          class="text-white"-->
+<!--          @click="onFilterChange"-->
+<!--          size="small"-->
+<!--      >-->
+<!--        Submit-->
+<!--      </v-btn>-->
     </div>
     <!-- open dialog: add new tenant -->
     <v-dialog v-model="showDialog" max-width="500px">
