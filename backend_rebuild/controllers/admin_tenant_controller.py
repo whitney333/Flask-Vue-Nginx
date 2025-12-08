@@ -287,3 +287,30 @@ class AdminTenantController:
             return jsonify({
                 "error": str(e)
             }), 500
+
+    @classmethod
+    def getTenantsList(cls):
+        """
+        Get all tenants for dropdown list
+        :return:
+        """
+        try:
+            tenants = Tenant.objects.only("id", "tenant_name")
+
+            result = [
+                {
+                    "id": str(c.id),
+                    "tenant_name": c.tenant_name
+                }
+                for c in tenants
+            ]
+
+            return jsonify({
+                "message": "success",
+                "data": result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "err": str(e)
+            }), 500

@@ -19,8 +19,11 @@ class AdminCampaignController:
         """
         try:
             status = request.args.get("status")
+            user_email = request.args.get("email")
+            artist = request.args.get("english_name")
             user_id = request.args.get("user_id")
             artist_id = request.args.get("artist_id")
+
             sort_field = request.args.get("sort", "created_at")
             order = request.args.get("order", "desc")
 
@@ -41,6 +44,7 @@ class AdminCampaignController:
             if artist_id:
                 query["artist_id"] = artist_id
 
+            # date filter
             if from_date or to_date:
                 date_filter = {}
                 if from_date:
@@ -48,6 +52,18 @@ class AdminCampaignController:
                 if to_date:
                     date_filter["$lte"] = datetime.fromisoformat(to_date)
                 query["created_at"] = date_filter
+
+            # email filter
+            if user_email:
+                users = Users.objects(email__icontains=user_email)
+                user_ids = [u.id for u in users]
+                query["user_id__in"] = user_ids
+
+            # artist name filter
+            if artist:
+                artists = Artists.objects(english_name__icontains=artist)
+                artist_ids = [a.id for a in artists]
+                query["artist_id__in"] = artist_ids
 
             campaigns_query = Campaign.objects(**query)
 
@@ -62,6 +78,7 @@ class AdminCampaignController:
 
             result = []
             for c in campaigns:
+                artist = c.artist_id.fetch() if c.artist_id else None
                 result.append({
                     "campaign_id": str(c.campaign_id),
                     "status": c.status,
@@ -69,12 +86,13 @@ class AdminCampaignController:
                     "user_name" : str(c.user_id.name) if c.user_id else None,
                     "user_email": str(c.user_id.email) if c.user_id else None,
                     "artist_id": str(c.artist_id.id) if c.artist_id else None,
+                    "english_name": artist.english_name if artist else None,
+                    "korean_name": artist.korean_name if artist else None,
                     "approved_at": c.approved_at,
                     "created_at": c.created_at,
                     "cancelled_at": c.cancelled_at,
                     "cancelled_by": c.cancelled_by
                 })
-
             return jsonify({
                 "message": "success",
                 "total": total,
@@ -84,7 +102,9 @@ class AdminCampaignController:
                 "data": result
             }), 200
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            return jsonify({
+                "error": str(e)
+            }), 500
 
     @classmethod
     def getSingleCampaign(cls, campaign_id):
@@ -228,7 +248,7 @@ class AdminCampaignController:
         """
         try:
             data = request.json
-            print(data)
+            # print(data)
             campaign = Campaign.objects(campaign_id=campaign_id).first()
             if not campaign:
                 return jsonify({"error": "Campaign not found"}), 404
@@ -254,7 +274,7 @@ class AdminCampaignController:
 
                 new_value = data[front_field]
 
-                # --- post update ---
+                # -post update
                 if front_field == "post":
                     if isinstance(new_value, list):
                         # clear post
@@ -278,7 +298,7 @@ class AdminCampaignController:
                             }), 404
                     continue
 
-                # --- other fields except post ---
+                # other fields except post
                 new_value = cls.convert_list_to_embedded(front_field, new_value)
                 setattr(campaign, db_field, new_value)
 
