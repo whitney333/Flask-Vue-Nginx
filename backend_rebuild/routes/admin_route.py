@@ -82,6 +82,12 @@ def update_artist(artist_id):
 
     return result
 
+@admin_bp.route("/v1/artists/list", methods=["GET"])
+def get_artist_dropdownlist():
+    result = AdminArtistController.getArtistsList()
+
+    return result
+
 ##### Tenant routes #####
 @admin_bp.route("/v1/tenants", methods=["GET"])
 def get_all_tenants():
