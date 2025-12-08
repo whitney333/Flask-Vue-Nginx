@@ -7,7 +7,7 @@
   import DB_TS_card from '@/views/Dashboard/components/DB_TS_card.vue';
   import { currentProfile } from '@/libs/current-profile';
   import { getAuth } from 'firebase/auth';
-  import AIChatBot from '@/views/Chatbot/components/ChatBot.vue'
+
   const followedArtists = ref([])
   const artistInfo = ref([])
   const graphItems = ref([])
@@ -534,7 +534,6 @@
       </v-slide-group>
       </template>
     </v-card>
-      <AIChatBot/>
     </v-container>
 </template>
 
