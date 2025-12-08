@@ -9,15 +9,15 @@ youtube_api = Api(youtube_bp)
 
 # ARCHIVE
 # get youtube subscribers
-@youtube_bp.route('/v1/follower', methods=['GET'])
-def get_youtube_subscriber():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
-
-    subscribers = YoutubeController.get_subscribers(artist_id, date_end, filter)
-
-    return subscribers
+# @youtube_bp.route('/v1/follower', methods=['GET'])
+# def get_youtube_subscriber():
+#     artist_id = request.args.get('artist_id', type=str)
+#     date_end = request.args.get('date_end', type=str)
+#     filter = request.args.get('filter', type=str)
+#
+#     subscribers = YoutubeController.get_subscribers(artist_id, date_end, filter)
+#
+#     return subscribers
 
 # ARCHIVE
 # get youtube channel views

@@ -67,7 +67,7 @@ class CampaignController:
 
             # get data
             data = request.get_json()
-            print("Received data: ", data)
+            # print("Received data: ", data)
 
             # get user ObjectId
             user_objId = Users.objects(firebase_id=data.get("firebase_id")).first()
@@ -75,7 +75,7 @@ class CampaignController:
                 return jsonify({"error": "User not found"}), 404
 
             # get artist ObjectId
-            artist_objId = Artists.objects(artist_id=data.get("artist")).first()
+            artist_objId = Artists.objects(id=data.get("artist_id")).first()
             if not artist_objId:
                 return jsonify({"error": "Artist not found"}), 404
             # print(artist_objId.id)
@@ -95,6 +95,9 @@ class CampaignController:
                 region = data.get("region"),
                 budget = data.get("budget"),
                 status = data.get("status"),
+                approved_at = None,
+                cancelled_at= None,
+                cancelled_by = None,
                 info = data.get("info"),
                 post = [],
                 total_cost = None,
@@ -251,3 +254,4 @@ class CampaignController:
                 "error": str(e)
             }), 500
 
+    
