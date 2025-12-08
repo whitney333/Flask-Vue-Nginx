@@ -302,8 +302,7 @@
           if (newURL) {
             fetchData(newURL);
           }
-        },
-        {immediate: true}
+        }
     );
 </script>
 
