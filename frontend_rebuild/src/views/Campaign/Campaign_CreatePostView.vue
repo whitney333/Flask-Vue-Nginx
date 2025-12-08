@@ -6,11 +6,13 @@
     import instagramIcon from '@/assets/icons/instagram.svg';
     import bilibiliIcon from '@/assets/icons/bilibili.svg';
     import xiaohongshuIcon from '@/assets/icons/xiaohongshu.svg';
+    import fanMeetIcon from '@/assets/icons/fanmeet.svg';
     import youtubeBlackIcon from '@/assets/icons/youtube-black.svg';
     import tiktokBlackIcon from '@/assets/icons/tiktok-black.svg';
     import instagramBlackIcon from '@/assets/icons/instagram-black.svg';
     import bilibiliBlackIcon from '@/assets/icons/bilibili-black.svg';
     import xiaohongshuBlackIcon from '@/assets/icons/xiaohongshu-black.svg';
+    import fanMeetBlackIcon from '@/assets/icons/fanmeet-black.svg';
     import { regions, indexToCountry } from '@/libs/utils';
     import { Book, Captions, Clipboard, DollarSign, File, FileTextIcon, Globe, Box, Link, RadioTower, Share2 } from 'lucide-vue-next';
     import { useArtistStore } from "@/stores/artist.js";
@@ -37,6 +39,7 @@
       { name: "Youtube", icon: youtubeIcon, color: "#FF0000", blackIcon: youtubeBlackIcon },
       { name: "Rednote", icon: xiaohongshuIcon, color: "#FF2442", blackIcon: xiaohongshuBlackIcon},
       { name: "Bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
+      // { name: "Overseas fan meeting", icon: fanMeetIcon, color: "#00A1D6", blackIcon: fanMeetBlackIcon }
     ]
 
     const addHashtag = (event) => {
@@ -58,7 +61,13 @@
     const region = ref([])
     // default expand the artist panel
     const state = ref('artist')
-    const budgetRange = ['Less than US$100', 'US$100 - US$1,000', 'US$1,000 - US$5,000', 'US$5,000 - US$10,000', 'More than US$10,000']
+    const budgetRange = [
+      'Less than US$100',
+      'US$100 - US$1,000',
+      'US$1,000 - US$5,000',
+      'US$5,000 - US$10,000',
+      'More than US$10,000',
+   ]
     const budget = ref(budgetRange[0])
 
     const screenWidth = ref(window.innerWidth);
@@ -115,7 +124,7 @@
         const data = {
           firebase_id: userStore.firebase_id,
           email: userStore.email,
-          artist_id: selectedArtist.value.artist_id,
+          artist_id: selectedArtist.value.id,
           artist_en_name: selectedArtist.value.english_name,
           artist_kr_name: selectedArtist.value.korean_name,
           region: region.value.map((r) => indexToCountry[r]),
@@ -124,7 +133,8 @@
           info: post.value,
           status: campaign_init_status
         }
-        // console.log("cp: ", data)
+        // console.log("selectedArtist:", selectedArtist.value)
+        console.log("cp: ", data)
         const res = await axios.post(
             "/campaign/v1/create",
             data,
@@ -150,7 +160,6 @@
         snackbar.value.show = true;
       }
     }
-
 
 </script>
 

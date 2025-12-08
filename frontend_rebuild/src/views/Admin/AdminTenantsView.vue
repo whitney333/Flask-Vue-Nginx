@@ -297,53 +297,11 @@ watch([page, limit], () => {
 
       <!-- Submit button -->
       <button
-          class="h-[42px] px-4 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition"
+          class="h-[42px] px-4 text-sm rounded-md bg-gray-800 text-white hover:bg-gray-900 transition"
           @click="onFilterChange"
       >
         Submit
       </button>
-<!--      &lt;!&ndash; Search tenant name &ndash;&gt;-->
-<!--      <v-text-field-->
-<!--          v-model="filters.name"-->
-<!--          label="Tenant Name"-->
-<!--          density="comfortable"-->
-<!--          variant="outlined"-->
-<!--          prepend-inner-icon="mdi-magnify"-->
-<!--          class="w-64"-->
-<!--      />-->
-
-<!--      &lt;!&ndash; Status filter &ndash;&gt;-->
-<!--      <v-select-->
-<!--          v-model="filters.status"-->
-<!--          label="Status"-->
-<!--          density="comfortable"-->
-<!--          variant="outlined"-->
-<!--          :items="[-->
-<!--            { title: 'All', value: '' },-->
-<!--            { title: 'Active', value: 'active' },-->
-<!--            { title: 'Suspended', value: 'suspended' },-->
-<!--            { title: 'Closed', value: 'closed' }-->
-<!--          ]"-->
-<!--          class="w-40"-->
-<!--          item-title="title"-->
-<!--          item-value="value"-->
-<!--      />-->
-
-<!--      <v-btn-->
-<!--          variant="outlined"-->
-<!--          @click="resetFilters"-->
-<!--          size="small"-->
-<!--      >-->
-<!--        Reset-->
-<!--      </v-btn>-->
-<!--      <v-btn-->
-<!--          color="indigo"-->
-<!--          class="text-white"-->
-<!--          @click="onFilterChange"-->
-<!--          size="small"-->
-<!--      >-->
-<!--        Submit-->
-<!--      </v-btn>-->
     </div>
     <!-- open dialog: add new tenant -->
     <v-dialog v-model="showDialog" max-width="500px">

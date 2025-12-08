@@ -782,8 +782,7 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
 
       <!-- Submit button -->
       <button
-          class="h-[42px] px-4 text-sm rounded-md bg-indigo-600 text-white
-           hover:bg-indigo-700 transition"
+          class="h-[42px] px-4 text-sm rounded-md bg-gray-800 text-white hover:bg-gray-900 transition"
           @click="onFilterChange"
       >
         Submit
@@ -840,7 +839,7 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
             </div>
             <span v-else>-</span>
           </td>
-          <td class="px-4 py-2 flex gap-2">
+          <td class="px-4 py-2">
             <button
                 @click.stop="viewArtistDetail(a.id)"
                 class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-green-600 text-green-600 hover:bg-green-50 transition"

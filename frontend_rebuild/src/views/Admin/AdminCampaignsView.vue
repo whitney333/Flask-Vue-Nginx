@@ -3,6 +3,7 @@ import {ref, onMounted, watch, computed} from "vue";
 import axios from "axios";
 import {useUserStore} from "@/stores/user.js";
 import {indexToCountry} from "@/libs/utils.js";
+import StatusChip from "@/components/StatusChip.vue"
 
 
 const campaigns = ref([]);
@@ -59,7 +60,15 @@ const fetchCampaigns = async () => {
   loading.value = true;
   try {
     const res = await axios.get(
-        `/api/admin/v1/campaigns?page=${page.value}&limit=${limit.value}`,
+        `/api/admin/v1/campaigns`, {
+          params: {
+            page: page.value,
+            limit: limit.value,
+            english_name: filters.value.artist_name,
+            status: filters.value.status,
+            email: filters.value.email
+          }
+        }
     )
     campaigns.value = res.data.data;
     total.value = res.data.total;
@@ -291,6 +300,26 @@ const formatDate = (date) => {
   return new Date(date).toLocaleString();
 };
 
+// filters
+const filters = ref({
+  artist_name: "",
+  email: "",
+  status: "",
+});
+
+const onFilterChange = () => {
+  page.value = 1;
+  fetchCampaigns()
+};
+
+const resetFilters = () => {
+  filters.value.artist_name = "";
+  filters.value.status = "";
+  filters.value.email = "";
+  page.value = 1
+  fetchCampaigns()
+}
+
 onMounted(fetchCampaigns);
 
 watch([page, limit], () => {
@@ -318,23 +347,76 @@ watch([page, limit], () => {
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap gap-4 mb-6">
-      <div>
-        <label class="text-sm text-gray-600 block mb-1">Status</label>
-        <select
-            v-model="selectedStatus"
-            class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        >
-          <option value="">All</option>
-          <option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option>
-        </select>
+    <div class="flex flex-wrap gap-4 mb-4 items-end">
+      <!-- Search user email -->
+      <div class="w-64 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">User Email</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+            <i class="mdi mdi-magnify"></i>
+          </span>
+          <input
+              v-model="filters.email"
+              type="text"
+              class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Search user email..."
+          />
+        </div>
       </div>
 
+      <!-- Search artist name -->
+      <div class="w-64 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Artist Name</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+            <i class="mdi mdi-magnify"></i>
+          </span>
+          <input
+              v-model="filters.artist_name"
+              type="text"
+              class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Search artist name..."
+          />
+        </div>
+      </div>
+
+      <!-- Status filter -->
+      <div class="w-40 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Status</label>
+        <div class="relative">
+          <select
+              v-model="filters.status"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              :class="filters.status === '' ? 'text-gray-400' : 'text-gray-700'"
+          >
+            <!-- placeholder -->
+            <option value="" disabled selected hidden>Select Status</option>
+            <option value="">All</option>
+            <option value="submitted">Submitted</option>
+            <option value="approved">Approved</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <!-- icon -->
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            <i class="mdi mdi-menu-down text-xl"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Reset button -->
       <button
-          @click="fetchCampaigns"
-          class="self-end bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition"
+          class="h-[42px] px-4 text-sm border rounded-md hover:bg-gray-100 transition"
+          @click="resetFilters"
       >
-        Apply Filter
+        Reset
+      </button>
+
+      <!-- Submit button -->
+      <button
+          class="h-[42px] px-4 text-sm rounded-md bg-gray-800 text-white hover:bg-gray-900 transition"
+          @click="onFilterChange"
+      >
+        Submit
       </button>
     </div>
 
@@ -342,42 +424,57 @@ watch([page, limit], () => {
     <v-dialog v-model="showAddDialog" max-width="500px">
       <v-card>
         <v-card-title class="text-h6">Add New Campaign</v-card-title>
-
         <v-card-text>
-          <v-text-field
-              label="User ID"
-              v-model="newCampaign.user_id"
-              variant="underlined"
-          ></v-text-field>
-          <v-text-field
-              label="Artist EN Name"
-              v-model="newCampaign.artist_en_name"
-              variant="underlined"
-          ></v-text-field>
-          <v-select
-              label="Status"
-              :items="statusOptions"
-              v-model="newCampaign.status"
-              variant="underlined"
-          ></v-select>
-          <v-select
-              label="Target Region"
-              :items="regionSelection"
-              v-model="newCampaign.target_region"
-              variant="underlined"
-          ></v-select>
-          <v-select
-              label="Target Platform"
-              :items="platformSelection"
-              v-model="newCampaign.target_platform"
-              variant="underlined"
-          ></v-select>
-          <v-select
-              label="Budget"
-              :items="budgetSelection"
-              v-model="newCampaign.budget"
-              variant="underlined"
-          ></v-select>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field
+                  label="User ID"
+                  v-model="newCampaign.user_id"
+                  variant="underlined"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="Artist EN Name"
+                  v-model="newCampaign.artist_en_name"
+                  variant="underlined"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="Status"
+                  :items="statusOptions"
+                  v-model="newCampaign.status"
+                  variant="underlined"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="Target Region"
+                  :items="regionSelection"
+                  v-model="newCampaign.target_region"
+                  variant="underlined"
+                  multiple
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="Target Platform"
+                  :items="platformSelection"
+                  v-model="newCampaign.target_platform"
+                  variant="underlined"
+                  multiple
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="Budget"
+                  :items="budgetSelection"
+                  v-model="newCampaign.budget"
+                  variant="underlined"
+              ></v-select>
+            </v-col>
+          </v-row>
         </v-card-text>
 
         <v-card-actions class="justify-end">
@@ -412,6 +509,7 @@ watch([page, limit], () => {
           <th class="px-6 py-3">Created At</th>
           <th class="px-6 py-3">Approved At</th>
           <th class="px-6 py-3">Cancelled At</th>
+          <th class="px-6 py-3">Artist Name</th>
           <th class="px-6 py-3">User Name</th>
           <th class="px-6 py-3">User Email</th>
           <th class="px-6 py-3">Actions</th>
@@ -438,19 +536,20 @@ watch([page, limit], () => {
           <td class="px-6 py-3">{{ formatDate(c.created_at) }}</td>
           <td class="px-6 py-3">{{ formatDate(c.approved_at) }}</td>
           <td class="px-6 py-3">{{ formatDate(c.cancelled_at) }}</td>
+          <td class="px-6 py-3">{{ c.english_name || '-' }}</td>
           <td class="px-6 py-3">{{ c.user_name || '-' }}</td>
           <td class="px-6 py-3">{{ c.user_email || '-' }}</td>
           <td class="px-6 py-3 flex gap-2">
             <button
                 v-if="c.status !== 'approved'"
-                @click="approveCampaign(c.campaign_id)"
+                @click.stop="approveCampaign(c.campaign_id)"
                 class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-green-600 text-green-600 hover:bg-green-50 transition"
             >
               Approve
             </button>
             <button
                 v-if="c.status !== 'cancelled'"
-                @click="cancelCampaign(c.campaign_id)"
+                @click.stop="cancelCampaign(c.campaign_id)"
                 class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-red-600 text-red-600 hover:bg-red-50 transition"
             >
               Cancel
@@ -485,19 +584,27 @@ watch([page, limit], () => {
             <!-- Basic Info Section -->
             <div>
               <div class="flex justify-between items-center mb-2">
-                <h3 class="text-lg font-semibold">Basic Info</h3>
-                <v-btn
-                    icon
-                    variant="text"
-                    @click="startEdit('basic')"
-                    v-if="!editSection.basic"
-                >
-                  <v-icon>mdi-pencil</v-icon>
-                </v-btn>
+                <!-- Title -->
+                <div class="flex items-center gap-3">
+                  <h3 class="text-lg font-semibold">Basic Info</h3>
+                  <StatusChip :edit="editSection.basic"/>
+                </div>
 
-                <div v-if="editSection.basic" class="flex gap-2">
-                  <v-btn size="small" color="success" @click="saveSection('basic')">Save</v-btn>
-                  <v-btn size="small" color="error" @click="cancelSection('basic')">Cancel</v-btn>
+                <!-- StatusChip & edit icon -->
+                <div class="flex gap-2">
+                  <v-btn
+                      icon
+                      variant="text"
+                      @click="startEdit('basic')"
+                      v-if="!editSection.basic"
+                  >
+                    <v-icon>mdi-pencil</v-icon>
+                  </v-btn>
+
+                  <div v-if="editSection.basic" class="flex gap-2">
+                    <v-btn size="small" color="success" @click="saveSection('basic')">Save</v-btn>
+                    <v-btn size="small" color="error" @click="cancelSection('basic')">Cancel</v-btn>
+                  </div>
                 </div>
               </div>
 

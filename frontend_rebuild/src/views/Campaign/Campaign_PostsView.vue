@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useArtistStore } from "@/stores/artist.js";
 import { useUserStore } from "@/stores/user.js";
 import axios from '@/axios';
@@ -8,6 +8,7 @@ import { DollarSign, Globe, Share2, Box, Blocks } from 'lucide-vue-next';
 import CampaignPercentCard from "@/views/Campaign/components/Campaign_PercentCard.vue";
 import campaignJSON from './json/campaignViewDetails.json'
 import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vue";
+import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
 
 
 const router = useRouter()
@@ -20,6 +21,11 @@ const selectedPerformanceCampaign = ref(null)
 const targetCampaignId = ref(null)
 const dialog = ref(false)
 const selectedCampaign = ref(null)
+const loadingBar = ref(true)
+const campaignDetail = ref([])
+const campaignChartCountryData = ref([])
+const campaignChartRegionData = ref([])
+const campaignChartPlatformData = ref([])
 
 // Taiwan', 'Hong Kong', 'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', 'United States', 'Canada', 'Brazil', 'Mexico', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Australia']
 // make up some posts
@@ -91,7 +97,7 @@ const getAllCampaign = async () => {
 }
 
 onMounted(() => {
-  getAllCampaign()
+  getAllCampaign();
 })
 
 const formatDate = (dateStr) => {
@@ -123,10 +129,9 @@ const getStatusColor = (status) => {
 };
 
 const openPerformanceDialog = (campaign) => {
-  console.log("Open performance for:", campaign)
+  // console.log("Open performance for:", campaign)
   selectedCampaign.value = campaign
   showPerformanceDialog.value = true
-  //
 }
 
 const closePerformanceDialog = () => {
@@ -134,6 +139,28 @@ const closePerformanceDialog = () => {
   selectedPerformanceCampaign.value = null
 }
 
+watch(showPerformanceDialog, async (newVal) => {
+  if (newVal && selectedCampaign.value) {
+    try {
+      const response = await axios.get(
+          `/campaign/v1/detail/${selectedCampaign.value.campaign_id}`,
+          {
+          headers: {
+            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      campaignDetail.value = response.data.data.post;
+      campaignChartCountryData.value = response.data.data.total_country;
+      campaignChartRegionData.value = response.data.data.total_region;
+      campaignChartPlatformData.value = response.data.data.total_platform;
+      // console.log("cd: ", campaignDetail.value)
+    } catch (error) {
+      console.error(error);
+    }
+  }
+});
 
 </script>
 
@@ -211,7 +238,7 @@ const closePerformanceDialog = () => {
                     />
                     <!-- Performance Dialog -->
                     <v-dialog v-model="showPerformanceDialog" max-width="800px" transition="dialog-bottom-transition">
-                      <v-card class="flex flex-col max-h-[90vh]">
+                      <v-card class="flex flex-col max-h-[90vh]" v-show="showPerformanceDialog">
                         <!-- Header -->
                         <div
                             class="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 text-white p-5 flex items-center justify-between">
@@ -230,47 +257,40 @@ const closePerformanceDialog = () => {
                           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <CampaignPercentCard
                                 :value="{
-                              fetchURL: campaignJSON.campaignPlatformPercentage.fetchURL,
-                              fetchFollowerType: campaignJSON.campaignPlatformPercentage.followerDataType,
                               title: campaignJSON.campaignPlatformPercentage.title,
                               tooltipText: campaignJSON.campaignPlatformPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
                                 :campaignId="selectedCampaign?.campaign_id"
+                                :campaignData="campaignChartPlatformData"
                             />
                             <CampaignPercentCard
                                 :value="{
-                              fetchURL: campaignJSON.campaignRegionPercentage.fetchURL,
-                              fetchFollowerType: campaignJSON.campaignRegionPercentage.followerDataType,
                               title: campaignJSON.campaignRegionPercentage.title,
                               tooltipText: campaignJSON.campaignRegionPercentage.tooltipText,
                               colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
                             }"
                                 :campaignId="selectedCampaign?.campaign_id"
+                                :campaignData="campaignChartRegionData"
                             />
                             <CampaignPercentCard
                                 :value="{
-                              fetchURL: campaignJSON.campaignCountryPercentage.fetchURL,
-                              fetchFollowerType: campaignJSON.campaignCountryPercentage.followerDataType,
-                              title: campaignJSON.campaignCountryPercentage.title,
-                              tooltipText: campaignJSON.campaignCountryPercentage.tooltipText,
-                              colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
-                            }"
-                                :campaignId="'c08d80e2'"
-                            />
-                            <CampaignPercentCard
-                                :value="{
-                              fetchURL: campaignJSON.campaignCountryPercentage.fetchURL,
-                              fetchFollowerType: campaignJSON.campaignCountryPercentage.followerDataType,
-                              title: campaignJSON.campaignCountryPercentage.title,
-                              tooltipText: campaignJSON.campaignCountryPercentage.tooltipText,
-                              colors: ['#4E56C0', '#9B5DE0', '#D78FEE', '#FDCFFA', '#FDAAAA', '#F8F7BA']
-                            }"
+                                title: campaignJSON.campaignCountryPercentage.title,
+                                tooltipText: campaignJSON.campaignCountryPercentage.tooltipText,
+                                colors: campaignJSON.campaignCountryPercentage.colors
+                                }"
                                 :campaignId="selectedCampaign?.campaign_id"
+                                :campaignData="campaignChartCountryData"
+                            />
+                            <CampaignColumnCard
+                                :campaignId="selectedCampaign?.campaign_id"
+                                :campaignData="campaignDetail"
                             />
                           </div>
                           <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                            <CampaignDataTable :campaignId="selectedCampaign?.campaign_id"/>
+                            <CampaignDataTable
+                                :campaignId="selectedCampaign?.campaign_id"
+                            />
                           </div>
                         </v-card-text>
 
