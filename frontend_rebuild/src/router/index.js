@@ -20,45 +20,104 @@ import Campaign_PostsView from '@/views/Campaign/Campaign_PostsView.vue'
 import Campaign_CreatePostView from '@/views/Campaign/Campaign_CreatePostView.vue'
 import ProfileView from "@/views/Auth/ProfileView.vue";
 import ComingSoonView from "@/views/Campaign/Coming_SoonView.vue"
+import Admin_Layout from "@/layouts/Admin_Layout.vue"
+import Admin_CampaignView from "@/views/Admin/AdminCampaignsView.vue"
+import Admin_UserView from "@/views/Admin/AdminUsersView.vue"
+import Admin_TenantView from "@/views/Admin/AdminTenantsView.vue"
+import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
+
 
 const routes = [
-    { path: '/', name: '', redirect: { path: "/dashboard" }, component: DashboardView,  meta: {requireAuth: true,}},
-    { path: '/dashboard',  name: 'Dashboard',  component: DashboardView, meta: { requireAuth: true }},
-    { path: '/auth', name: 'Auth',  component: Auth_Layout,
-      children: [
-        { path: 'login', name: 'Login', component: LoginView }, 
-        { path: 'register', name: 'Create Account', component: RegisterView},
-        { path: 'register/details', name: 'Account Details', component: RegisterDetailsView, meta: { requireAuth: true, }}
-      ]
+    {
+        path: '/',
+        name: '',
+        redirect: { path: "/dashboard" },
+        component: DashboardView,  meta: {requireAuth: true,}},
+    {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: DashboardView,
+        meta: { requireAuth: true }
     },
-    { path: '/profile', name: 'User Profile', component: ProfileView , meta: { requireAuth: true}},
+    {
+        path: '/auth',
+        name: 'Auth',
+        component: Auth_Layout,
+        children: [
+            { path: 'login', name: 'Login', component: LoginView },
+            { path: 'register', name: 'Create Account', component: RegisterView},
+            { path: 'register/details', name: 'Account Details', component: RegisterDetailsView, meta: { requireAuth: true, }}
+        ]
+    },
+    {
+        path: '/profile',
+        name: 'User Profile',
+        component: ProfileView ,
+        meta: { requireAuth: true}
+    },
     {
         path: '/:pathMatch(.*)*',
         redirect: '/dashboard'
     },
-    { path: '/sns', name: 'Sns', component: SNS_Layout, meta: { requireAuth: true, },
-      children: [
-        { path: 'instagram', name: 'Instagram', component: SNS_InstaView, meta: { requireAuth: true,}},
-        { path: 'youtube', name: 'Youtube', component: SNS_YoutubeView, meta: { requireAuth: true,}},
-        { path: 'tiktok', name: 'TikTok', component: SNS_TiktokView, meta: { requireAuth: true, }},
-        { path: 'bilibili', name: 'Bilibili', component: SNS_BilibiliView, meta: { requireAuth: true,}}
-      ],
+    {
+        path: '/sns',
+        name: 'Sns',
+        component: SNS_Layout,
+        meta: { requireAuth: true },
+        children: [
+            { path: 'instagram', name: 'Instagram', component: SNS_InstaView, meta: { requireAuth: true,}},
+            { path: 'youtube', name: 'Youtube', component: SNS_YoutubeView, meta: { requireAuth: true,}},
+            { path: 'tiktok', name: 'TikTok', component: SNS_TiktokView, meta: { requireAuth: true, }},
+            { path: 'bilibili', name: 'Bilibili', component: SNS_BilibiliView, meta: { requireAuth: true,}}
+        ],
     },
-    { path: '/works', name: 'Works', component: Works_Layout, meta: { requireAuth: true,},
-      children: [
-        { path: 'music', name: 'Music', component: Work_MusicView, },
-      ]
+    {
+        path: '/works',
+        name: 'Works',
+        component: Works_Layout,
+        meta: { requireAuth: true,},
+        children: [
+            { path: 'music', name: 'Music', component: Work_MusicView, },
+        ]
     },
-    { path: '/campaign', name: 'Campaign', component: Works_Layout, meta: { requireAuth: true,},
-      children: [
-        { path: 'analytics', name: 'Campaign Performance', component: ComingSoonView, meta: { requireAuth: true,}},
-        { path: 'posts', name: 'Campaign Posts', component: Campaign_PostsView, meta: { requireAuth: true }},
-        {path: 'posts/create', name: 'Campaign Create Posts', component: Campaign_CreatePostView, meta: { requireAuth: true }}
-      ]
+    {
+        path: '/campaign',
+        name: 'Campaign',
+        component: Works_Layout,
+        meta: { requireAuth: true},
+        children: [
+            { path: 'analytics', name: 'Campaign Performance', component: ComingSoonView, meta: { requireAuth: true,}},
+            { path: 'posts', name: 'Campaign Posts', component: Campaign_PostsView, meta: { requireAuth: true }},
+            { path: 'posts/create', name: 'Campaign Create Posts', component: Campaign_CreatePostView, meta: { requireAuth: true }}
+        ]
     },
-    { path: '/trending-artists', name: 'Trending Artists', component: ComingSoonView, meta: { requireAuth: true, }},
-    { path: '/artist/:artistId/:artistName', name: 'Artist', component: ArtistView, meta: { requireAuth: true,}}
-  ]
+    {
+        path: '/trending-artists',
+        name: 'Trending Artists',
+        component: ComingSoonView,
+        meta: { requireAuth: true}
+    },
+    {
+        path: '/artist/:artistId/:artistName',
+        name: 'Artist',
+        component: ArtistView,
+        meta: { requireAuth: true}},
+    {
+        path: '/admin',
+        name: 'Admin Portal',
+        component: Admin_Layout,
+        meta: {
+            requireAuth: true,
+            requireAdmin: true
+        },
+        children: [
+            { path: 'campaigns', name: 'Manage Campaign', component: Admin_CampaignView, meta: { requireAuth: true, requireAdmin: true }},
+            { path: 'users', name: 'Manage Users', component: Admin_UserView, meta: { requireAuth: true, requireAdmin: true }},
+            { path: 'tenants', name: 'Manage Tenants', component: Admin_TenantView, meta: { requireAuth: true, requireAdmin: true }},
+            { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }}
+        ]
+    }
+]
 
   const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -139,6 +198,7 @@ router.beforeEach(async (to, from, next) => {
          console.log("no profile, redirect to /auth/register/details")
         return next('/auth/register/details')
     }
+
 
     // already login, and profile exists
     console.log("all checks passed, proceed")

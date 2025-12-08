@@ -15,7 +15,8 @@
     "tooltipText": "",
     "fetchURL": "/campaign/v1/detail/{campaign_id}",
     "fetchFollowerType": "data",
-    "followerDataType": "total_country"
+    "followerDataType": "total_country",
+    "colors": ["#4E56C0", "#9B5DE0", "#D78FEE", "#FDCFFA", "#FDAAAA", "#F8F7BA"]
   },
   "campaignPlatformPercentage": {
     "chart": "campaignTotalPlatform",

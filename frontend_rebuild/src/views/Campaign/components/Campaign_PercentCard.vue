@@ -4,44 +4,42 @@ import { watch, computed, onMounted, ref } from 'vue';
 import { useUserStore } from "@/stores/user.js";
 
 const props = defineProps({
-  value: {type: Object, required: true},
-  campaignId: {type: String, required: true}
+  value: {
+    type: Object,
+    required: true
+  },
+  campaignId: {
+    type: String,
+    required: true
+  },
+  campaignData: {
+    type: Array,
+    required: true,
+    default: () => []
+  }
 })
 
 const userStore = useUserStore()
 const loadingBar = ref(true)
 const series = ref([])
 const labels = ref([])
+const hasFetched = ref(false)
 const chartOptions = ref({})
 
 //fetch data
 const fetchData = async () => {
-  if (!props.value.fetchURL || !props.campaignId) return
+  if (!Array.isArray(props.campaignData) || props.campaignData.length === 0) {
+    series.value = []
+    labels.value = []
+    loadingBar.value = false
+    return
+  }
 
   try {
     loadingBar.value = true
-    // dynamic change campaign_id
-    const url = props.value.fetchURL.replace("{campaign_id}", props.campaignId)
-
-    const res = await axios.get(url,
-        {headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
-            "Content-Type": "application/json"
-          }})
-    const data = res.data.data[props.value.fetchFollowerType] || []
-
-    // console.log("data: ", data)
-
-    // if (data.value.length === 0) {
-    //   console.warn("No data found for the given type")
-    //   series.value = []
-    //   labels.value = []
-    //   loadingBar.value = false
-    //   return
-    // }
     // convert API data to series/labels
-    series.value = data.map(item => item.count)
-    labels.value = data.map(item => item.name)
+    series.value = props.campaignData.map(item => item.count)
+    labels.value = props.campaignData.map(item => item.name)
 
     // console.log("series:", series.value)
     // console.log("labels:", labels.value)
@@ -102,6 +100,7 @@ const fetchData = async () => {
 }
 
 // fetch data on mounted
+watch(() => props.campaignData, fetchData, { deep: true })
 onMounted(fetchData)
 
 </script>
