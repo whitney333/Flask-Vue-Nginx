@@ -2,7 +2,7 @@
     import { ref } from 'vue';
     import axios from '@/axios';
     import mishkanLogo from '@/assets/mishkan-logo.svg'
-    import { FacebookAuthProvider, getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup,   setPersistence,
+    import { FacebookAuthProvider, getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect , setPersistence,
              browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
     import { useRouter } from 'vue-router';
     import { useUserStore } from "@/stores/user.js";
@@ -63,7 +63,9 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken
+              firebaseToken: idToken,
+              created_at: result.user.metadata.creationTime,
+              last_login_at: result.user.metadata.lastSignInTime
             })
 
           // POST firebase_id to check if user exists
@@ -79,7 +81,8 @@
 
           // const token = response.data;
           // if data exists then return
-          const {exists} = response.data
+          const {exists, admin} = response.data
+          userStore.admin = admin || false;
 
           // get followed artists list
           if (exists === true) {
@@ -98,9 +101,11 @@
             snackbarText.value = 'Welcome back! Redirecting to dashboard...'
             snackbarColor.value = 'success'
             snackbar.value = true
-            setTimeout(() => {
-              router.push("/dashboard")
-            }, 2000)
+            if (userStore.admin) {
+                router.push("/admin/campaigns");
+              } else {
+                router.push("/dashboard");
+              }
           } else {
             // first time login > redirect to fill out company name & followed artists
             console.log("First time login, redirecting to details...")
@@ -138,14 +143,16 @@
             const result = await signInWithPopup(getAuth(), provider)
 
             const idToken = await result.user.getIdToken();
-            console.log("tk: ", idToken)
+            // console.log("tk: ", idToken)
             // store to userStore
             userStore.setUser({
               firebase_id: result.user.uid,
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken
+              firebaseToken: idToken,
+              created_at: result.user.metadata.creationTime,
+              last_login_at: result.user.metadata.lastSignInTime
             })
 
             // POST firebase_id to check if user exists
@@ -158,8 +165,8 @@
             );
             // const token = response.data;
             // if data exists then return
-            const { exists } = response.data
-            // console.log("resp: ", response.data)
+            const { exists, admin } = response.data
+            userStore.admin = admin || false;
 
             // get followed artists list
             if (exists === true) {
@@ -174,7 +181,11 @@
               userStore.setFollowedArtists(getFollowedArtists.data.data || []);
               // console.log("Followed Artists in store:", userStore.followedArtists);
               // redirect to /dashboard
-              router.push("/dashboard");
+              if (userStore.admin) {
+                router.push("/admin/campaigns");
+              } else {
+                router.push("/dashboard");
+              }
             } else {
               // first time login > redirect to fill out company name & followed artists
               console.log("First time login, redirecting to details...")

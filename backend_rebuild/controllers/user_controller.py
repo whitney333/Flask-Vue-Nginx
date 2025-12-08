@@ -59,7 +59,7 @@ class UserController:
         try:
             # get firebase token from header
             id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
-            print(id_token)
+            # print(id_token)
             if not id_token:
                 return jsonify({"error": "Missing token"}), 401
 
@@ -80,7 +80,10 @@ class UserController:
                 return jsonify({"message": "User already exists"}), 200
 
             # store in database
-            user = Users(firebase_id=uid, email=email)
+            user = Users(
+                firebase_id=uid,
+                email=email
+            )
             user.save()
 
             return jsonify({
@@ -102,7 +105,7 @@ class UserController:
     def create_user(cls):
         # get data
         data = request.get_json()
-        # print(data)
+        print(data)
         try:
             if not data.get("firebaseId") or not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
                 return jsonify({
@@ -146,6 +149,8 @@ class UserController:
                 email = data.get("email"),
                 tenant = data.get("tenant"),
                 followed_artist = data.get("followed_artist"),
+                created_at = data.get("created_at"),
+                last_login_at = data.get("last_login_at"),
                 admin = False
             )
             new_user.save()
@@ -183,6 +188,7 @@ class UserController:
     def login_user():
         data = request.json.get("IdToken")
 
+
         try:
             decoded = auth.verify_id_token(data)
             firebase_id = decoded["firebase_id"]
@@ -202,6 +208,7 @@ class UserController:
                     artist_name=artist_name,
                     image_url=image_url,
                     email=email,
+                    admin=False
                 )
                 user.save()
 
@@ -236,6 +243,7 @@ class UserController:
         # get user followed artist
         for artist in followed:
             artist_data.append({
+                "id": str(artist.id) if artist.id else None,
                 "artist_id": artist.artist_id,
                 "english_name": artist.english_name,
                 "korean_name": artist.korean_name,
@@ -257,10 +265,17 @@ class UserController:
         user = Users.objects(firebase_id=firebase_uid).first()
 
         if user:
-            return jsonify({"exists": True})
+
+            # print(user)
+            return jsonify({
+                "exists": True,
+                "admin": user.admin
+            }), 200
         else:
             # no user data in database yet
-            return jsonify({"exists": False})
+            return jsonify({
+                "exists": False
+            }), 200
 
     @staticmethod
     def get_all_tenant_company():
