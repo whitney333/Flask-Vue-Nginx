@@ -59,3 +59,22 @@ def auth_required(f):
         g.user_id = getIdFromFirebaseID(decoded_token.get("uid"))
         return f(*args, **kwargs)
     return wrapper
+
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        user_uid = getattr(request, "user_uid", None)
+        if not user_uid:
+            return jsonify({"error": "Authentication required"}), 401
+
+        user = Users.objects(uid=user_uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        if not user.admin:
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        # 通過驗證，將 user 傳給 route
+        request.current_user = user
+        return f(*args, **kwargs)
+    return wrapper

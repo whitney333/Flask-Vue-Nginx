@@ -36,6 +36,10 @@ def get_user_followed_artist_by_id():
 def check_user_exists():
     return UserController.check_user_exists()
 
+@user_bp.route("/v1/auth/check_admin", methods=["POST"])
+def check_is_admin():
+    return UserController.check_is_admin()
+
 @user_bp.route("/v1/company", methods=["GET"])
 def get_all_tenant_company():
     result = UserController.get_all_tenant_company()
