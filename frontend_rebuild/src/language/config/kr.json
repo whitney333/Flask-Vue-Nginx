@@ -158,10 +158,12 @@
   },
   "sns": {
     "Instagram": "인스타그램",
-    "YouTube": "유튜브",
+    "Youtube": "유튜브",
     "Bilibili": "빌리빌리",
     "Tiktok": "틱톡",
-    "Rednote": "레드노트"
+    "Rednote": "레드노트",
+    "Overseas fan meeting": "해외 팬미팅",
+    "Magazine": "매거진"
   },
   "campaign": {
     "campaign": "캠페인",

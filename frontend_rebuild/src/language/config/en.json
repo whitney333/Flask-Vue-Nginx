@@ -60,7 +60,7 @@
   "Subscribers": "Subscribers",
   "YouTube Total Channel Videos": "YouTube Total Channel Videos",
   "YouTube Total Channel Views": "YouTube Total Channel Views",
-    "YouTube Total Channel Hashtags": "YouTube Total Channel Hashtags",
+  "YouTube Total Channel Hashtags": "YouTube Total Channel Hashtags",
   "YouTube Total Videos Hashtags": "YouTube Total Video Hashtags",
   "YouTube Total Videos Views": "YouTube Total Video Views",
   "YouTube Total Videos Likes": "YouTube Total Video Likes",
@@ -157,10 +157,12 @@
   },
   "sns": {
     "Instagram": "Instagram",
-    "YouTube": "YouTube",
+    "Youtube": "YouTube",
     "Bilibili": "Bilibili",
     "Tiktok": "Tiktok",
-    "Rednote": "Rednote"
+    "Rednote": "Rednote",
+    "Overseas fan meeting": "Overseas Fan Meeting",
+    "Magazine": "Magazine"
   },
   "campaign": {
     "campaign": "Campaign",
