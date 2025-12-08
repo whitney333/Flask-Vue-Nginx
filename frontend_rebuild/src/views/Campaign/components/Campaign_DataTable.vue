@@ -20,6 +20,7 @@ const props = defineProps({
 const userStore = useUserStore()
 const rowData = ref([])
 
+
 const kolAccountRenderer = (params) => {
   // add link to account
   const account = params.value || "";
@@ -104,7 +105,7 @@ const hashtagRenderer = (params) => {
 
   // limit init number
   let expanded = false;
-  const MAX_VISIBLE = 5;
+  const max_visible = 5;
 
   // chips container
   const chipWrapper = document.createElement("div");
@@ -113,7 +114,7 @@ const hashtagRenderer = (params) => {
 
   const renderChips = () => {
     chipWrapper.innerHTML = "";
-    const displayTags = expanded ? hashtags : hashtags.slice(0, MAX_VISIBLE);
+    const displayTags = expanded ? hashtags : hashtags.slice(0, max_visible);
     displayTags.forEach((tag) => {
       const chip = document.createElement("span");
       chip.classList.add("hashtag-chip");
@@ -124,8 +125,8 @@ const hashtagRenderer = (params) => {
 
   renderChips();
 
-  // if hashtags number are greater than MAX_VISIBLE > Show more
-  if (hashtags.length > MAX_VISIBLE) {
+  // if hashtags number are greater than max_visible > Show more
+  if (hashtags.length > max_visible) {
     const toggleButton = document.createElement("button");
     toggleButton.textContent = "Show more";
     toggleButton.classList.add("hashtag-toggle");
@@ -151,8 +152,10 @@ const hashtagRenderer = (params) => {
 
 // Column Definitions: Defines the columns to be displayed.
 const colDefs = ref([
-    {field: "artist", headerName: "Artist"},
-    {field: "content", headerName: "Content"},
+    { field: "artist",
+      headerName: "Artist"},
+    { field: "content",
+      headerName: "Content"},
     {
       field: "kol_account",
       headerName: "KOL Account",
@@ -164,21 +167,36 @@ const colDefs = ref([
       headerName: "Platform",
       pinned: "left"
     },
-    {field: "status", headerName: "Status"},
-    {field: "target_country", headerName: "Target Country"},
-    {field: "type", headerName: "Type"},
-    {field: "cost", headerName: "Cost"},
-    {field: "post_created_at", headerName: "Post Created"},
-    {field: "reach", headerName: "Reach"},
-    {field: "reaction", headerName: "Reaction"},
-    {field: "engagement", headerName: "Engagement"},
-    {field: "hashtag_reach", headerName: "Hashtag Reach"},
-    {field: "cost_per_reach", headerName: "Cost Per Reach"},
-    {field: "cost_per_view", headerName: "Cost Per View"},
-    {field: "one_hour_view", headerName: "1 HR View"},
-    {field: "twentyfour_hour_view", headerName: "24 HR View"},
-    {field: "latest_view", headerName: "Latest View"},
-    {field: "used_hashtag", headerName: "Used Hashtags",
+    { field: "status",
+      headerName: "Status"},
+    { field: "target_country",
+      headerName: "Target Country"},
+    { field: "type",
+      headerName: "Type"},
+    { field: "cost",
+      headerName: "Cost"},
+    { field: "post_created_at",
+      headerName: "Post Created"},
+    { field: "reach",
+      headerName: "Reach"},
+    { field: "reaction",
+      headerName: "Reaction"},
+    { field: "engagement",
+      headerName: "Engagement"},
+    { field: "hashtag_reach",
+      headerName: "Hashtag Reach"},
+    { field: "cost_per_reach",
+      headerName: "Cost Per Reach"},
+    { field: "cost_per_view",
+      headerName: "Cost Per View"},
+    { field: "one_hour_view",
+      headerName: "1 HR View"},
+    { field: "twentyfour_hour_view",
+      headerName: "24 HR View"},
+    { field: "latest_view",
+      headerName: "Latest View"},
+    { field: "used_hashtag",
+      headerName: "Used Hashtags",
       cellRenderer: hashtagRenderer,
       autoHeight: true,
       cellStyle: {
@@ -194,7 +212,7 @@ const defaultColDef = ref({
   filter: true,
   resizable: true,
   flex: 0,
-  minWidth: 50,
+  minWidth: 100,
 });
 
 const sideBar = {
@@ -261,17 +279,18 @@ watch(() => props.campaignId, (newId) => {
 </script>
 
 <template>
-   <div class="ag-theme-quartz" style="width: 100%; height: 500px; overflow: auto;">
-     <AgGridVue
-         style="width: 100%; height: 100%;"
-         :rowData="rowData"
-         :columnDefs="colDefs"
-         :defaultColDef="defaultColDef"
-         :domLayout="'normal'"
-         :suppressHorizontalScroll="false"
-         :suppressColumnVirtualisation="false"
-     ></AgGridVue>
-  </div>
+    <div class="ag-theme-quartz" style="width: 100%; height: 500px; overflow: auto;">
+      <AgGridVue
+          style="width: 100%; height: 100%;"
+          :rowData="rowData"
+          :columnDefs="colDefs"
+          :defaultColDef="defaultColDef"
+          :domLayout="'normal'"
+          :suppressHorizontalScroll="false"
+          :suppressColumnVirtualisation="false"
+          @firstDataRendered="onFirstDataRendered"
+      ></AgGridVue>
+    </div>
 </template>
 
 <style scoped>
@@ -296,6 +315,11 @@ watch(() => props.campaignId, (newId) => {
   padding: 2px 8px;
   font-size: 12px;
   line-height: 1.4;
+}
+
+.hashtag-chip:hover {
+  background-color: #bbdefb;
+  transform: translateY(-1px);
 }
 
 .hashtag-toggle {
