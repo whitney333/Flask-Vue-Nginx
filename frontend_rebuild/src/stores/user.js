@@ -9,7 +9,10 @@ export const useUserStore = defineStore("user", {
     photo: null,
     tenant: null,
     firebaseToken: null,
-    followedArtists: []
+    followedArtists: [],
+    admin: null,
+    created_at: null,
+    last_login_at: null
   }),
   actions: {
     setUser(user) {
@@ -20,6 +23,9 @@ export const useUserStore = defineStore("user", {
       this.tenant = user.tenant;
       this.followedArtists = user.followedArtists || [];
       this.firebaseToken = user.firebaseToken;
+      this.admin = user.admin;
+      this.created_at = user.created_at;
+      this.last_login_at = user.last_login_at;
     },
     reset() {
       this.firebase_id = null
@@ -29,6 +35,9 @@ export const useUserStore = defineStore("user", {
       this.tenant = null
       this.followedArtists = []
       this.firebaseToken = null
+      this.admin = null
+      this.created_at = null
+      this.last_login_at = null
     },
     setFollowedArtists(artists) {
       // console.log("Setting followedArtists in store:", artists);
