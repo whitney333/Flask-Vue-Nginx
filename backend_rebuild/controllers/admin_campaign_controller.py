@@ -368,19 +368,23 @@ class AdminCampaignController:
         approve campaign status when the package is confirmed
         :return:
         """
-        campaign = Campaign.objects(campaign_id=campaign_id).first()
-        if not campaign:
-            return jsonify({"error": "Campaign not found"}), 404
+        try:
+            campaign = Campaign.objects(campaign_id=campaign_id).first()
+            if not campaign:
+                return jsonify({"error": "Campaign not found"}), 404
 
-        if campaign.status == "approved":
-            return jsonify({"message": "Already approved"}), 200
+            if campaign.status == "approved":
+                return jsonify({"message": "Already approved"}), 200
 
-        campaign.status = "approved"
-        campaign.approved_at = datetime.now(timezone.utc)
-        campaign.save()
+            campaign.status = "approved"
+            campaign.approved_at = datetime.now(timezone.utc)
+            campaign.save()
 
-        return jsonify({
-            "message": f"Campaign {campaign_id} approved successfully",
-            "approved_at": campaign.approved_at
-        }), 200
-
+            return jsonify({
+                "message": f"Campaign {campaign_id} approved successfully",
+                "approved_at": campaign.approved_at
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500

@@ -54,3 +54,6 @@ class Artists(Document):
     weibo_id = StringField(required=False, null=True)
     image_url = StringField()
     instagram_user = StringField(required=False, null=True)
+    # status = StringField(
+    #     required=True, choices=["active", "inactive"], default="active"
+    # )

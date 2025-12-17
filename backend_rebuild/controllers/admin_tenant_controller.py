@@ -11,6 +11,8 @@ import traceback
 import re
 
 
+EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+
 class AdminTenantController:
     def __init__(self, admin):
         self.admin = admin
@@ -154,41 +156,66 @@ class AdminTenantController:
                 "error": str(e)
             }), 500
 
+    @staticmethod
+    def normalize(value):
+        """
+        remove "", and strip
+        :param value:
+        :return:
+        """
+        if value is None:
+            return None
+
+        value = str(value).strip()
+
+        if value == "":
+            return None
+
+        return value
+
     @classmethod
     def addTenant(cls):
         """
-        add a new campaign
+        add a new tenant
         :return:
         """
         try:
             data = request.get_json()
             # print(data)
-            tenant_name = data.get("tenant_name")
-
-            website = data.get("website")
-            email = data.get("email")
+            tenant_name = cls.normalize(data.get("tenant_name"))
+            website = cls.normalize(data.get("website"))
+            email = cls.normalize(data.get("email"))
 
             if not tenant_name:
                 return jsonify({
                     "error": "tenant name is required"
                 }), 400
 
-            # check duplication
-            duplicate = Tenant.objects(
-                Q(tenant_name__iexact=tenant_name) |
-                Q(website__iexact=website) |
-                Q(email__iexact=email)
-            ).first()
+            if email and not re.match(EMAIL_REGEX, email):
+                return jsonify({
+                    "error": "Invalid email format"
+                }), 400
+            print("tenant_name:", repr(tenant_name))
+            print("website:", repr(website))
+            print("email:", repr(email))
 
-            if duplicate:
+            # check duplication
+            duplicate_fields = {}
+            if Tenant.objects(tenant_name__iexact=tenant_name).first():
+                duplicate_fields["tenant_name"] = tenant_name
+
+            if website and Tenant.objects(website__iexact=website).first():
+                duplicate_fields["website"] = website
+
+            if email and Tenant.objects(email__iexact=email).first():
+                duplicate_fields["email"] = email
+
+            if duplicate_fields:
                 return jsonify({
                     "error": "Tenant already exists",
-                    "duplicate": {
-                        "tenant_name": duplicate.tenant_name,
-                        "website": duplicate.website,
-                        "email": duplicate.email
-                    }
-                }), 409  # conflict
+                    "duplicate_fields": list(duplicate_fields.keys()),
+                    "duplicate_values": duplicate_fields
+                }), 409
 
             # find the latest tenant number
             last_tenant = Tenant.objects().order_by("-tenant_id").first()
@@ -204,11 +231,7 @@ class AdminTenantController:
                 website = website,
                 email = email
             )
-
-            try:
-                new_tenant.save()
-            except NotUniqueError:
-                return jsonify({"error": "Tenant duplicated"}), 409
+            new_tenant.save()
 
             return jsonify({
                 "message": "Tenant created successfully",
@@ -291,16 +314,19 @@ class AdminTenantController:
     @classmethod
     def getTenantsList(cls):
         """
-        Get all tenants for dropdown list
+        Get all active tenants for dropdown list
         :return:
         """
         try:
-            tenants = Tenant.objects.only("id", "tenant_name")
+            tenants = Tenant.objects(status__iexact="active").only("id", "tenant_name").collation(
+                # strength=2 stands for case insensitive
+                {'locale': 'en', 'strength': 2}
+            ).order_by("tenant_name")
 
             result = [
                 {
                     "id": str(c.id),
-                    "tenant_name": c.tenant_name
+                    "tenant_name": c.tenant_name.lower()
                 }
                 for c in tenants
             ]
