@@ -73,6 +73,27 @@ def get_top_tracks_by_region():
 
     return top_tracks_by_region
 
+@spotify_bp.route("/v1/follower/growth", methods=["GET"])
+def get_spotify_follower_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return SpotifyController.get_spotify_follower_growth(artist_id, campaign_start)
+
+@spotify_bp.route("/v1/monthly-listener/growth", methods=["GET"])
+def get_spotify_monthly_listener_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return SpotifyController.get_spotify_monthly_listener_by_artist_id(artist_id, campaign_start)
+
+@spotify_bp.route("/v1/popularity/growth", methods=["GET"])
+def get_spotify_popularity_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return SpotifyController.get_spotify_popularity_growth(artist_id, campaign_start)
+
 #################### v2 Endpoint ####################
 
 @spotify_bp.route("/v2/follower/<string:artist_id>", methods=["GET"])
