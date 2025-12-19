@@ -118,3 +118,17 @@ def get_most_engaged_recent_twelve_hashtags():
     most_engaged_hashtags = InstagramController.get_hashtags_most_engaged_recent_twelve(artist_id)
 
     return most_engaged_hashtags
+
+@instagram_bp.route("/v1/follower/growth", methods=["GET"])
+def get_follower_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return InstagramController.get_instagram_follower_growth(artist_id, campaign_start)
+
+@instagram_bp.route("/v1/threads-follower/growth", methods=["GET"])
+def get_threads_follower_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return InstagramController.get_threads_follower_growth(artist_id, campaign_start)
