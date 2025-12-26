@@ -741,7 +741,7 @@ class SpotifyController:
             return jsonify({
                 "status": "error",
                 "err": str(e)
-            }), 500
+          }), 500
 
     @staticmethod
     def get_spotify_monthly_listener_growth(artist_id, campaign_start):
@@ -753,6 +753,39 @@ class SpotifyController:
         try:
             campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
             result = SpotifyService.get_monthly_listener_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_spotify_top_five_city_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = SpotifyService.get_top_five_city_growth(artist_id, campaign_start_dt)
 
             if not result:
                 return jsonify({

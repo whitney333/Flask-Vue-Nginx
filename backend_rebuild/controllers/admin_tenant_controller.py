@@ -295,12 +295,12 @@ class AdminTenantController:
         :return:
         """
         try:
-            tenants = Tenant.objects.only("id", "tenant_name")
+            tenants = Tenant.objects.only("id", "tenant_name").order_by("tenant_name")
 
             result = [
                 {
                     "id": str(c.id),
-                    "tenant_name": c.tenant_name
+                    "tenant_name": c.tenant_name.lower() if c.tenant_name else None
                 }
                 for c in tenants
             ]

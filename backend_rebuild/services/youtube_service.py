@@ -48,7 +48,10 @@ class YoutubeService:
         before = before_record.subscriber_count
         after = after_record.subscriber_count
 
-        growth_percentage = round(((after - before) / before) * 100, 2)
+        growth_percentage = (
+            round(((after - before) / before) * 100, 2)
+            if before > 0 else 0
+        )
 
         return {
             "before": {
@@ -101,7 +104,10 @@ class YoutubeService:
         before = before_record.channel_hashtag
         after = after_record.channel_hashtag
 
-        growth_percentage = round(((after - before) / before) * 100, 2)
+        growth_percentage = (
+            round(((after - before) / before) * 100, 2)
+            if before > 0 else 0
+        )
 
         return {
             "before": {
@@ -154,7 +160,10 @@ class YoutubeService:
         before = before_record.video_hashtag
         after = after_record.video_hashtag
 
-        growth_percentage = round(((after - before) / before) * 100, 2)
+        growth_percentage = (
+            round(((after - before) / before) * 100, 2)
+            if before > 0 else 0
+        )
 
         return {
             "before": {
@@ -249,4 +258,3 @@ class YoutubeService:
             },
             "percentage": growth_percentage
         }
-

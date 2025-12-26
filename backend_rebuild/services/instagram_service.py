@@ -42,7 +42,10 @@ class InstagramService:
         before = before_record.follower_count
         after = after_record.follower_count
 
-        growth_percentage = round(((after - before) / before) * 100, 2)
+        growth_percentage = (
+            round(((after - before) / before) * 100, 2)
+            if before > 0 else 0
+        )
 
         return {
             "before": {
@@ -92,10 +95,13 @@ class InstagramService:
         if before_record is None or after_record is None:
             return None
 
-        before = before_record.threads_follower
-        after = after_record.threads_follower
+        before = before_record.threads_follower or 0
+        after = after_record.threads_follower or 0
 
-        growth_percentage = round(((after - before) / before) * 100, 2)
+        growth_percentage = (
+            round(((after - before) / before) * 100, 2)
+            if before > 0 else 0
+        )
 
         return {
             "before": {

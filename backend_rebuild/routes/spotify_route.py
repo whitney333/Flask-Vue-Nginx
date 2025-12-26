@@ -94,6 +94,13 @@ def get_spotify_popularity_growth():
 
     return SpotifyController.get_spotify_popularity_growth(artist_id, campaign_start)
 
+@spotify_bp.route("/v1/top-city/growth", methods=["GET"])
+def get_spotify_top_city_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return SpotifyController.get_spotify_top_five_city_growth(artist_id, campaign_start)
+
 #################### v2 Endpoint ####################
 
 @spotify_bp.route("/v2/follower/<string:artist_id>", methods=["GET"])
