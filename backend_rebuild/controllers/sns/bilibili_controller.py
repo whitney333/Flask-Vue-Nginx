@@ -2,6 +2,7 @@ from models.sns.bilibili_model import Bilibili
 from models.artist_model import Artists
 import datetime
 from flask import jsonify, request
+from services.bilibili_service import BilibiliService
 
 
 class BilibiliController:
@@ -970,5 +971,38 @@ class BilibiliController:
 
         except Exception as e:
             return jsonify({
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_bilibili_follower_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = BilibiliService.get_follower_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
                 "err": str(e)
             }), 500
