@@ -1,5 +1,5 @@
 from controllers.campaign_controller import CampaignController
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 from flask_restful import Api
 from libs.utils import auth_required
 
@@ -25,5 +25,20 @@ def cancel_campaign(campaign_id):
 @campaign_bp.route("/v1/detail/<string:campaign_id>", methods=["GET"])
 def get_per_campaign_detail(campaign_id):
     result = CampaignController.get_per_campaign_by_campaign_id(campaign_id)
+
+    return result
+
+@campaign_bp.route("/v1/list", methods=["GET"])
+@auth_required
+def get_per_artist_campaigns():
+    firebase_uid = g.firebase_id
+    artist_id = request.args.get("artist_id")
+    result = CampaignController.get_campaign_list(firebase_uid, artist_id)
+
+    return result
+
+@campaign_bp.route("/v1/<string:campaign_id>/follower-growth", methods=["GET"])
+def get_campaign_follower_growth(campaign_id):
+    result = CampaignController.get_campaign_follower_growth(campaign_id)
 
     return result
