@@ -1,5 +1,11 @@
 <script setup>
 import { defineProps } from "vue"
+import youtubeIcon from "@/assets/icons/youtube.svg"
+import tiktokIcon from "@/assets/icons/tiktok.svg"
+import instagramIcon from "@/assets/icons/instagram.svg"
+import bilibiliIcon from "@/assets/icons/bilibili.svg"
+import threadsIcon from "@/assets/icons/threads.svg"
+import spotifyIcon from "@/assets/icons/spotify.svg"
 
 const props = defineProps({
   data: Object
@@ -12,6 +18,15 @@ const platforms = [
   { key: "tiktok", label: "TikTok" },
   { key: "youtube", label: "YouTube" }
 ]
+
+const platformIconMap = {
+  instagram: instagramIcon,
+  spotify: spotifyIcon,
+  threads: threadsIcon,
+  tiktok: tiktokIcon,
+  bilibili: bilibiliIcon,
+  youtube: youtubeIcon
+}
 
 const getBefore = (p, item) =>
   p === "threads"
@@ -32,8 +47,14 @@ const getAfter = (p, item) =>
       :key="p.key"
       class="bg-white rounded-xl p-4 shadow"
     >
-      <p class="text-sm text-gray-500 mb-1">{{ p.label }}</p>
-
+      <div class="flex items-center gap-2 mb-1">
+        <img
+            :src="platformIconMap[p.key]"
+            :alt="p.label"
+            class="w-4 h-4"
+        />
+        <p class="text-sm text-gray-500 mb-1">{{ p.label }}</p>
+      </div>
       <p class="text-xl font-semibold text-gray-800">
         +{{ data.followers_growth[p.key]?.growth?.toLocaleString() || 0 }}
       </p>
