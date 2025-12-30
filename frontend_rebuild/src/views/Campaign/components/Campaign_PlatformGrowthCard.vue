@@ -39,6 +39,18 @@ const getAfter = (p, item) =>
     ? item?.after?.threads_follower ?? 0
     : item?.after?.follower ?? 0
 
+const getGrowth = (p, item) => {
+  const before = getBefore(p, item)
+  const after = getAfter(p, item)
+  return after - before
+}
+
+const getPercentage = (p, item) => {
+  const before = getBefore(p, item)
+  const growth = getGrowth(p, item)
+  return before > 0 ? (growth / before) * 100 : 0
+}
+
 </script>
 
 <template>
@@ -56,8 +68,17 @@ const getAfter = (p, item) =>
         />
         <p class="text-sm text-gray-500 mb-1">{{ $t(`sns.${p.label}`) }}</p>
       </div>
-      <p class="text-xl font-semibold text-gray-800">
-        +{{ data.followers_growth[p.key]?.growth?.toLocaleString() || 0 }}
+      <p class="text-xl font-semibold text-gray-800"
+        :class="
+        getGrowth(p.key, data.followers_growth[p.key]) > 0
+          ? 'text-green-600'
+          : getGrowth(p.key, data.followers_growth[p.key]) < 0
+            ? 'text-red-600'
+            : 'text-gray-400'
+        "
+      >
+        {{ getGrowth(p.key, data.followers_growth[p.key]) > 0 ? '+' : getGrowth(p.key, data.followers_growth[p.key]) < 0 ? '−' : '' }}
+        {{ Math.abs(getGrowth(p.key, data.followers_growth[p.key])).toLocaleString() }}
       </p>
 
       <p class="text-xs text-gray-500 mt-1">
@@ -69,12 +90,15 @@ const getAfter = (p, item) =>
       <p
         class="text-sm mt-2"
         :class="
-          data.followers_growth[p.key]?.percentage > 0
-            ? 'text-green-600'
+        getPercentage(p.key, data.followers_growth[p.key]) > 0
+          ? 'text-green-600'
+          : getPercentage(p.key, data.followers_growth[p.key]) < 0
+            ? 'text-red-600'
             : 'text-gray-400'
         "
       >
-        {{ data.followers_growth[p.key]?.percentage ?? 0 }}%
+        {{ getPercentage(p.key, data.followers_growth[p.key]) > 0 ? '+' : getPercentage(p.key, data.followers_growth[p.key]) < 0 ? '−' : '' }}
+        {{ Math.abs(getPercentage(p.key, data.followers_growth[p.key])).toFixed(2) }}%
       </p>
     </div>
   </div>

@@ -12,7 +12,6 @@ const props = defineProps({
 const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube", "bilibili"]
 
 const summary = computed(() => {
-  let totalGrowth = 0
   let totalBefore = 0
   let totalAfter = 0
 
@@ -32,26 +31,24 @@ const summary = computed(() => {
 
     totalBefore += before
     totalAfter += after
-    totalGrowth += item.growth ?? 0
   })
-
+  const totalGrowth = totalAfter - totalBefore
   const percentage =
-    totalBefore > 0
-      ? ((totalGrowth / totalBefore) * 100)
-      : 0
+    totalBefore > 0 ? (totalGrowth / totalBefore) * 100 : 0
 
   return {
     totalBefore,
     totalAfter,
     totalGrowth,
-    percentage: Number(percentage.toFixed(2))
+    percentage
   }
+
 })
 
 </script>
 
 <template>
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <!-- Before -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <p class="text-sm text-gray-500">{{ $t('campaign.followers_before_campaign') }}</p>
@@ -72,10 +69,10 @@ const summary = computed(() => {
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <p class="text-sm text-gray-500">{{ $t('campaign.total_growth') }}</p>
       <p class="text-2xl font-semibold"
-         :class="Number(summary.totalGrowth) >= 0 ? 'text-green-600' : 'text-red-600'"
+         :class="summary.totalGrowth > 0 ? 'text-green-600' : summary.totalGrowth < 0 ? 'text-red-600' : 'text-gray-400'"
       >
-        {{ summary.totalGrowth >= 0 ? '+' : '' }}
-        {{ summary.totalGrowth.toLocaleString() }}
+        {{ summary.totalGrowth > 0 ? '+' : summary.totalGrowth < 0 ? '−' : '' }}
+        {{ Math.abs(summary.totalGrowth).toLocaleString() }}
       </p>
     </div>
 
@@ -83,10 +80,10 @@ const summary = computed(() => {
     <div class="bg-white rounded-xl p-4 shadow-sm">
       <p class="text-sm text-gray-500">{{ $t('campaign.growth_rate') }}</p>
       <p class="text-2xl font-semibold"
-         :class="summary.percentage >= 0 ? 'text-green-600' : 'text-red-600'"
+         :class="summary.percentage > 0 ? 'text-green-600' : summary.percentage < 0 ? 'text-red-600' : 'text-gray-400'"
       >
-        {{ summary.percentage >= 0 ? '+' : '-' }}
-        {{ summary.percentage }}%
+        {{ summary.percentage > 0 ? '+' : summary.percentage < 0 ? '−' : '' }}
+        {{ Math.abs(summary.percentage).toFixed(2) }}%
       </p>
     </div>
   </div>
