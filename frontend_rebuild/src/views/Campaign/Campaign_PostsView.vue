@@ -355,36 +355,9 @@ const exportDialogData = () => {
    * ========================= */
   XLSX.writeFile(
       workbook,
-      `campaign_${campaign.campaign_id}_report.xlsx`
+      `Campaign_${campaign.campaign_id}_SummaryReport.xlsx`
   )
 }
-
-// const downloadCSV = (rows, filename) => {
-//   if (!rows.length) return
-//
-//   const headerSet = new Set()
-//   rows.forEach(row => {
-//     Object.keys(row).forEach(key => headerSet.add(key))
-//   })
-//   const headers = Array.from(headerSet)
-//
-//   const csv = [
-//     headers.join(','),
-//     ...rows.map(row =>
-//       headers.map(h =>
-//         `"${String(row[h] ?? '').replace(/"/g, '""')}"`
-//       ).join(',')
-//     )
-//   ].join('\n')
-//
-//   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-//   const link = document.createElement('a')
-//   link.href = URL.createObjectURL(blob)
-//   link.download = filename
-//   document.body.appendChild(link)
-//   link.click()
-//   document.body.removeChild(link)
-// }
 
 </script>
 
@@ -482,7 +455,7 @@ const exportDialogData = () => {
                                 rounded
                                 @click="exportDialogData"
                             >
-                              Export
+                              {{ $t('export') }}
                             </v-btn>
 
                             <!-- Status -->
@@ -536,7 +509,7 @@ const exportDialogData = () => {
                         <v-card-actions>
                           <v-spacer/>
                           <v-btn color="grey" variant="text" @click="closePerformanceDialog">
-                            Close
+                            {{ $t('campaign.close') }}
                           </v-btn>
                         </v-card-actions>
                       </v-card>
@@ -589,7 +562,7 @@ const exportDialogData = () => {
                       @click="openDialog(campaign)"
                       color="black"
                   >
-                    View Details
+                    {{ $t('campaign.view_details') }}
                   </v-btn>
                   <v-dialog v-model="dialog" max-width="700px" transition="dialog-bottom-transition">
                     <v-card class="rounded-2xl shadow-lg overflow-hidden">
@@ -610,19 +583,19 @@ const exportDialogData = () => {
                       <v-card-text class="bg-[#F9F9F9] p-6">
                         <div class="grid grid-cols-2 gap-4">
                           <div>
-                            <p class="text-gray-500 text-sm">Platform</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.platform') }}</p>
                             <p class="font-medium">{{ selectedCampaign?.platform.join(', ') }}</p>
                           </div>
                           <div>
-                            <p class="text-gray-500 text-sm">Region</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.regions') }}</p>
                             <p class="font-medium">{{ selectedCampaign?.region.join(', ') }}</p>
                           </div>
                           <div>
-                            <p class="text-gray-500 text-sm">Budget</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.budget') }}</p>
                             <p class="font-medium">{{ selectedCampaign?.budget }}</p>
                           </div>
                           <div>
-                            <p class="text-gray-500 text-sm">Created At</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.created_at') }}</p>
                             <p class="font-medium">{{ new Date(selectedCampaign?.created_at).toLocaleString() }}</p>
                           </div>
                         </div>
@@ -631,14 +604,14 @@ const exportDialogData = () => {
 
                         <!-- Description-->
                         <div class="mb-2">
-                          <p class="text-gray-500 text-sm mb-1">Description</p>
+                          <p class="text-gray-500 text-sm mb-1">{{ $t('campaign.description') }}</p>
                           <p class="text-base leading-relaxed">
                             {{ selectedCampaign?.info?.description || 'No description provided.' }}
                           </p>
                         </div>
                         <!-- Hashtag -->
                         <div class="mb-2">
-                          <p class="text-gray-500 text-sm mb-1">Hashtags</p>
+                          <p class="text-gray-500 text-sm mb-1">{{ $t('campaign.hashtags') }}</p>
                           <div v-if="selectedCampaign?.info?.hashtag?.length" class="flex flex-wrap gap-2">
                             <v-chip
                                 v-for="(tag, index) in selectedCampaign.info.hashtag"
@@ -654,7 +627,7 @@ const exportDialogData = () => {
                         </div>
                         <!-- URL -->
                         <div class="mb-2">
-                          <p class="text-gray-500 text-sm mb-1">URL</p>
+                          <p class="text-gray-500 text-sm mb-1">{{ $t('campaign.url') }}</p>
                           <div v-if="selectedCampaign?.info?.url">
                             <a
                                 :href="selectedCampaign.info.url"
@@ -670,7 +643,7 @@ const exportDialogData = () => {
 
                       <!-- Footer -->
                       <v-card-actions class="justify-end bg-gray-50 px-6 py-4">
-                        <v-btn text color="black" @click="dialog = false">Close</v-btn>
+                        <v-btn text color="black" @click="dialog = false">{{ $t('campaign.close') }}</v-btn>
                       </v-card-actions>
 
                     </v-card>
@@ -681,7 +654,7 @@ const exportDialogData = () => {
                       color="red"
                       variant="outlined"
                   >
-                    Cancel
+                    {{ $t('campaign.cancel') }}
                   </v-btn>
                   <v-dialog v-model="showCancelDialog" max-width="400">
                     <v-card>

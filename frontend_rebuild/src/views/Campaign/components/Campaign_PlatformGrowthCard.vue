@@ -15,8 +15,9 @@ const platforms = [
   { key: "instagram", label: "Instagram" },
   { key: "spotify", label: "Spotify" },
   { key: "threads", label: "Threads" },
-  { key: "tiktok", label: "TikTok" },
-  { key: "youtube", label: "YouTube" }
+  { key: "tiktok", label: "Tiktok" },
+  { key: "youtube", label: "Youtube" },
+  { key: "bilibili", label: "Bilibili"}
 ]
 
 const platformIconMap = {
@@ -53,7 +54,7 @@ const getAfter = (p, item) =>
             :alt="p.label"
             class="w-4 h-4"
         />
-        <p class="text-sm text-gray-500 mb-1">{{ p.label }}</p>
+        <p class="text-sm text-gray-500 mb-1">{{ $t(`sns.${p.label}`) }}</p>
       </div>
       <p class="text-xl font-semibold text-gray-800">
         +{{ data.followers_growth[p.key]?.growth?.toLocaleString() || 0 }}

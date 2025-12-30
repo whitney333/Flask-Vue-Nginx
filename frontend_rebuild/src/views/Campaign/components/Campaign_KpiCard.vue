@@ -9,7 +9,7 @@ const props = defineProps({
   }
 })
 
-const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube"]
+const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube", "bilibili"]
 
 const summary = computed(() => {
   let totalGrowth = 0
@@ -37,14 +37,14 @@ const summary = computed(() => {
 
   const percentage =
     totalBefore > 0
-      ? ((totalGrowth / totalBefore) * 100).toFixed(2)
+      ? ((totalGrowth / totalBefore) * 100)
       : 0
 
   return {
     totalBefore,
     totalAfter,
     totalGrowth,
-    percentage
+    percentage: Number(percentage.toFixed(2))
   }
 })
 
@@ -54,7 +54,7 @@ const summary = computed(() => {
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <!-- Before -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <p class="text-sm text-gray-500">Before Followers</p>
+      <p class="text-sm text-gray-500">{{ $t('campaign.followers_before_campaign') }}</p>
       <p class="text-2xl font-semibold">
         {{ summary.totalBefore.toLocaleString() }}
       </p>
@@ -62,7 +62,7 @@ const summary = computed(() => {
 
     <!-- After -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <p class="text-sm text-gray-500">After Followers</p>
+      <p class="text-sm text-gray-500">{{ $t('campaign.followers_after_campaign') }}</p>
       <p class="text-2xl font-semibold">
         {{ summary.totalAfter.toLocaleString() }}
       </p>
@@ -70,16 +70,22 @@ const summary = computed(() => {
 
     <!-- Growth -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <p class="text-sm text-gray-500">Total Growth</p>
-      <p class="text-2xl font-semibold text-green-600">
-        +{{ summary.totalGrowth.toLocaleString() }}
+      <p class="text-sm text-gray-500">{{ $t('campaign.total_growth') }}</p>
+      <p class="text-2xl font-semibold"
+         :class="Number(summary.totalGrowth) >= 0 ? 'text-green-600' : 'text-red-600'"
+      >
+        {{ summary.totalGrowth >= 0 ? '+' : '' }}
+        {{ summary.totalGrowth.toLocaleString() }}
       </p>
     </div>
 
     <!-- Percentage -->
     <div class="bg-white rounded-xl p-4 shadow-sm">
-      <p class="text-sm text-gray-500">Growth Rate</p>
-      <p class="text-2xl font-semibold text-indigo-600">
+      <p class="text-sm text-gray-500">{{ $t('campaign.growth_rate') }}</p>
+      <p class="text-2xl font-semibold"
+         :class="summary.percentage >= 0 ? 'text-green-600' : 'text-red-600'"
+      >
+        {{ summary.percentage >= 0 ? '+' : '-' }}
         {{ summary.percentage }}%
       </p>
     </div>
