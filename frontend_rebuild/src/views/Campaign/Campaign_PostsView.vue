@@ -9,6 +9,8 @@ import CampaignPercentCard from "@/views/Campaign/components/Campaign_PercentCar
 import campaignJSON from './json/campaignViewDetails.json'
 import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vue";
 import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
+import * as XLSX from 'xlsx'
+
 
 
 const router = useRouter()
@@ -26,6 +28,7 @@ const campaignDetail = ref([])
 const campaignChartCountryData = ref([])
 const campaignChartRegionData = ref([])
 const campaignChartPlatformData = ref([])
+const dialogData = ref([])
 
 // Taiwan', 'Hong Kong', 'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', 'United States', 'Canada', 'Brazil', 'Mexico', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Australia']
 // make up some posts
@@ -106,8 +109,6 @@ const getSingleCampaignPerformance = async () => {
             "Content-Type": "application/json"
           }}
     )
-    console.log("cp: ", res)
-    console.log("cp1 :", res.data.data)
   } catch (err) {
     console.error("Error loading campaigns:", err)
   }
@@ -168,6 +169,7 @@ watch(showPerformanceDialog, async (newVal) => {
           }
         }
       );
+      dialogData.value = response.data.data;
       campaignDetail.value = response.data.data.post;
       campaignChartCountryData.value = response.data.data.total_country;
       campaignChartRegionData.value = response.data.data.total_region;
@@ -178,6 +180,211 @@ watch(showPerformanceDialog, async (newVal) => {
     }
   }
 });
+
+const parseEngagement = (value) => {
+  if (!value) return 0
+  return Number(String(value).replace('%', '')) || 0
+}
+
+const calculateSummary = (posts) => {
+  if (!posts.length) {
+    return {
+      total_reach: 0,
+      total_reaction: 0,
+      total_cost: 0,
+      avg_engagement: '0.00%',
+      weighted_avg_engagement: '0.00%',
+      cpr: 0,
+      cpe: 0
+    }
+  }
+
+  let totalReach = 0
+  let totalReaction = 0
+  let totalCost = 0
+  let engagementSum = 0
+  let weightedEngagementSum = 0
+
+  posts.forEach(p => {
+    const reach = Number(p.reach) || 0
+    const reaction = Number(p.reaction) || 0
+    const cost = Number(p.cost) || 0
+    const engagement = parseEngagement(p.engagement)
+
+    totalReach += reach
+    totalReaction += reaction
+    totalCost += cost
+
+    engagementSum += engagement
+    weightedEngagementSum += engagement * reach
+  })
+
+  const avgEngagement = engagementSum / posts.length
+  const weightedAvgEngagement =
+      totalReach > 0
+          ? weightedEngagementSum / totalReach
+          : 0
+
+  const cpr = totalReach > 0 ? totalCost / totalReach : 0
+  const cpe = totalReaction > 0 ? totalCost / totalReaction : 0
+
+  return {
+    total_reach: totalReach,
+    total_reaction: totalReaction,
+    total_cost: totalCost,
+    avg_engagement: `${avgEngagement.toFixed(2)}%`,
+    weighted_avg_engagement: `${weightedAvgEngagement.toFixed(2)}%`,
+    cpr: cpr.toFixed(4),
+    cpe: cpe.toFixed(4)
+  }
+}
+
+const exportDialogData = () => {
+  const campaign =
+      dialogData.value?.data ?? dialogData.value
+
+  if (!campaign) {
+    console.error('No campaign data')
+    return
+  }
+
+  const posts = campaign.post || []
+  const summary = calculateSummary(posts)
+
+  /* =========================
+   * Sheet 1：Summary
+   * ========================= */
+  const summarySheetData = [
+    {
+      campaign_id: campaign.campaign_id,
+      artist_en_name: campaign.artist_en_name,
+      artist_kr_name: campaign.artist_kr_name,
+      total_reach: summary.total_reach,
+      total_reaction: summary.total_reaction,
+      total_cost: summary.total_cost,
+      avg_engagement: summary.avg_engagement,
+      weighted_avg_engagement: summary.weighted_avg_engagement,
+      cpr: summary.cpr,
+      cpe: summary.cpe
+    },
+    // break line
+    {},
+    // ===== Total region =====
+    {section: "Total Region"},
+    ...campaignChartRegionData.value.map(c => ({
+      name: c.name,
+      count: c.count
+    })),
+    // break line
+    {},
+    // ===== Total country =====
+    {section: "Total Country"},
+    ...campaignChartCountryData.value.map(c => ({
+      name: c.name,
+      count: c.count
+    })),
+    // break line
+    {},
+    // ===== Total platform =====
+    {section: "Total Platform"},
+    ...campaignChartPlatformData.value.map(p => ({
+      name: p.name,
+      count: p.count
+    }))
+  ]
+
+  const summarySheet = XLSX.utils.json_to_sheet(summarySheetData)
+
+  // bold headers
+  const range = XLSX.utils.decode_range(summarySheet['!ref'])
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C })
+    if (!summarySheet[cellAddress]) continue
+    summarySheet[cellAddress].s = {
+      font: { bold: true }
+    }
+  }
+
+  /* =========================
+   * Sheet 2：POSTS
+   * ========================= */
+  const postSheetData = posts.map(post => {
+    const reach = Number(post.reach) || 0
+    const reaction = Number(post.reaction) || 0
+    const cost = Number(post.cost) || 0
+
+    return {
+      campaign_id: campaign.campaign_id,
+      artist_en_name: campaign.artist_en_name,
+      artist_kr_name: campaign.artist_kr_name,
+      post_platform: post.platform,
+      kol_account: post.kol_account,
+      target_country: post.target_country,
+      post_type: post.type,
+      post_created_at: post.post_created_at,
+
+      reach: reach,
+      reaction: reaction,
+      engagement: post.engagement,
+
+      latest_view: post.latest_view,
+      one_hour_view: post.one_hour_view,
+      twentyfour_hour_view: post.twentyfour_hour_view,
+
+      cost: cost,
+      cost_per_view: post.cost_per_view,
+      cost_per_reach: post.cost_per_reach,
+
+
+      post_url: post.url,
+      used_hashtag: post.used_hashtag?.join(' | ')
+    }
+  })
+
+  const postSheet = XLSX.utils.json_to_sheet(postSheetData)
+
+  /* =========================
+   * combine sheets to workbook
+   * ========================= */
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
+  XLSX.utils.book_append_sheet(workbook, postSheet, 'Posts')
+
+  /* =========================
+   * Download
+   * ========================= */
+  XLSX.writeFile(
+      workbook,
+      `campaign_${campaign.campaign_id}_report.xlsx`
+  )
+}
+
+// const downloadCSV = (rows, filename) => {
+//   if (!rows.length) return
+//
+//   const headerSet = new Set()
+//   rows.forEach(row => {
+//     Object.keys(row).forEach(key => headerSet.add(key))
+//   })
+//   const headers = Array.from(headerSet)
+//
+//   const csv = [
+//     headers.join(','),
+//     ...rows.map(row =>
+//       headers.map(h =>
+//         `"${String(row[h] ?? '').replace(/"/g, '""')}"`
+//       ).join(',')
+//     )
+//   ].join('\n')
+//
+//   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+//   const link = document.createElement('a')
+//   link.href = URL.createObjectURL(blob)
+//   link.download = filename
+//   document.body.appendChild(link)
+//   link.click()
+//   document.body.removeChild(link)
+// }
 
 </script>
 
@@ -265,9 +472,24 @@ watch(showPerformanceDialog, async (newVal) => {
                             <p class="text-sm opacity-90">{{ selectedCampaign?.artist_en_name }}
                               ({{ selectedCampaign?.artist_kr_name }})</p>
                           </div>
-                          <v-chip color="blue-lighten-3" text-color="black" size="small">
-                            {{ selectedCampaign?.status }}
-                          </v-chip>
+                          <!-- Right actions -->
+                          <div class="flex items-center gap-2">
+                            <!-- Export Button -->
+                            <v-btn
+                                size="small"
+                                color="white"
+                                variant="outlined"
+                                rounded
+                                @click="exportDialogData"
+                            >
+                              Export
+                            </v-btn>
+
+                            <!-- Status -->
+                            <v-chip color="blue-lighten-3" text-color="black" size="small">
+                              {{ selectedCampaign?.status }}
+                            </v-chip>
+                          </div>
                         </div>
 
                         <v-card-text class="p-4 flex-1">
