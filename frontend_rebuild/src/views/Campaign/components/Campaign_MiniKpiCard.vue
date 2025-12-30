@@ -9,21 +9,21 @@ const props = defineProps({
   },
   unit: {
     type: String,
-    default: "listeners",
+    default: "Listeners",
   },
 });
 
 const kpiData = computed(() => ({
   fastest: {
-    title: "Fastest Growing City/Region",
+    title: "fastest_growing_city",
     ...props.kpi.fastest_growing_city,
   },
   newMarket: {
-    title: "New Market",
+    title: "new_market",
     ...props.kpi.new_market,
   },
   top: {
-    title: "Top City/Region",
+    title: "top_city",
     ...props.kpi.top_city,
   },
 }));
@@ -38,7 +38,7 @@ const kpiData = computed(() => ({
         class="p-4 bg-white shadow-md rounded-xl flex flex-col justify-between"
     >
       <!-- title -->
-      <h3 class="text-sm text-gray-500 uppercase">{{ item.title }}</h3>
+      <h3 class="text-sm text-gray-500 uppercase">{{ $t(`campaign.${item.title}`) }}</h3>
 
       <!-- city & country -->
       <p class="text-xl font-bold mt-2">
@@ -47,7 +47,7 @@ const kpiData = computed(() => ({
 
       <!-- Before → After -->
       <p class="text-lg mt-1">
-        {{ item.before }} → {{ item.after }} {{ unit }}
+        {{ item.before }} → {{ item.after }} {{ $t('campaign.unit_listeners') }}
       </p>
 
       <!-- growth percentage -->
@@ -62,7 +62,7 @@ const kpiData = computed(() => ({
       </p>
 
       <!-- New Market -->
-      <p v-else class="mt-2 text-gray-400 font-semibold">New Market</p>
+      <p v-else class="mt-2 text-gray-400 font-semibold">{{ $t('campaign.new_market') }}</p>
     </div>
   </div>
 </template>

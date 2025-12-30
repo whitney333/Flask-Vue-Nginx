@@ -224,7 +224,13 @@
     "one_hour_view": "1 HR View",
     "twentyfour_hour_view": "24 HR View",
     "latest_view": "Latest View",
-    "used_hashtags": "Used Hashtags"
+    "used_hashtags": "Used Hashtags",
+    "view_details": "View Details",
+    "cancel": "Cancel",
+    "close": "Close",
+    "please_select": "Please select an artist and campaign",
+    "loading_campaign": "Loading campaign data",
+    "unit_listeners": "Listeners"
   },
   "Log in": "Log in",
   "Email": "Email",

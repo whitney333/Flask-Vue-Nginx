@@ -225,7 +225,13 @@
     "one_hour_view": "1 HR 뷰",
     "twentyfour_hour_view": "24 HR 뷰",
     "latest_view": "최신 보기",
-    "used_hashtags": "사용된 해시태그"
+    "used_hashtags": "사용된 해시태그",
+    "view_details": "세부 정보 보기",
+    "cancel": "취소",
+    "close": "닫기",
+    "please_select": "아티스트와 캠페인을 선택해 주세요",
+    "loading_campaign": "캠페인 데이터 로드하기",
+    "unit_listeners": "청취자"
   },
   "Log in": "로그인",
   "Email": "이메일",

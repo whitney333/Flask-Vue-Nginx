@@ -8,6 +8,7 @@ import CampaignLineChart from "@/views/Campaign/components/Campaign_LineChart.vu
 import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
 import MiniKpiCard from "@/views/Campaign/components/Campaign_MiniKpiCard.vue"
+import * as XLSX from "xlsx"
 
 
 const auth = getAuth()
@@ -66,7 +67,8 @@ watch(selectedArtist, async (artistId) => {
 
     campaignOptions.value = res.data.data.map(c => ({
       id: c.campaign_name,
-      obj_id: c.id
+      obj_id: c.id,
+      approved_at: c.approved_at
     }))
 
     if (campaignOptions.value.length === 1) {
@@ -139,6 +141,13 @@ const getMiniKpi = async (artist_id, start) => {
   }
 }
 
+const getApprovedDate = (campaignId) => {
+  const campaign = campaignOptions.value.find(c => c.id === campaignId);
+  if (!campaign || !campaign.approved_at) return ""
+
+  return campaign.approved_at.split("T")[0];
+};
+
 const flattenObject = (obj, parentKey = "", result = {}) => {
   for (const key in obj) {
     if (!Object.prototype.hasOwnProperty.call(obj, key)) continue
@@ -162,100 +171,71 @@ const flattenObject = (obj, parentKey = "", result = {}) => {
 const exportData = () => {
   if (!data.value || !audienceData.value?.cities?.length) return
 
-  const rows = []
-  /**
-   * ========== Section 1 ==========
-   * Artist
-   */
-  rows.push("=== Artist Name ===")
-  rows.push(["artist"])
-  rows.push([artistName.value])
+  const {campaign_id, period, followers_growth} = data.value
 
-  /**
-   * ========== Section 2 ==========
-   * Campaign follower growth
-   */
-  rows.push("=== Campaign Follower Growth ===")
-  rows.push(
-    [
-      "campaign_id",
-      "period_start",
-      "period_end",
-      "platform",
-      "before",
-      "after",
-      "growth",
-      "percentage"
-    ].join(",")
-  )
+  /* =========================
+   * Sheet 1：Artist
+   * ========================= */
+  const artistSheetData = [
+    {artist: artistName.value}
+  ]
+  const artistSheet = XLSX.utils.json_to_sheet(artistSheetData)
 
-  const { campaign_id, period, followers_growth } = data.value
+  /* =========================
+   * Sheet 2：Campaign Follower Growth
+   * ========================= */
+  const campaignGrowthData = []
 
   Object.entries(followers_growth).forEach(([platform, result]) => {
     if (!result) return
 
     const before =
-      result.before?.follower ??
-      result.before?.threads_follower ??
-      0
-
+        result.before?.follower ?? result.before?.threads_follower ?? 0
     const after =
-      result.after?.follower ??
-      result.after?.threads_follower ??
-      0
+        result.after?.follower ?? result.after?.threads_follower ?? 0
 
-    rows.push(
-      [
-        campaign_id,
-        period.start.split("T")[0],
-        period.end.split("T")[0],
-        platform,
-        before,
-        after,
-        result.growth ?? 0,
-        result.percentage ?? 0
-      ].join(",")
-    )
+    campaignGrowthData.push({
+      campaign_id,
+      period_start: period.start.split("T")[0],
+      period_end: period.end.split("T")[0],
+      platform,
+      before,
+      after,
+      growth: result.growth ?? 0,
+      percentage: result.percentage ?? 0
+    })
   })
 
-  rows.push("")
+  const campaignSheet = XLSX.utils.json_to_sheet(campaignGrowthData)
 
-  /**
-   * ========== Section 3 ==========
-   * Audience cities growth
-   */
-  rows.push("=== Audience Cities Growth ===")
-  rows.push(
-    ["city", "country", "before", "after", "growth_pct"].join(",")
+  /* =========================
+   * Sheet 3：Audience Cities Growth
+   * ========================= */
+  const audienceCitiesData = audienceData.value.cities.map(city => ({
+    city: city.city,
+    country: city.country,
+    before: city.before ?? 0,
+    after: city.after ?? 0,
+    growth_pct: city.growth_pct ?? ""
+  }))
+
+  const audienceSheet = XLSX.utils.json_to_sheet(audienceCitiesData)
+
+  /* =========================
+   * combine to one workbook
+   * ========================= */
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, artistSheet, "Artist")
+  XLSX.utils.book_append_sheet(workbook, campaignSheet, "Follower Growth")
+  XLSX.utils.book_append_sheet(workbook, audienceSheet, "Audience Cities")
+
+  /* =========================
+   * Download Excel
+   * ========================= */
+  XLSX.writeFile(
+      workbook,
+      `Campaign_${campaign_id}_Report.xlsx`
   )
-
-  audienceData.value.cities.forEach(city => {
-    rows.push(
-      [
-        `"${city.city}"`,
-        `"${city.country}"`,
-        city.before ?? 0,
-        city.after ?? 0,
-        city.growth_pct ?? ""
-      ].join(",")
-    )
-  })
-
-  /**
-   * Download CSV
-   */
-  const csvString = rows.join("\n")
-  const blob = new Blob([csvString], {
-    type: "text/csv;charset=utf-8;"
-  })
-
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = `campaign_${campaign_id}_report.csv`
-  link.click()
-
-  URL.revokeObjectURL(url)
 }
 
 </script>
@@ -268,7 +248,7 @@ const exportData = () => {
       <!-- Artist -->
       <div class="w-64 flex flex-col">
         <label class="text-sm font-medium text-gray-700 mb-1">
-          Artist
+          {{ $t('campaign.artist') }}
         </label>
         <div class="relative">
           <select
@@ -297,7 +277,7 @@ const exportData = () => {
       <!-- Campaign -->
       <div class="w-64 flex flex-col">
         <label class="text-sm font-medium text-gray-700 mb-1">
-          Campaign
+          {{ $t('campaign.campaign') }}
         </label>
         <div class="relative">
           <select
@@ -318,6 +298,13 @@ const exportData = () => {
               {{ c.id }}
             </option>
           </select>
+           <!-- approved date on the right -->
+          <span
+              v-if="selectedCampaign"
+              class="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 text-sm"
+          >
+            {{ getApprovedDate(selectedCampaign) }}
+          </span>
           <!-- icon -->
           <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
             <i class="mdi mdi-menu-down text-xl"></i>
@@ -353,13 +340,14 @@ const exportData = () => {
           </div>
         </div>
       </div>
+
       <!-- export button  -->
       <div class="w-40 flex-1 flex justify-end">
         <button
             @click="exportData"
             class="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
         >
-          Export
+          {{ $t('export') }}
         </button>
       </div>
     </div>
@@ -373,7 +361,7 @@ const exportData = () => {
     <!-- Chart -->
     <div class="bg-white rounded-md shadow p-4 mb-6">
       <h3 class="text-base font-semibold text-gray-800 mb-3">
-        Follower Growth Trend Before/After Campaign
+        {{ $t('campaign.follower_growth_trend_before_after_campaign') }}
       </h3>
       <CampaignLineChart
         v-if="data"
@@ -383,13 +371,13 @@ const exportData = () => {
         v-else-if="selectedCampaign"
         class="text-gray-400 text-sm text-center py-16"
       >
-        Loading campaign data…
+        {{ $t('campaign.loading_campaign')}}...
       </div>
       <div
         v-else
         class="text-gray-400 text-sm text-center py-16"
       >
-        Please select an artist and campaign
+        {{ $t('campaign.please_select') }}
       </div>
     </div>
 
@@ -397,7 +385,7 @@ const exportData = () => {
     <div class="mb-6">
       <CampaignPlatformGrowthCard v-if="data" :data="data" />
     </div>
-    <!-- TODO ADD AUDIENCE CHANGE & MINI KPI CARDS  -->
+    <!-- TODO ADD AUDIENCE CHANGE -->
     <!-- Audience change  -->
 
     <!-- mini kpi cards of spotify top city/region -->
