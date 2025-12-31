@@ -66,6 +66,6 @@
         <v-divider></v-divider>
         <!-- <SNSHashtagAnalytics :iconSrc="iconSrc" :value="tiktokJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics> -->
         <v-divider></v-divider>
-<!--        <SNSAllPosts :platform="platform"></SNSAllPosts>-->
+        <SNSAllPosts :platform="platform"></SNSAllPosts>
     </v-container>
 </template>

@@ -9,8 +9,10 @@ import CampaignPercentCard from "@/views/Campaign/components/Campaign_PercentCar
 import campaignJSON from './json/campaignViewDetails.json'
 import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vue";
 import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
+import * as XLSX from 'xlsx'
 
 
+const infoOpen = ref(false)
 const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
@@ -26,6 +28,8 @@ const campaignDetail = ref([])
 const campaignChartCountryData = ref([])
 const campaignChartRegionData = ref([])
 const campaignChartPlatformData = ref([])
+const dialogData = ref([])
+const showTooltip = ref(false)
 
 // Taiwan', 'Hong Kong', 'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', 'United States', 'Canada', 'Brazil', 'Mexico', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Australia']
 // make up some posts
@@ -106,8 +110,6 @@ const getSingleCampaignPerformance = async () => {
             "Content-Type": "application/json"
           }}
     )
-    console.log("cp: ", res)
-    console.log("cp1 :", res.data.data)
   } catch (err) {
     console.error("Error loading campaigns:", err)
   }
@@ -168,6 +170,7 @@ watch(showPerformanceDialog, async (newVal) => {
           }
         }
       );
+      dialogData.value = response.data.data;
       campaignDetail.value = response.data.data.post;
       campaignChartCountryData.value = response.data.data.total_country;
       campaignChartRegionData.value = response.data.data.total_region;
@@ -178,6 +181,184 @@ watch(showPerformanceDialog, async (newVal) => {
     }
   }
 });
+
+const parseEngagement = (value) => {
+  if (!value) return 0
+  return Number(String(value).replace('%', '')) || 0
+}
+
+const calculateSummary = (posts) => {
+  if (!posts.length) {
+    return {
+      total_reach: 0,
+      total_reaction: 0,
+      total_cost: 0,
+      avg_engagement: '0.00%',
+      weighted_avg_engagement: '0.00%',
+      cpr: 0,
+      cpe: 0
+    }
+  }
+
+  let totalReach = 0
+  let totalReaction = 0
+  let totalCost = 0
+  let engagementSum = 0
+  let weightedEngagementSum = 0
+
+  posts.forEach(p => {
+    const reach = Number(p.reach) || 0
+    const reaction = Number(p.reaction) || 0
+    const cost = Number(p.cost) || 0
+    const engagement = parseEngagement(p.engagement)
+
+    totalReach += reach
+    totalReaction += reaction
+    totalCost += cost
+
+    engagementSum += engagement
+    weightedEngagementSum += engagement * reach
+  })
+
+  const avgEngagement = engagementSum / posts.length
+  const weightedAvgEngagement =
+      totalReach > 0
+          ? weightedEngagementSum / totalReach
+          : 0
+
+  const cpr = totalReach > 0 ? totalCost / totalReach : 0
+  const cpe = totalReaction > 0 ? totalCost / totalReaction : 0
+
+  return {
+    total_reach: totalReach,
+    total_reaction: totalReaction,
+    total_cost: totalCost,
+    avg_engagement: `${avgEngagement.toFixed(2)}%`,
+    weighted_avg_engagement: `${weightedAvgEngagement.toFixed(2)}%`,
+    cpr: cpr.toFixed(4),
+    cpe: cpe.toFixed(4)
+  }
+}
+
+const exportDialogData = () => {
+  const campaign =
+      dialogData.value?.data ?? dialogData.value
+
+  if (!campaign) {
+    console.error('No campaign data')
+    return
+  }
+
+  const posts = campaign.post || []
+  const summary = calculateSummary(posts)
+
+  /* =========================
+   * Sheet 1：Summary
+   * ========================= */
+  const summarySheetData = [
+    {
+      campaign_id: campaign.campaign_id,
+      artist_en_name: campaign.artist_en_name,
+      artist_kr_name: campaign.artist_kr_name,
+      total_reach: summary.total_reach,
+      total_reaction: summary.total_reaction,
+      total_cost: summary.total_cost,
+      avg_engagement: summary.avg_engagement,
+      weighted_avg_engagement: summary.weighted_avg_engagement,
+      cpr: summary.cpr,
+      cpe: summary.cpe
+    },
+    // break line
+    {},
+    // ===== Total region =====
+    {section: "Total Region"},
+    ...campaignChartRegionData.value.map(c => ({
+      name: c.name,
+      count: c.count
+    })),
+    // break line
+    {},
+    // ===== Total country =====
+    {section: "Total Country"},
+    ...campaignChartCountryData.value.map(c => ({
+      name: c.name,
+      count: c.count
+    })),
+    // break line
+    {},
+    // ===== Total platform =====
+    {section: "Total Platform"},
+    ...campaignChartPlatformData.value.map(p => ({
+      name: p.name,
+      count: p.count
+    }))
+  ]
+
+  const summarySheet = XLSX.utils.json_to_sheet(summarySheetData)
+
+  // bold headers
+  const range = XLSX.utils.decode_range(summarySheet['!ref'])
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C })
+    if (!summarySheet[cellAddress]) continue
+    summarySheet[cellAddress].s = {
+      font: { bold: true }
+    }
+  }
+
+  /* =========================
+   * Sheet 2：POSTS
+   * ========================= */
+  const postSheetData = posts.map(post => {
+    const reach = Number(post.reach) || 0
+    const reaction = Number(post.reaction) || 0
+    const cost = Number(post.cost) || 0
+
+    return {
+      campaign_id: campaign.campaign_id,
+      artist_en_name: campaign.artist_en_name,
+      artist_kr_name: campaign.artist_kr_name,
+      post_platform: post.platform,
+      kol_account: post.kol_account,
+      target_country: post.target_country,
+      post_type: post.type,
+      post_created_at: post.post_created_at,
+
+      reach: reach,
+      reaction: reaction,
+      engagement: post.engagement,
+
+      latest_view: post.latest_view,
+      one_hour_view: post.one_hour_view,
+      twentyfour_hour_view: post.twentyfour_hour_view,
+
+      cost: cost,
+      cost_per_view: post.cost_per_view,
+      cost_per_reach: post.cost_per_reach,
+
+
+      post_url: post.url,
+      used_hashtag: post.used_hashtag?.join(' | ')
+    }
+  })
+
+  const postSheet = XLSX.utils.json_to_sheet(postSheetData)
+
+  /* =========================
+   * combine sheets to workbook
+   * ========================= */
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
+  XLSX.utils.book_append_sheet(workbook, postSheet, 'Posts')
+
+  /* =========================
+   * Download
+   * ========================= */
+  XLSX.writeFile(
+      workbook,
+      `Campaign_${campaign.campaign_id}_SummaryReport.xlsx`
+  )
+}
 
 </script>
 
@@ -191,12 +372,46 @@ watch(showPerformanceDialog, async (newVal) => {
         class="bg-grey-lighten-4 w-full mx-auto mb-6 px-4"
         max-width="1200"
     >
-      <template v-slot:title>
-        <div class="flex w-full items-center justify-between">
-            <span class="text-h4">{{ $t('campaign.post') }}</span>
-            <v-btn @click="() => router.push('/campaign/posts/create')" color="black">Create Post</v-btn>
+      <div class="flex items-center gap-3">
+        <!-- Create Post Button -->
+        <button @click="() => router.push('/campaign/posts/create')"
+            class="bg-black text-white text-sm px-4 py-2 rounded-md
+            hover:bg-gray-800 transition-colors"
+        >
+          Create Post
+        </button>
+
+        <!-- info icon -->
+        <div class="relative flex items-center"
+            @mouseenter="showTooltip = true"
+            @mouseleave="showTooltip = false"
+        >
+          <i class="mdi mdi-information text-xl text-gray-400 cursor-help
+             hover:text-blue-500 transition-colors"
+          ></i>
+
+          <transition name="fade">
+            <div v-if="showTooltip"
+                class="absolute left-full top-0 ml-3 mt-1
+                 w-96 p-4 bg-white border border-gray-200
+                 rounded-lg shadow-xl z-[9999]"
+            >
+              <p class="text-xs leading-relaxed text-gray-600">
+                You can create a campaign on this page.
+                Once submitted, the status will show as 'submitted'.
+                After approval by the admin, the status will change to 'approved'.
+                The day after the campaign begins, we will update the related analysis.
+                You can view the analysis by clicking the icon next to the status chips.
+              </p>
+
+              <div class="absolute right-full top-3
+                    border-8 border-transparent border-r-white"
+              ></div>
+            </div>
+          </transition>
         </div>
-      </template>
+      </div>
+
       <v-card-text class="mt-4">
         <!-- loading condition -->
         <div v-if="loading" class="flex justify-center items-center py-20">
@@ -265,9 +480,24 @@ watch(showPerformanceDialog, async (newVal) => {
                             <p class="text-sm opacity-90">{{ selectedCampaign?.artist_en_name }}
                               ({{ selectedCampaign?.artist_kr_name }})</p>
                           </div>
-                          <v-chip color="blue-lighten-3" text-color="black" size="small">
-                            {{ selectedCampaign?.status }}
-                          </v-chip>
+                          <!-- Right actions -->
+                          <div class="flex items-center gap-2">
+                            <!-- Export Button -->
+                            <v-btn
+                                size="small"
+                                color="white"
+                                variant="outlined"
+                                rounded
+                                @click="exportDialogData"
+                            >
+                              {{ $t('export') }}
+                            </v-btn>
+
+                            <!-- Status -->
+                            <v-chip color="blue-lighten-3" text-color="black" size="small">
+                              {{ selectedCampaign?.status }}
+                            </v-chip>
+                          </div>
                         </div>
 
                         <v-card-text class="p-4 flex-1">
@@ -314,7 +544,7 @@ watch(showPerformanceDialog, async (newVal) => {
                         <v-card-actions>
                           <v-spacer/>
                           <v-btn color="grey" variant="text" @click="closePerformanceDialog">
-                            Close
+                            {{ $t('campaign.close') }}
                           </v-btn>
                         </v-card-actions>
                       </v-card>
@@ -367,7 +597,7 @@ watch(showPerformanceDialog, async (newVal) => {
                       @click="openDialog(campaign)"
                       color="black"
                   >
-                    View Details
+                    {{ $t('campaign.view_details') }}
                   </v-btn>
                   <v-dialog v-model="dialog" max-width="700px" transition="dialog-bottom-transition">
                     <v-card class="rounded-2xl shadow-lg overflow-hidden">
@@ -388,19 +618,19 @@ watch(showPerformanceDialog, async (newVal) => {
                       <v-card-text class="bg-[#F9F9F9] p-6">
                         <div class="grid grid-cols-2 gap-4">
                           <div>
-                            <p class="text-gray-500 text-sm">Platform</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.platform') }}</p>
                             <p class="font-medium">{{ selectedCampaign?.platform.join(', ') }}</p>
                           </div>
                           <div>
-                            <p class="text-gray-500 text-sm">Region</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.regions') }}</p>
                             <p class="font-medium">{{ selectedCampaign?.region.join(', ') }}</p>
                           </div>
                           <div>
-                            <p class="text-gray-500 text-sm">Budget</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.budget') }}</p>
                             <p class="font-medium">{{ selectedCampaign?.budget }}</p>
                           </div>
                           <div>
-                            <p class="text-gray-500 text-sm">Created At</p>
+                            <p class="text-gray-500 text-sm">{{ $t('campaign.created_at') }}</p>
                             <p class="font-medium">{{ new Date(selectedCampaign?.created_at).toLocaleString() }}</p>
                           </div>
                         </div>
@@ -409,14 +639,14 @@ watch(showPerformanceDialog, async (newVal) => {
 
                         <!-- Description-->
                         <div class="mb-2">
-                          <p class="text-gray-500 text-sm mb-1">Description</p>
+                          <p class="text-gray-500 text-sm mb-1">{{ $t('campaign.description') }}</p>
                           <p class="text-base leading-relaxed">
                             {{ selectedCampaign?.info?.description || 'No description provided.' }}
                           </p>
                         </div>
                         <!-- Hashtag -->
                         <div class="mb-2">
-                          <p class="text-gray-500 text-sm mb-1">Hashtags</p>
+                          <p class="text-gray-500 text-sm mb-1">{{ $t('campaign.hashtags') }}</p>
                           <div v-if="selectedCampaign?.info?.hashtag?.length" class="flex flex-wrap gap-2">
                             <v-chip
                                 v-for="(tag, index) in selectedCampaign.info.hashtag"
@@ -432,7 +662,7 @@ watch(showPerformanceDialog, async (newVal) => {
                         </div>
                         <!-- URL -->
                         <div class="mb-2">
-                          <p class="text-gray-500 text-sm mb-1">URL</p>
+                          <p class="text-gray-500 text-sm mb-1">{{ $t('campaign.url') }}</p>
                           <div v-if="selectedCampaign?.info?.url">
                             <a
                                 :href="selectedCampaign.info.url"
@@ -448,7 +678,7 @@ watch(showPerformanceDialog, async (newVal) => {
 
                       <!-- Footer -->
                       <v-card-actions class="justify-end bg-gray-50 px-6 py-4">
-                        <v-btn text color="black" @click="dialog = false">Close</v-btn>
+                        <v-btn text color="black" @click="dialog = false">{{ $t('campaign.close') }}</v-btn>
                       </v-card-actions>
 
                     </v-card>
@@ -458,8 +688,9 @@ watch(showPerformanceDialog, async (newVal) => {
                       @click="openCancelDialog(campaign.campaign_id)"
                       color="red"
                       variant="outlined"
+                      :disabled="['approved', 'cancelled'].includes(campaign.status)"
                   >
-                    Cancel
+                    {{ $t('campaign.cancel') }}
                   </v-btn>
                   <v-dialog v-model="showCancelDialog" max-width="400">
                     <v-card>

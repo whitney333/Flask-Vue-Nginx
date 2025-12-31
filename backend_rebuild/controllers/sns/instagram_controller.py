@@ -5,6 +5,7 @@ from datetime import timedelta
 from flask import jsonify, request
 import pandas as pd
 import numpy as np
+from services.instagram_service import InstagramService
 
 
 class InstagramController:
@@ -1193,3 +1194,73 @@ class InstagramController:
                 'status': 'error',
                 'err': str(e)
             })
+
+    @staticmethod
+    def get_instagram_follower_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = InstagramService.get_follower_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_threads_follower_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = InstagramService.get_threads_follower_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_instagram_engagement_growth(artist_id, campaign_start):
+        pass

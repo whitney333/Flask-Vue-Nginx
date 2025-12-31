@@ -103,3 +103,10 @@ def get_bilibili_latest_posts():
     posts = BilibiliController.get_latest_thirty_posts(artist_id)
 
     return posts
+
+@bilibili_bp.route('/v1/follower/growth', methods=['GET'])
+def get_bilibili_follower_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return BilibiliController.get_bilibili_follower_growth(artist_id, campaign_start)

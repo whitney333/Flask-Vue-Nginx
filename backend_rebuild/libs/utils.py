@@ -38,26 +38,26 @@ def getIdFromFirebaseID(firebase_id):
 #     return decorated_function
 
 # wrap up firebase token required
-def auth_required(f):
-    @wraps(f)
+def auth_required(fn):
+    @wraps(fn)
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return jsonify({"error": "Unauthorized"}), 401
 
-        token = auth_header.split(" ")[1]
+        if not auth_header:
+            return jsonify({"err": "Missing Authorization header"}), 401
 
         try:
-            decoded_token = verify_firebase_token(token)
-            if not decoded_token:
-                return jsonify({"error": "Invalid token"}), 401
-        except Exception as e:
-            return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+            token = auth_header.replace("Bearer ", "")
+            decoded = auth.verify_id_token(token)
 
-        # store firebase_id in global
-        g.firebase_id = decoded_token.get("uid")
-        g.user_id = getIdFromFirebaseID(decoded_token.get("uid"))
-        return f(*args, **kwargs)
+            g.firebase_id = decoded["uid"]
+            # print("auth_required called")
+            # print("firebase uid =", decoded["uid"])
+        except Exception as e:
+            return jsonify({"err": "Invalid Firebase token"}), 401
+
+        return fn(*args, **kwargs)
+
     return wrapper
 
 def admin_required(f):

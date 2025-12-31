@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import datetime
 from flask import jsonify, request, g
+from services.youtube_service import YoutubeService
 
 
 class YoutubeController:
@@ -1091,7 +1092,7 @@ class YoutubeController:
                         }
                     },
                     "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
+                    "view_count": {"$toLong": "$video.view_count"},
                     "like_count": {"$toInt": "$video.like_count"},
                     "favorite_count": {"$toInt": "$video.favorite_count"},
                     "comment_count": {"$toInt": "$video.comment_count"}
@@ -1396,6 +1397,138 @@ class YoutubeController:
                 'status': 'error',
                 'err': str(e)
             })
+
+    @staticmethod
+    def get_youtube_follower_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = YoutubeService.get_follower_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_youtube_channel_hashtag_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = YoutubeService.get_channel_hashtag_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_youtube_video_hashtag_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = YoutubeService.get_video_hashtag_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_youtube_engagement_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = YoutubeService.get_engagement_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
 
     ########### v2 endpoint ###########
     def get_youtube_channel_basic_by_artist_id(artist_id):

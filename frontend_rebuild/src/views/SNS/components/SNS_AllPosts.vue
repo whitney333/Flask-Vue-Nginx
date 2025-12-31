@@ -4,6 +4,7 @@
     import SNS_TikTok_PostCard from '@/views/SNS/components/SNS_TikTok_PostCard.vue';
     import SNS_Insta_PostCard from '@/views/SNS/components/SNS_Insta_PostCard.vue';
     import SNS_Youtube_PostCard from '@/views/SNS/components/SNS_Youtube_PostCard.vue';
+    import SNS_Bilibili_PostCard from '@/views/SNS/components/SNS_Bilibili_PostCard.vue';
     import {useArtistStore} from "@/stores/artist.js";
 
     const props = defineProps({
@@ -74,6 +75,9 @@
             </template>
             <template v-if="platform === 'instagram'">
                 <SNS_Insta_PostCard :post="post" :key="`${post.url}_${first}`" v-for="(post) in displayPosts" />
+            </template>
+            <template v-if="platform === 'bilibili'">
+              <SNS_Bilibili_PostCard :post="post" :key="`${post.aid}`" v-for="(post) in displayPosts"/>
             </template>
         </div>
     </v-container>

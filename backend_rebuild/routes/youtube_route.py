@@ -150,6 +150,34 @@ def get_most_engaged_recent_twelve_hashtags():
 
     return hashtags
 
+@youtube_bp.route("/v1/follower/growth", methods=["GET"])
+def get_youtube_follower_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return YoutubeController.get_youtube_follower_growth(artist_id, campaign_start)
+
+@youtube_bp.route("/v1/channel-hashtag/growth", methods=["GET"])
+def get_youtube_channel_hashtag_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return YoutubeController.get_youtube_channel_hashtag_growth(artist_id, campaign_start)
+
+@youtube_bp.route("/v1/video-hashtag/growth", methods=["GET"])
+def get_youtube_video_hashtag_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return YoutubeController.get_youtube_video_hashtag_growth(artist_id, campaign_start)
+
+@youtube_bp.route("/v1/engagement/growth", methods=["GET"])
+def get_youtube_engagement_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    return YoutubeController.get_youtube_engagement_growth(artist_id, campaign_start)
+
 #################### v2 Endpoint ####################
 @youtube_bp.route("/v2/channel/<string:artist_id>", methods=['GET'])
 @auth_required

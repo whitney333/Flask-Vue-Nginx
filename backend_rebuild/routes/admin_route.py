@@ -68,7 +68,9 @@ def get_single_artist(artist_id):
 
 @admin_bp.route("/v1/artists/<string:artist_id>/cancel", methods=["PATCH"])
 def cancel_artist(artist_id):
-    pass
+    result = AdminArtistController.cancelArtist(artist_id)
+
+    return result
 
 @admin_bp.route("/v1/artists", methods=["POST"])
 def add_artist():
@@ -138,8 +140,14 @@ def get_single_user(user_id):
 
 @admin_bp.route("/v1/users", methods=["POST"])
 def add_user():
-    pass
+    result = AdminUserController.addUser()
+
+    return result
 
 @admin_bp.route("/v1/users/<string:user_id>/cancel", methods=["PATCH"])
 def cancel_user(user_id):
+    pass
+
+@admin_bp.route("/v1/users/<string:user_id>/update", methods=["PATCH"])
+def update_user(user_id):
     pass

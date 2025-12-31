@@ -47,21 +47,27 @@ const showMessage = (msg, color = "info") => {
   snackbar.value.show = true;
 };
 
+// change artist status
+const deleteDialog = ref(false);
+const selectedArtistId = ref(null);
+const selectedArtistName = ref("");
+
 // add new tenant
 const showAddTenantDialog = ref(false);
-const newTenantName = ref("");
+const formValid = ref(false);
+const tenantForm = ref(null);
+const submitting = ref(false);
+const newTenant = ref({
+  tenant_name: '',
+  website: '',
+  email: ''
+})
 
 // add new artist
 const showAddDialog = ref(false);
 const birthMenu = ref(false);
 const birthPicker = ref(null);
-const birthText = ref("");
-
-const setBirth = async (val) => {
-  birthText.value = new Date(val).toISOString()
-  birthMenu.value = false
-};
-
+const birthText = ref(""); //for text-field
 const newArtist = ref({
   artist_id: "",
   english_name: "",
@@ -70,7 +76,7 @@ const newArtist = ref({
   nation: "",
   pronouns: "",
   type: [],
-  birth: null,
+  birth: "",
   fandom: "",
   belong_group: [],
   instagram_id: "",
@@ -87,6 +93,80 @@ const newArtist = ref({
   tenant_id: "",
   image_url: ""
 });
+
+// set up adding new artist's birth
+const setBirth = (value) => {
+  if (!value) return
+
+  let formatted = ""
+
+  if (typeof value === "string") {
+    formatted = value.substring(0, 10)
+  } else if (value instanceof Date) {
+    // return date
+    const year = value.getFullYear()
+    const month = String(value.getMonth() + 1).padStart(2, "0")
+    const day = String(value.getDate()).padStart(2, "0")
+    formatted = `${year}-${month}-${day}`
+  } else {
+    console.error("Unexpected birth value:", value)
+    return
+  }
+
+  birthText.value = formatted
+  newArtist.value.birth = formatted
+  birthMenu.value = false
+}
+
+// if tenant not exists, add new tenant
+const submitTenant = async () => {
+  if (tenantForm.value.validate()) {
+    submitting.value = true;
+    loading.value = true;
+    try {
+      const token = userStore.firebaseToken
+      const res = await axios.post(
+          `/api/admin/v1/tenants`,
+          {
+            tenant_name: newTenant.value.tenant_name,
+            website: newTenant.value.website,
+            email: newTenant.value.email
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }
+          }
+      )
+
+      // clean out the form
+      resetForm()
+      // hide fields after inserting new tenant
+      showAddTenantDialog.value = false
+    } catch (err) {
+      console.error(err)
+    } finally {
+      loading.value = false
+      submitting.value = false
+    }
+  }
+}
+
+const cancelTenant = () => {
+  resetForm()
+  showAddTenantDialog.value = false
+}
+
+const resetForm = () => {
+  newTenant.value = {
+    tenant_name: "",
+    website: "",
+    email: ""
+  }
+  formValid.value = false
+  tenantForm.value.resetValidation()
+}
 
 // fetch all artist
 const fetchArtists = async () => {
@@ -141,13 +221,22 @@ const addArtist = async () => {
           }
         }
     )
+    // console.log("n: ", newArtist.value)
     showMessage("Artist added successfully.", "success");
-    this.showAddDialog = false;
+    // close dialog
+    showAddDialog.value = false;
+
+    // clean value
+    birthText.value = ""
+    newArtist.value = {}
+
+    fetchArtists();
+
   } catch (err) {
     if (err.response?.status === 409) {
       showMessage("Artist already exists. Please check artist name, company, pronouns and types.", "error")
     } else if (err.response?.status === 400) {
-      showMessage("Please input artist name.", "warning")
+      showMessage("Please check again.", "warning")
     } else {
       showMessage("Server error. Please try again later.", "error")
     }
@@ -156,18 +245,9 @@ const addArtist = async () => {
   }
 }
 
-// if tenant not exists, add new tenant
-const addTenant = async () => {
-  try {
-
-  } catch (err) {
-
-  }
-}
-
 // view specific artist
 const viewArtistDetail = async (artistId) => {
-  console.log("Clicked row:", artistId);
+  // console.log("Clicked row:", artistId);
   showDialog.value = true;
   detailLoading.value = true;
   selectedArtist.value = {};
@@ -246,7 +326,7 @@ const updateArtist = async (section, artistId) => {
         genie_id: selectedArtist.value.genie_id
       }
     }
-    console.log("payload: ", payload)
+    // console.log("payload: ", payload)
     const res = await axios.patch(
         `/api/admin/v1/artists/${artistId}/update`,
         payload, {
@@ -256,7 +336,8 @@ const updateArtist = async (section, artistId) => {
         }
     );
 
-    console.log("revise: ", res.data)
+    // console.log("revise: ", res.data)
+    fetchArtists();
   } catch (err) {
     console.error("Update failed:", err);
   }
@@ -272,7 +353,7 @@ const saveSection = async (section) => {
     // console.log("artistId: ", artistId)
     await updateArtist(section, artistId);
     editSection.value[section] = false;
-    console.log(`${section} saved`);
+    // console.log(`${section} saved`);
   } catch (err) {
     console.error("Save failed", err);
   }
@@ -350,7 +431,29 @@ const getTenantDropDownList = async () => {
   }
 }
 
-// get belong group list
+// open inactive dialog
+const openChangeStatusDialog = (artist) => {
+  selectedArtistId.value = artist.id;
+  selectedArtistName.value = artist.artist_en_name;
+  deleteDialog.value = true;
+}
+
+// confirm change status
+const confirmChangeStatus = async () => {
+  try {
+    const token = userStore.firebaseToken;
+    await axios.patch(`/api/admin/v1/artists/${selectedArtistId.value}/cancel`,
+        {}, {
+          headers: {Authorization: `Bearer ${token}`}
+        })
+    deleteDialog.value = false;
+    fetchArtists();
+  } catch (err) {
+    console.error("Status changed failed:", err);
+  }
+}
+
+// TODO get belong group list
 const getBelongGroupList = async () => {
   try {
 
@@ -369,7 +472,7 @@ const formatDate = (date) => {
   ).padStart(2, "0")}`;
 };
 
-// formatted birth date
+
 const formattedBirth = computed({
   get() {
     const birth = selectedArtist.value.birth;
@@ -410,6 +513,16 @@ const resetFilters = () => {
   page.value = 1
   fetchArtists()
 }
+
+// company name filter
+const companyFilter = (item, queryText, itemText) => {
+  if (!itemText) return false;
+
+  const text = itemText.toString().toLowerCase();
+  const query = queryText.toString().toLowerCase();
+
+  return text.includes(query);
+};
 
 onMounted(() => {
   fetchArtists();
@@ -507,6 +620,7 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                 </template>
                 <v-date-picker
                     v-model="birthPicker"
+                    type="date"
                     @update:model-value="setBirth"
                     no-title
                     color="primary"
@@ -530,6 +644,8 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                   variant="underlined"
                   item-title="tenant_name"
                   item-value="id"
+                  :filter="companyFilter"
+                  :search="true"
               />
             </v-col>
             <v-col cols="3" class="d-flex">
@@ -538,6 +654,48 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                      small>
                 + Add
               </v-btn>
+            </v-col>
+            <!-- add new tenant -->
+            <v-col cols="12" v-if="showAddTenantDialog">
+              <v-form ref="tenantForm" v-model="formValid">
+                <v-text-field
+                    v-model="newTenant.tenant_name"
+                    label="Tenant Name"
+                    :rules="[v => !!v || 'Tenant Name is required']"
+                    required
+                    variant="underlined"
+                    :disabled="submitting"
+                ></v-text-field>
+
+                <v-text-field
+                    v-model="newTenant.website"
+                    label="Website"
+                    variant="underlined"
+                    :disabled="submitting"
+                ></v-text-field>
+
+                <v-text-field
+                    v-model="newTenant.email"
+                    label="Email"
+                    variant="underlined"
+                    :disabled="submitting"
+                    :rules="[v => !v || /.+@.+\..+/.test(v) || 'E-mail must be valid']"
+                ></v-text-field>
+
+                <v-btn color="primary"
+                       class="mr-3"
+                       @click="submitTenant"
+                       :disabled="!formValid || submitting"
+                >
+                  Save
+                </v-btn>
+                <v-btn text
+                       @click="cancelTenant"
+                       :disabled="submitting"
+                >
+                  Cancel
+                </v-btn>
+              </v-form>
             </v-col>
             <v-col cols="12" md="6">
               <v-select
@@ -803,6 +961,7 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
           <th class="w-32 px-4 py-2 text-left">Belong Tenant</th>
           <th class="w-32 px-4 py-2 text-left">Pronouns</th>
           <th class="w-32 px-4 py-2 text-left">Type</th>
+          <th class="w-32 px-4 py-2 text-left">Status</th>
           <th class="w-32 px-4 py-2 text-left">Actions</th>
         </tr>
         </thead>
@@ -839,12 +998,22 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
             </div>
             <span v-else>-</span>
           </td>
-          <td class="px-4 py-2">
+          <td class="px-4 py-2">{{ a.status || '-' }}</td>
+          <td class="px-4 py-2 flex gap-2">
             <button
                 @click.stop="viewArtistDetail(a.id)"
                 class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-green-600 text-green-600 hover:bg-green-50 transition"
             >
               Update
+            </button>
+            <button
+                @click.stop="openChangeStatusDialog(a)"
+                class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-red-600 text-red-600 hover:bg-red-50 transition"
+                :class="a.status === 'active'
+                  ? 'border border-red-600 text-red-600 hover:bg-red-50'
+                  : 'border border-blue-600 text-blue-600 hover:bg-blue-50'"
+            >
+              {{ a.status === 'active' ? 'Inactive' : 'Active' }}
             </button>
           </td>
         </tr>
@@ -854,6 +1023,26 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
         </tbody>
       </table>
     </div>
+
+    <!-- Confirm change artist's status dialog -->
+    <v-dialog v-model="deleteDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Status Changing Confirmation</v-card-title>
+        <v-card-text>
+          Are you sure you want to
+          <b>{{ selectedArtistStatus === 'active' ? 'Activate' : 'Inactivate' }}</b> <b>{{ selectedArtistName }}</b>?
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn @click="deleteDialog = false">Cancel</v-btn>
+          <v-btn
+              :color="selectedArtistStatus === 'active' ? 'red' : 'blue'"
+              @click="confirmChangeStatus"
+          >
+            Confirm
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Artist Details Dialog -->
     <v-dialog v-model="showDialog" max-width="800px">
