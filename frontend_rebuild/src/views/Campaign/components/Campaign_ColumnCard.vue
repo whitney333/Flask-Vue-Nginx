@@ -94,18 +94,18 @@ const toggleSort = (key) => {
         <thead>
         <tr>
           <th class="text-left">
-            Country
+            {{ $t('country') }}
           </th>
           <th class="text-left"
             @click="toggleSort('cost_per_reach')" style="cursor: pointer;"
           >
-            Cost per Reach
+            {{ $t('campaign.cost_per_reach') }}
             <span v-if="sortKey==='cost_per_reach'">{{ sortAsc ? '▲' : '▼' }}</span>
           </th>
           <th class="text-left"
             @click="toggleSort('cost_per_view')" style="cursor: pointer;"
           >
-            Cost per View
+            {{ $t('campaign.cost_per_view') }}
             <span v-if="sortKey==='cost_per_view'">{{ sortAsc ? '▲' : '▼' }}</span>
           </th>
         </tr>

@@ -6,6 +6,7 @@ from firebase_admin import auth
 import datetime
 import uuid
 from bson import ObjectId, Decimal128
+from services.campaign_service import CampaignService
 
 
 def convert_value(v):
@@ -254,4 +255,58 @@ class CampaignController:
                 "error": str(e)
             }), 500
 
-    
+    @staticmethod
+    def get_campaign_follower_growth(campaign_id):
+        if not campaign_id:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign = Campaign.objects.get(campaign_id=campaign_id)
+            result = CampaignService.get_campaign_follower_growth(campaign)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_campaign_list(firebase_uid, artist_id=None):
+        user = Users.objects(firebase_id=firebase_uid).first()
+
+        if not user:
+            return jsonify({
+                "err": "User not found"
+            }), 400
+
+        try:
+            campaigns = CampaignService.get_campaign_list_by_artist(user.id, artist_id)
+
+            return jsonify({
+                "status": "success",
+                "data": campaigns
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500

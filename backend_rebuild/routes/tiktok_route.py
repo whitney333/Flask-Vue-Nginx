@@ -37,3 +37,21 @@ def get_tiktok_hashtag():
     hashtags = TiktokController.get_hashtag(artist_id, date_end, filter)
 
     return hashtags
+
+@tiktok_bp.route("/v1/follower/growth", methods=["GET"])
+def get_tiktok_follower_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    result = TiktokController.get_tiktok_follower_growth(artist_id, campaign_start)
+
+    return result
+
+@tiktok_bp.route("/v1/hashtag/growth", methods=["GET"])
+def get_tiktok_hashtag_growth():
+    artist_id = request.args.get('artist_id', type=str)
+    campaign_start = request.args.get('start', type=str)
+
+    result = TiktokController.get_tiktok_hashtag_growth(artist_id, campaign_start)
+
+    return result
