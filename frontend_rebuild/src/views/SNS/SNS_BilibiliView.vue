@@ -21,7 +21,6 @@
       if (!artistStore.mid) return []
       const keys = [
         bilibiliJSON.bilibiliTotalFollowersValue,
-        bilibiliJSON.bilibiliTotalVideosValue,
         bilibiliJSON.bilibiliTotalViewsValue,
         bilibiliJSON.bilibiliTotalLikesValue,
         bilibiliJSON.bilibiliTotalCommentsValue,
@@ -67,6 +66,6 @@
         <v-divider></v-divider>
         <!-- <SNSHashtagAnalytics :iconSrc="iconSrc" :value="tiktokJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics> -->
         <v-divider></v-divider>
-<!--        <SNSAllPosts :platform="platform"></SNSAllPosts>-->
+        <SNSAllPosts :platform="platform"></SNSAllPosts>
     </v-container>
 </template>
