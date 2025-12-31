@@ -1092,7 +1092,7 @@ class YoutubeController:
                         }
                     },
                     "published_at": "$video.published_at",
-                    "view_count": {"$toInt": "$video.view_count"},
+                    "view_count": {"$toLong": "$video.view_count"},
                     "like_count": {"$toInt": "$video.like_count"},
                     "favorite_count": {"$toInt": "$video.favorite_count"},
                     "comment_count": {"$toInt": "$video.comment_count"}
