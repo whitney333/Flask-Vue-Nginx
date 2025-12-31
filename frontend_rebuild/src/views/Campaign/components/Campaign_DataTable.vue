@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { AgGridVue } from "ag-grid-vue3";
 import axios from "axios";
 import InstagramIcon from "@/assets/icons/instagram.svg";
@@ -8,8 +8,9 @@ import XiaohongshuIcon from "@/assets/icons/xiaohongshu.svg";
 import BilibiliIcon from "@/assets/icons/bilibili.svg";
 import YoutubeIcon from "@/assets/icons/youtube.svg"
 import { useUserStore } from "@/stores/user.js";
+import { useI18n } from "vue-i18n"
 
-
+const { t, locale } = useI18n()
 const props = defineProps({
   campaignId: {
     type: String,
@@ -151,52 +152,52 @@ const hashtagRenderer = (params) => {
 };
 
 // Column Definitions: Defines the columns to be displayed.
-const colDefs = ref([
+const colDefs = computed(() =>[
     { field: "artist",
-      headerName: "Artist"},
+      headerName: t("campaign.artist")},
     { field: "content",
-      headerName: "Content"},
+      headerName: t("campaign.content")},
     {
       field: "kol_account",
-      headerName: "KOL Account",
+      headerName: t('campaign.kol_account'),
       cellRenderer: kolAccountRenderer,
       pinned: "left"
     },
     {
       field: "platform",
-      headerName: "Platform",
+      headerName: t("campaign.platform"),
       pinned: "left"
     },
     { field: "status",
-      headerName: "Status"},
+      headerName: t("campaign.status")},
     { field: "target_country",
-      headerName: "Target Country"},
+      headerName: t("campaign.target_country")},
     { field: "type",
-      headerName: "Type"},
+      headerName: t("campaign.type")},
     { field: "cost",
-      headerName: "Cost"},
+      headerName: t("campaign.cost")},
     { field: "post_created_at",
-      headerName: "Post Created"},
+      headerName: t("campaign.post_created")},
     { field: "reach",
-      headerName: "Reach"},
+      headerName: t("campaign.reach")},
     { field: "reaction",
-      headerName: "Reaction"},
+      headerName: t("campaign.reaction")},
     { field: "engagement",
-      headerName: "Engagement"},
+      headerName: t("campaign.engagement")},
     { field: "hashtag_reach",
-      headerName: "Hashtag Reach"},
+      headerName: t("campaign.hashtag_reach")},
     { field: "cost_per_reach",
-      headerName: "Cost Per Reach"},
+      headerName: t("campaign.cost_per_reach")},
     { field: "cost_per_view",
-      headerName: "Cost Per View"},
+      headerName: t("campaign.cost_per_view")},
     { field: "one_hour_view",
-      headerName: "1 HR View"},
+      headerName: t("campaign.one_hour_view")},
     { field: "twentyfour_hour_view",
-      headerName: "24 HR View"},
+      headerName: t("campaign.twentyfour_hour_view")},
     { field: "latest_view",
-      headerName: "Latest View"},
+      headerName: t("campaign.latest_view")},
     { field: "used_hashtag",
-      headerName: "Used Hashtags",
+      headerName: t("campaign.used_hashtags"),
       cellRenderer: hashtagRenderer,
       autoHeight: true,
       cellStyle: {
@@ -275,6 +276,12 @@ onMounted(() =>
 watch(() => props.campaignId, (newId) => {
   if (newId) fetchData(newId);
 });
+
+// watch(locale, () => {
+//   if (rowData.value) {
+//     rowData.value.refreshHeader()
+//   }
+// })
 
 </script>
 
