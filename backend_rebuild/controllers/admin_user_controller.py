@@ -133,10 +133,44 @@ class AdminUserController:
     @classmethod
     def addUser(cls):
         """
-        add user
+        add user in firebase and database
         :return:
         """
-        pass
+        try:
+            data = request.get_json()
+            email = data.get("email")
+            name = data.get("name")
+            tenant = data.get("tenant")
+            admin = data.get("admin", False)
+            followed_artist = data.get("followed_artist")
+
+            if not email or not tenant:
+                return jsonify({
+                    "message": "email and tenant are required"
+                }), 400
+
+            # check if email is duplicated
+
+
+            # create firebase auth user
+            # firebase_user = auth.create_user(
+            #     email=email,
+            #
+            # )
+            # generate reset password link
+
+            # send invite email
+
+            # create user profile in mongodb
+
+            return jsonify({
+                "message": "User created successfully",
+                "data": data
+            }), 201
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500
 
     @classmethod
     def updateUser(cls, user_id):

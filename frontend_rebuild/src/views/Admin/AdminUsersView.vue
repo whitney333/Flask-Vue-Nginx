@@ -16,6 +16,34 @@ const limit = ref(10); // per page limit
 const total = ref(0); // total page
 const totalPages = computed(() => Math.ceil(total.value / limit.value));
 
+const showAddDialog = ref(false);
+
+// dropdown list options
+const adminOptions = [true, false]
+const artistOptions = []
+const filteredArtists = []
+const tenantOptions = ref([])
+const artists = ref([])
+const selectedArtists = ref([])
+const newUser = ref({
+  name: "",
+  email: "",
+  admin: "",
+  tenant: null,
+  followed_artist: []
+})
+
+// alert message
+const snackbar = ref({
+  show: false,
+  message: "",
+  color: "info"
+});
+const showMessage = (msg, color = "info") => {
+  snackbar.value.message = msg;
+  snackbar.value.color = color;
+  snackbar.value.show = true;
+};
 
 // get all users
 const fetchUsers = async () => {
@@ -49,9 +77,109 @@ const viewUserDetail = async () => {
   }
 }
 
+// get tenantList
+const getTenantDropDownList = async () => {
+  loading.value = true;
+  try {
+    const token = userStore.firebaseToken
+    const res = await axios.get(
+        `/api/admin/v1/tenants/list`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+    )
+    tenantOptions.value = res.data.data;
+    // console.log("to: ", tenantOptions.value)
+  } catch (err) {
+    console.error("Error fetching tenant list:", err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+//
+const handleCompanyChange = async (tenantId) => {
+  selectedTenantId.value = tenantId   // store tenant id
+  console.log("selected tenantId:", selectedTenantId.value)
+
+  // get artists
+  const res = await axios.get(`/user/v1/artists/${tenantId}`)
+  console.log("artists:", res.data.data)
+}
+
+// add new user
+const addUser = async () => {
+  loading.value = true;
+  try {
+    const token = userStore.firebaseToken
+    const res = await axios.post(
+      `/api/admin/v1/users`,
+          newUser.value, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }
+        }
+    )
+
+     console.log("user: ", newUser.value)
+    showMessage("User added successfully.", "success");
+    // close dialog
+    showAddDialog.value = false;
+
+  } catch (err) {
+
+  } finally {
+    loading.value = false;
+  }
+}
+
+// company name filter
+const companyFilter = (item, queryText, itemText) => {
+  if (!itemText) return false;
+
+  const text = itemText.toString().toLowerCase();
+  const query = queryText.toString().toLowerCase();
+
+  return text.includes(query);
+};
+
 onMounted(() => {
   fetchUsers();
+  getTenantDropDownList();
 });
+
+watch(
+    () => newUser.value.tenant,
+    async (newTenantId) => {
+      if (!newTenantId) {
+        artists.value = []
+        selectedArtists.value = []
+        newUser.value.followed_artist = []
+        return
+      }
+
+      try {
+        const res = await axios.get(`/api/user/v1/artists/${newTenantId}`)
+        artists.value = res.data.data || []
+
+        // renew options of v-select
+        selectedArtists.value = artists.value.map(a => ({
+          id: a.artist_objId,
+          name: `${a.artist_name} (${a.korean_name || ""})`
+        }))
+
+        // clean artist
+        newUser.value.followed_artist = []
+      } catch (err) {
+        console.error(err)
+        artists.value = []
+        selectedArtists.value = []
+        newUser.value.followed_artist = []
+      }
+    }
+)
 
 watch([page, limit], () => {
   fetchUsers();
@@ -76,6 +204,82 @@ watch([page, limit], () => {
         Add User
       </button>
     </div>
+    <!-- open dialog: add new user -->
+    <v-dialog v-model="showAddDialog" max-width="500px">
+      <v-card>
+        <v-card-title class="text-h6">Add New User</v-card-title>
+
+        <v-card-text>
+          <!-- User Info  -->
+          <div class="flex items-center gap-3">
+            <h3 class="text-lg font-semibold">User Info</h3>
+          </div>
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-text-field
+                  label="User Name"
+                  v-model="newUser.name"
+                  variant="underlined"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                  label="Email"
+                  v-model="newUser.email"
+                  variant="underlined"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="Company"
+                  v-model="newUser.tenant"
+                  :items="tenantOptions"
+                  variant="underlined"
+                  item-title="tenant_name"
+                  item-value="id"
+                  :filter="companyFilter"
+                  :search="true"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                  label="is Admin"
+                  v-model="newUser.admin"
+                  :items="adminOptions"
+                  variant="underlined"
+              />
+            </v-col>
+            <!-- only display artists belong to selected company -->
+            <v-col cols="12" md="12">
+              <v-select
+                  label="Followed Artists"
+                  v-model="newUser.followed_artist"
+                  :items="selectedArtists"
+                  item-title="name"
+                  item-value="id"
+                  variant="underlined"
+                  multiple
+                  :disabled="!newUser.tenant"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-actions class="justify-end">
+          <v-btn variant="text"
+                 @click="showAddDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn
+              color="indigo"
+              class="text-white"
+              @click="addUser"
+          >
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Table -->
     <div class="overflow-x-auto bg-white rounded-lg shadow">
@@ -87,9 +291,7 @@ watch([page, limit], () => {
           <th class="w-32 px-4 py-2 text-left">User Name</th>
           <th class="w-32 px-4 py-2 text-left">Email</th>
           <th class="w-32 px-4 py-2 text-left">Belong Tenant</th>
-          <th class="w-32 px-4 py-2 text-left">Followed Artists</th>
           <th class="w-32 px-4 py-2 text-left">Admin</th>
-          <th class="w-32 px-4 py-2 text-left">Image</th>
           <th class="w-32 px-4 py-2 text-left">Actions</th>
         </tr>
         </thead>
@@ -102,17 +304,7 @@ watch([page, limit], () => {
           <td class="px-4 py-2">{{ u.name || '-' }}</td>
           <td class="px-4 py-2">{{ u.email || '-' }}</td>
           <td class="px-4 py-2">{{ u.tenant || '-' }}</td>
-          <td class="px-4 py-2">{{ u.followed_artist || '-' }}</td>
           <td class="px-4 py-2">{{ u.admin || '-' }}</td>
-          <td class="px-4 py-2">
-            <img
-                v-if="u.image"
-                :src="u.image"
-                alt="artist"
-                class="h-10 w-10 rounded object-cover"
-            />
-            <span v-else>-</span>
-          </td>
           <td class="px-4 py-2 flex gap-2">
             <button
                 @click.stop="viewUserDetail(u.user_id)"

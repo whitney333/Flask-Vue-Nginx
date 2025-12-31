@@ -82,6 +82,7 @@ class AdminArtistController:
                     "birth": 1,
                     "type": 1,
                     "pronouns": 1,
+                    "status": 1,
                     "image_url": 1,
                     "tenant_id": {"$toString": "$tenant_id"}
                 }
@@ -102,9 +103,10 @@ class AdminArtistController:
                     "artist_kr_name": a.get("korean_name"),
                     "debut": a.get("debut_year"),
                     "birth": a.get("birth"),
-                    "belong_tenant": tenant.tenant_name if tenant else None,
+                    "belong_tenant": tenant.tenant_name.lower() if tenant else None,
                     "pronouns": a.get("pronouns"),
                     "type": a.get("type"),
+                    "status": a.get("status"),
                     "image": a.get("image_url")
                 })
 
@@ -138,7 +140,7 @@ class AdminArtistController:
                 # basic info
                 "id": str(artist.id) if artist.id else None,
                 "tenant_id": str(artist.tenant_id.id) if artist.tenant_id else None,
-                "tenant_name": str(artist.tenant_id.tenant_name) if artist.tenant_id else None,
+                "tenant_name": str(artist.tenant_id.tenant_name).lower() if artist.tenant_id else None,
                 "artist_id": str(artist.artist_id) if artist.artist_id else None,
                 "artist_en_name": str(artist.english_name) if artist.english_name else None,
                 "artist_kr_name": str(artist.korean_name) if artist.korean_name else None,
@@ -147,6 +149,7 @@ class AdminArtistController:
                 "nation": artist.nation,
                 "pronouns": artist.pronouns,
                 "type": artist.type,
+                # "status": artist.status,
                 "fandom": artist.fandom,
                 "image": artist.image_url,
                 # TODO BELONG GROUP > REFERENCE FIELD
@@ -336,7 +339,7 @@ class AdminArtistController:
             if not artist:
                 return jsonify({"error": "Artist not found"}), 404
 
-            # TODO MISS BELONG_GROUPS, COMPANY, IMAGE
+            # TODO MISS BELONG_GROUPS
             basic_fields = [
                 'tenant_id', 'tenant_name', 'artist_id',
                 'english_name', 'korean_name', 'pronouns',
@@ -455,11 +458,17 @@ class AdminArtistController:
                 return jsonify({"error": "Unauthorized"}), 403
 
             # get artist
-            artist = Artists.objects(id=artist_id).first()
-
+            artist = Artists.objects(pk=artist_id).first()
             if not artist:
                 return jsonify({"error": "Artist not found"}), 404
 
+            artist.status = "inactive" if artist.status == "active" else "active"
+            artist.save()
+
+            return jsonify({
+                "message": "Artist status updated",
+                "artist_id": str(artist.id)
+            }), 200
 
         except Exception as e:
             return jsonify({
