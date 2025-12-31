@@ -1,5 +1,4 @@
 <script setup>
-
   import { Eye, Heart, MessageCircle, Settings, Star } from 'lucide-vue-next';
   import { ref } from 'vue';
   const { post } = defineProps({

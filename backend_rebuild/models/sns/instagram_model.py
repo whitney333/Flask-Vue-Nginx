@@ -9,7 +9,7 @@ class Instagram(Document):
     follower_count = StringField(required=True)
     following_count = IntField(required=True)
     profile_pic = URLField(required=True)
-    thread_follower = IntField(required=True)
+    threads_follower = IntField(required=True)
 
 class PostDetails(EmbeddedDocument):
     pk = StringField()
