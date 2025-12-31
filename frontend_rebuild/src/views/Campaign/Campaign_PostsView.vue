@@ -12,7 +12,7 @@ import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.
 import * as XLSX from 'xlsx'
 
 
-
+const infoOpen = ref(false)
 const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
@@ -29,6 +29,7 @@ const campaignChartCountryData = ref([])
 const campaignChartRegionData = ref([])
 const campaignChartPlatformData = ref([])
 const dialogData = ref([])
+const showTooltip = ref(false)
 
 // Taiwan', 'Hong Kong', 'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', 'United States', 'Canada', 'Brazil', 'Mexico', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Australia']
 // make up some posts
@@ -371,12 +372,46 @@ const exportDialogData = () => {
         class="bg-grey-lighten-4 w-full mx-auto mb-6 px-4"
         max-width="1200"
     >
-      <template v-slot:title>
-        <div class="flex w-full items-center justify-between">
-            <span class="text-h4">{{ $t('campaign.post') }}</span>
-            <v-btn @click="() => router.push('/campaign/posts/create')" color="black">Create Post</v-btn>
+      <div class="flex items-center gap-3">
+        <!-- Create Post Button -->
+        <button @click="() => router.push('/campaign/posts/create')"
+            class="bg-black text-white text-sm px-4 py-2 rounded-md
+            hover:bg-gray-800 transition-colors"
+        >
+          Create Post
+        </button>
+
+        <!-- info icon -->
+        <div class="relative flex items-center"
+            @mouseenter="showTooltip = true"
+            @mouseleave="showTooltip = false"
+        >
+          <i class="mdi mdi-information text-xl text-gray-400 cursor-help
+             hover:text-blue-500 transition-colors"
+          ></i>
+
+          <transition name="fade">
+            <div v-if="showTooltip"
+                class="absolute left-full top-0 ml-3 mt-1
+                 w-96 p-4 bg-white border border-gray-200
+                 rounded-lg shadow-xl z-[9999]"
+            >
+              <p class="text-xs leading-relaxed text-gray-600">
+                You can create a campaign on this page.
+                Once submitted, the status will show as 'submitted'.
+                After approval by the admin, the status will change to 'approved'.
+                The day after the campaign begins, we will update the related analysis.
+                You can view the analysis by clicking the icon next to the status chips.
+              </p>
+
+              <div class="absolute right-full top-3
+                    border-8 border-transparent border-r-white"
+              ></div>
+            </div>
+          </transition>
         </div>
-      </template>
+      </div>
+
       <v-card-text class="mt-4">
         <!-- loading condition -->
         <div v-if="loading" class="flex justify-center items-center py-20">
@@ -653,6 +688,7 @@ const exportDialogData = () => {
                       @click="openCancelDialog(campaign.campaign_id)"
                       color="red"
                       variant="outlined"
+                      :disabled="['approved', 'cancelled'].includes(campaign.status)"
                   >
                     {{ $t('campaign.cancel') }}
                   </v-btn>

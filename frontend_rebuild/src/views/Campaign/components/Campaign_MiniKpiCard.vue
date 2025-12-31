@@ -41,7 +41,7 @@ const kpiData = computed(() => ({
       <h3 class="text-sm text-gray-500 uppercase">{{ $t(`campaign.${item.title}`) }}</h3>
 
       <!-- city & country -->
-      <p class="text-xl font-bold mt-2">
+      <p class="text-lg font-bold mt-2">
         {{ item.city }}, {{ item.country }}
       </p>
 
@@ -51,8 +51,7 @@ const kpiData = computed(() => ({
       </p>
 
       <!-- growth percentage -->
-      <p
-          v-if="item.growth_pct !== null"
+      <p v-if="item.growth_pct !== null"
           :class="[
           'mt-2 font-semibold',
           item.growth_pct > 0 ? 'text-green-600' : 'text-red-600'

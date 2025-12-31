@@ -317,24 +317,21 @@ const exportData = () => {
         <label class="text-sm font-medium text-gray-700 mb-1">&nbsp;</label>
 
         <div class="flex items-center justify-start">
-          <div
-              class="relative flex items-center"
+          <div class="relative flex items-center"
               @mouseenter="showTooltip = true"
               @mouseleave="showTooltip = false"
           >
             <i class="mdi mdi-information text-xl text-gray-400 cursor-help hover:text-blue-500 transition-colors"></i>
 
             <transition name="fade">
-              <div
-                  v-if="showTooltip"
+              <div v-if="showTooltip"
                   class="absolute left-full top-1/2 -translate-y-1/2 ml-3 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999]"
               >
                 <p class="text-xs leading-relaxed text-gray-600">
                   To evaluate campaign performance, we track your followers and listeners across major platforms from
                   two weeks before to two weeks after the campaign.
                 </p>
-                <div
-                    class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-white"></div>
+                <div class="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-white"></div>
               </div>
             </transition>
           </div>
