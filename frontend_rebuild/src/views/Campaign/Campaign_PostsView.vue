@@ -12,7 +12,6 @@ import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.
 import * as XLSX from 'xlsx'
 
 
-
 const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()

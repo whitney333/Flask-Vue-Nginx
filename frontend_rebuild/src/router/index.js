@@ -86,7 +86,7 @@ const routes = [
         component: Works_Layout,
         meta: { requireAuth: true},
         children: [
-            { path: 'analytics', name: 'Campaign Performance', component: ComingSoonView, meta: { requireAuth: true,}},
+            { path: 'analytics', name: 'Campaign Performance', component: Campaign_AnalyticsView, meta: { requireAuth: true,}},
             { path: 'posts', name: 'Campaign Posts', component: Campaign_PostsView, meta: { requireAuth: true }},
             { path: 'posts/create', name: 'Campaign Create Posts', component: Campaign_CreatePostView, meta: { requireAuth: true }}
         ]

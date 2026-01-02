@@ -21,7 +21,7 @@ const userStore = useUserStore()
 
 // sorting
 const sortKey = ref("cost_per_reach")
-const sortAscend = ref(false)
+const sortAsc = ref(false)
 
 // group by country, calculate average cost_per_reach
 const groupData = computed(() => {
@@ -31,11 +31,11 @@ const groupData = computed(() => {
     const country = item.target_country || 'Unknown'
 
     const rawCostReach = (item.cost_per_reach || "").toString()
-    const cleanCostReach = rawCostReach.replace(/[^0-9.\-]/g, "")  // 移除非數字字元
+    const cleanCostReach = rawCostReach.replace(/[^0-9.\-]/g, "")
     const costReach = parseFloat(cleanCostReach)
 
     const rawCostView = (item.cost_per_view || "").toString()
-    const cleanCostView = rawCostView.replace(/[^0-9.\-]/g, "")  // 移除非數字字元
+    const cleanCostView = rawCostView.replace(/[^0-9.\-]/g, "")
     const costView = parseFloat(cleanCostView)
 
     if (!groups[country]) {
