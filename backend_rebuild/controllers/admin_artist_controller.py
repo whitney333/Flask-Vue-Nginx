@@ -8,10 +8,12 @@ from mongoengine.errors import ValidationError
 from bson import ObjectId
 import re
 import os
+import io
 import uuid
 import boto3
 from dotenv import load_dotenv
 import traceback
+from PIL import Image
 
 
 class AdminArtistController:
@@ -502,7 +504,8 @@ class AdminArtistController:
             }), 400
 
         clean_name = cls.slugify_name(artist_name)
-        filename = f"{artist_id}-{clean_name}.{ext}"
+        filename = f"{artist_id}-{clean_name}.jpg"
+        s3_key = f"artist-profile/{filename}"
 
         try:
             environment = os.getenv("FLASK_ENV", "development")  # default to 'dev'
@@ -524,15 +527,40 @@ class AdminArtistController:
             # args: custom arguments
             bucket = os.getenv("AWS_S3_BUCKET")
             region = os.getenv("AWS_S3_REGION")
+            cdn_domain = os.getenv("AWS_CDN_DOMAIN")
+
+            # image processing
+            img = Image.open(file.stream).convert("RGB")
+
+            # resize image > avatar 2x
+            img = img.resize((300, 300), Image.LANCZOS)
+
+            # compress image
+            buffer = io.BytesIO()
+            quality = 85
+            min_quality = 40
+
+            img.save(buffer, format="JPEG", optimize=True, quality=quality)
+
+            while buffer.tell() > 80 * 1024 and quality > min_quality:
+                buffer.seek(0)
+                buffer.truncate(0)
+                quality -= 5
+                img.save(buffer, format="JPEG", optimize=True, quality=quality)
+
+            buffer.seek(0)
+
             response = client.upload_fileobj(
-                file,
+                buffer,
                 bucket,
                 f"artist-profile/{filename}",
                 ExtraArgs={
-                    "ContentType": file.content_type
+                    "ContentType": "image/jpeg",
+                    "CacheControl": "public, max-age=31536000"
                 }
             )
-            url = f"https://{bucket}.s3.{region}.amazonaws.com/artist-profile/{filename}"
+            # url = f"https://{bucket}.s3.{region}.amazonaws.com/artist-profile/{filename}"
+            url = f"https://{cdn_domain}/{s3_key}"
             print(url)
             return jsonify({"url": url}), 200
 
