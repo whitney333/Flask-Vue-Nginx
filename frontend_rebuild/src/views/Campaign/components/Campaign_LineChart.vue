@@ -4,7 +4,7 @@ import {useUserStore} from "@/stores/user.js";
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
 import {countryNameToCode} from "@/libs/utils.js";
 
-const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube", "bilibili"]
+const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube", "bilibili", "weibo"]
 const props = defineProps({
   data: Object
 })
@@ -50,7 +50,7 @@ const options = {
   },
   colors: ['#45a6e7', '#2a40b2'],
   xaxis: {
-    categories: ["Instagram", "Spotify", "Threads", "TikTok", "YouTube", "Bilibili"]
+    categories: ["Instagram", "Spotify", "Threads", "TikTok", "YouTube", "Bilibili", "Weibo"]
   },
   yaxis: {
     labels: {
