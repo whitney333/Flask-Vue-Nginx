@@ -349,6 +349,7 @@ const exportData = () => {
       </div>
     </div>
 
+
     <!-- KPI -->
     <CampaignKpiCard
         v-if="data"
