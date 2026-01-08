@@ -3,7 +3,7 @@
     "chart": "campaignTotalRegion",
     "title": "included_regions",
     "type": "Region",
-    "tooltipText": "",
+    "tooltipText": "The areas covered by the campaign",
     "fetchURL": "/campaign/v1/detail/{campaign_id}",
     "fetchFollowerType": "data",
     "followerDataType": "total_region"
@@ -12,7 +12,7 @@
     "chart": "campaignTotalCountry",
     "title": "included_countries",
     "type": "Country",
-    "tooltipText": "",
+    "tooltipText": "The countries covered by the campaign",
     "fetchURL": "/campaign/v1/detail/{campaign_id}",
     "fetchFollowerType": "data",
     "followerDataType": "total_country",
@@ -22,7 +22,7 @@
     "chart": "campaignTotalPlatform",
     "title": "included_platforms",
     "type": "Platform",
-    "tooltipText": "",
+    "tooltipText": "The platform included in the campaign",
     "fetchURL": "/campaign/v1/detail/{campaign_id}",
     "fetchFollowerType": "data",
     "followerDataType": "total_platform"
