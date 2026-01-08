@@ -1,5 +1,4 @@
 from datetime import timedelta
-from chart_rules.bilibili_chart_rules import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from models.sns.bilibili_model import Bilibili
 
 
