@@ -1,7 +1,6 @@
 from datetime import timedelta
 from chart_rules.bilibili_chart_rules import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from models.sns.bilibili_model import Bilibili
-from .artist_service import ArtistService
 
 
 class BilibiliService:
@@ -61,7 +60,3 @@ class BilibiliService:
             "growth": after - before,
             "percentage": growth_percentage
         }
-
-    @staticmethod
-    def get_follower(user, artist_id, date_end, range_key):
-        pass
