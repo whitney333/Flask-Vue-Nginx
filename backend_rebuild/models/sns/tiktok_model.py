@@ -19,7 +19,7 @@ class TiktokVideo(Document):
 
 class Tiktok(Document):
     datetime = DateTimeField(default=datetime.now())
-    tiktok_id = StringField(required=True, db_field="id")
+    tiktok_id = StringField(required=True, db_field="tiktok_id")
     follower = StringField()
     like = StringField()
     hashtag = StringField()
