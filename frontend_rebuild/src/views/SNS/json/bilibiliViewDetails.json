@@ -93,7 +93,7 @@
         "chart": "bilibiliTotalCoins",
         "title": "Bilibili Total Coins",
         "type": "Coins",
-        "tooltipText": "Number of coins on TikTok",
+        "tooltipText": "Number of coins on Bilibili",
         "fetchURL": "/bilibili/v1/coin",
         "fetchFollowerType": "data",
         "followerDataType": "total_coin",
@@ -109,7 +109,7 @@
         "chart": "bilibiliTotalCollects",
         "title": "Bilibili Total Collects",
         "type": "Collects",
-        "tooltipText": "Number of collects on TikTok",
+        "tooltipText": "Number of collects on Bilibili",
         "fetchURL": "/bilibili/v1/collect",
         "fetchFollowerType": "data",
         "followerDataType": "total_collect",
@@ -125,7 +125,7 @@
         "chart": "bilibiliEngagementRate",
         "title": "Bilibili Engagement Rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagement rate on Tiktok",
+        "tooltipText": "Average engagement rate on Bilibili",
         "fetchURL": "/bilibili/v1/engagement-rate",
         "fetchFollowerType": "data",
         "followerDataType": "engagement_rate",
@@ -137,10 +137,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "bilibili",
         "usedCol": {
-            "tooltipText": "Daily trend of Tiktok Hashtags"
+            "tooltipText": "Daily trend of Bilibili Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Daily trend of Tiktok Hashtags"
+            "tooltipText": "Daily trend of Bilibili Hashtags"
         }
         
     }
