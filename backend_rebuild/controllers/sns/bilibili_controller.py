@@ -1006,3 +1006,7 @@ class BilibiliController:
                 "status": "error",
                 "err": str(e)
             }), 500
+
+    @staticmethod
+    def get_bilibili_follower(user, artist_id, date_end, range):
+        pass

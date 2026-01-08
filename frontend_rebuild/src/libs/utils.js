@@ -1,5 +1,5 @@
 export const regions = {
-  "Asia": ["Mainland China", "Taiwan", "Hong Kong", "Japan", "South Korea", "Thailand", "Vietnam", "Philippines", "Indonesia"],
+  "Asia": ["Mainland China", "Taiwan", "Hong Kong", "Japan", "South Korea", "Thailand", "Vietnam", "Philippines", "Indonesia", "Singapore", "Malaysia"],
   "North America": ["United States", "Canada"],
   "South America": ["Brazil", "Mexico"],
   "Europe": ["United Kingdom", "Germany", "France", "Spain", "Italy"],
@@ -7,7 +7,7 @@ export const regions = {
 }
 
 // generate a list of index to country mapping
-export const indexToCountry = ['Mainland China', 'Taiwan', 'Hong Kong', 'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', 'United States', 'Canada', 'Brazil', 'Mexico', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Australia']
+export const indexToCountry = ['Mainland China', 'Taiwan', 'Hong Kong', 'Japan', 'South Korea', 'Thailand', 'Vietnam', 'Philippines', 'Indonesia', "Singapore", "Malaysia", 'United States', 'Canada', 'Brazil', 'Mexico', 'United Kingdom', 'Germany', 'France', 'Spain', 'Italy', 'Australia']
 
 // country name to code
 export const countryNameToCode = {

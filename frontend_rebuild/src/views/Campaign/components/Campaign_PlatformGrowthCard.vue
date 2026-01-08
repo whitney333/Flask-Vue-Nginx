@@ -6,6 +6,7 @@ import instagramIcon from "@/assets/icons/instagram.svg"
 import bilibiliIcon from "@/assets/icons/bilibili.svg"
 import threadsIcon from "@/assets/icons/threads.svg"
 import spotifyIcon from "@/assets/icons/spotify.svg"
+import weiboIcon from "@/assets/icons/weibo.svg"
 
 const props = defineProps({
   data: Object
@@ -17,7 +18,8 @@ const platforms = [
   { key: "threads", label: "Threads" },
   { key: "tiktok", label: "Tiktok" },
   { key: "youtube", label: "Youtube" },
-  { key: "bilibili", label: "Bilibili"}
+  { key: "bilibili", label: "Bilibili"},
+  { key : "weibo", label: "Weibo" }
 ]
 
 const platformIconMap = {
@@ -26,7 +28,8 @@ const platformIconMap = {
   threads: threadsIcon,
   tiktok: tiktokIcon,
   bilibili: bilibiliIcon,
-  youtube: youtubeIcon
+  youtube: youtubeIcon,
+  weibo: weiboIcon
 }
 
 const getBefore = (p, item) =>

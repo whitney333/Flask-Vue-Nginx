@@ -3,6 +3,7 @@ from .youtube_service import YoutubeService
 from .tiktok_service import TiktokService
 from .spotify_service import SpotifyService
 from .bilibili_service import BilibiliService
+from .weibo_service import WeiboService
 from models.artist_model import Artists
 from models.campaign_model import Campaign
 from datetime import timedelta
@@ -63,6 +64,7 @@ class CampaignService:
         instagram_result = None
         instagram_threads_result = None
         bilibili_result = None
+        weibo_result = None
 
         # spotify
         if artist.spotify_id:
@@ -103,6 +105,13 @@ class CampaignService:
                 campaign_start=start
             )
 
+        # weibo
+        if artist.weibo_id:
+            weibo_result = WeiboService.get_follower_growth(
+                weibo_id=artist.weibo_id,
+                campaign_start=start
+            )
+
         return {
             "campaign_id": str(campaign.campaign_id),
             "artist": artist_name,
@@ -117,6 +126,7 @@ class CampaignService:
                 "tiktok": tiktok_result,
                 "instagram": instagram_result,
                 "threads": instagram_threads_result,
-                "bilibili": bilibili_result
+                "bilibili": bilibili_result,
+                "weibo": weibo_result
             }
         }

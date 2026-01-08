@@ -9,7 +9,7 @@ const props = defineProps({
   }
 })
 
-const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube", "bilibili"]
+const platforms = ["instagram", "spotify", "threads", "tiktok", "youtube", "bilibili", "weibo"]
 
 const summary = computed(() => {
   let totalBefore = 0
