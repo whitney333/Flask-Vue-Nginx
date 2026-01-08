@@ -1008,5 +1008,5 @@ class BilibiliController:
             }), 500
 
     @staticmethod
-    def get_bilibili_follower(artist_id, date_end, range):
-       pass
+    def get_bilibili_follower(user, artist_id, date_end, range):
+        pass
