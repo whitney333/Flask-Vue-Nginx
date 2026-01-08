@@ -16,3 +16,10 @@ class Users(Document):
     followed_artist = ListField(ReferenceField(Artists))
     created_at = DateTimeField(null=True)
     last_login_at = DateTimeField(null=True)
+    # membership
+    is_premium = BooleanField(default=False)
+    plan = StringField(choices=["free", "monthly", "yearly"], default="free")
+    premium_expired_at = DateTimeField()
+    # Stripe
+    stripe_customer_id = StringField()
+    stripe_subscription_id = StringField()
