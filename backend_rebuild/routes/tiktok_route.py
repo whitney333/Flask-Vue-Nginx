@@ -8,13 +8,25 @@ tiktok_api = Api(tiktok_bp)
 # get tiktok followers
 @tiktok_bp.route('/v1/follower', methods=['GET'])
 def get_tiktok_follower():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    # artist_id = request.args.get('artist_id', type=str)
+    # date_end = request.args.get('date_end', type=str)
+    # filter = request.args.get('filter', type=str)
+    #
+    # followers = TiktokController.get_follower(artist_id, date_end, filter)
+    #
+    # return followers
 
-    followers = TiktokController.get_follower(artist_id, date_end, filter)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    return followers
+    result = TiktokController.get_tiktok_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
 
 # get tiktok likes
 @tiktok_bp.route('/v1/like', methods=['GET'])
