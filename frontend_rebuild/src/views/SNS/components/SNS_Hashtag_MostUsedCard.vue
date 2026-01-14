@@ -17,7 +17,6 @@
     const artistStore = useArtistStore()
     const range = ref(5)
     const recent10Series = ref(null)
-    const selection = ref('10_hashtags')
 
     const fetchHashtag = async (limit) => {
       // free user limits to 5
