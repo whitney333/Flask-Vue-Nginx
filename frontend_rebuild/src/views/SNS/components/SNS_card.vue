@@ -1,7 +1,12 @@
 <script setup>
     import { computed, onMounted, ref, watch } from 'vue';
     import axios from '@/axios';
+    import { useUserStore } from "@/stores/user.js";
+    import { useArtistStore } from "@/stores/artist.js";
+    import { nextTick } from 'vue'
 
+    const userStore = useUserStore()
+    const artistStore = useArtistStore()
     const props = defineProps({
         value: Object,
         colors: Object,
@@ -9,10 +14,16 @@
     })
     const series = ref([])
 
-    const artistId = ref("1")
     const date_end = new Date().toISOString().slice(0, 10);
     const filter = ref("7d")
-
+    const allowedRanges = ref([])
+    const maxRange = ref("28d")
+    const RANGE_MAP = {
+      one_month: "28d",
+      three_months: "90d",
+      six_months: "180d",
+      one_year: "365d"
+    }
     const latest_date = ref("")
     const index_number = ref("")
     const last_month_data = ref("")
@@ -22,6 +33,7 @@
     const one_month = ref('')
     const three_months = ref('')
     const six_months = ref('')
+    const one_year = ref('')
     const chart = ref(null)
     const selection = ref("all")
     const chartOptions = ref({})
@@ -156,17 +168,21 @@
         ]
         chartOptions.value = temp
     }
+    // helper function: calculate data length
+    const getStartByLength = (len) => {
+      if (!data.value.length) return null
+      const idx = Math.max(data.value.length - len, 0)
+      return data.value[idx][props.value.fetchDateType]
+    }
 
     const fetchData = async () => {
       try {
         loadingBar.value = true
         const res = await axios.get(props.value.fetchURL,
-            // {params: {
-            //     artist_id: artistId.value,
-            //     date_end: date_end,
-            //     filter: filter.value
-            // }},
-            {setTimeout: 10000})
+            {headers: {
+              Authorization: `Bearer ${userStore.firebaseToken}`
+              }})
+        console.log("📡 fetchURL", props.value.fetchURL)
         if (!res || !res.data) {
           console.warn("Response is empty or invalid");
           data.value = []
@@ -175,6 +191,7 @@
           one_month.value = null
           three_months.value = null
           six_months.value = null
+          one_year.value = null
           index_number.value = null
           last_month_data.value = null
           series.value = []
@@ -182,7 +199,8 @@
           return
         }
 
-        data.value = res.data[props.value.fetchFollowerType] || []
+        data.value = res.data.data || []
+        if (!data.value.length) return
 
         if (data.value.length === 0) {
           console.warn("No data found for the given type")
@@ -191,6 +209,7 @@
           one_month.value = null
           three_months.value = null
           six_months.value = null
+          one_year.value = null
           index_number.value = null
           last_month_data.value = null
           series.value = []
@@ -201,10 +220,10 @@
         latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
         first_day.value = data.value[0][props.value.fetchDateType]
 
-        one_month.value = data.value.length > 30 ? data.value[data.value.length - 30][props.value.fetchDateType] : data.value[0][props.value.fetchDateType]
-        three_months.value = data.value.length > 90 ? data.value[data.value.length - 90][props.value.fetchDateType] : data.value[0][props.value.fetchDateType]
-        six_months.value = data.value.length > 180 ? data.value[data.value.length - 180][props.value.fetchDateType] : data.value[0][props.value.fetchDateType]
-
+        one_month.value = getStartByLength(28)
+        three_months.value = getStartByLength(90)
+        six_months.value = getStartByLength(180)
+        one_year.value = getStartByLength(365)
         index_number.value = data.value[data.value.length - 1][props.value.followerDataType]
         last_month_data.value = data.value.length > 7 ? data.value[data.value.length - 7][props.value.followerDataType] : index_number.value
 
@@ -242,6 +261,25 @@
             }
           ]
         }
+
+        // 5️⃣ 設定 allowed ranges（UI button enable/disable）
+        allowedRanges.value = res.data?.meta?.allowed_ranges || ["28d"]
+        const isPremium = res.data?.meta?.is_premium
+        console.log("allowedRanges:", allowedRanges.value, "isPremium:", isPremium)
+
+        // 6️⃣ 預設 zoom
+        await nextTick()
+        if (allowedRanges.value.includes("365d")) {
+          selection.value = "one_year"
+          safeZoom(one_year.value)
+        } else if (allowedRanges.value.includes("180d")) {
+          selection.value = "six_months"
+          safeZoom(six_months.value)
+        } else {
+          selection.value = "one_month"
+          safeZoom(one_month.value)
+        }
+
         // update the series with axios data
         loadingBar.value = false
       } catch (e) {
@@ -249,49 +287,105 @@
       }
     }
 
-    const updateData = (timeline) => {
-        selection.value = timeline
+    const safeZoom = (start) => {
+      if (!start || !latest_date.value) return
+      chart.value?.zoomX(
+          new Date(start).getTime(),
+          new Date(latest_date.value).getTime()
+      )
+    }
 
-        switch (timeline) {
-        case 'one_month':
-            chart.value.zoomX(
-                new Date(one_month.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'three_months':
-            chart.value.zoomX(
-                new Date(three_months.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'six_months':
-            chart.value.zoomX(
-                new Date(six_months.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'one_year':
-            chart.value.zoomX(
-                new Date(one_year.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'all':
-            chart.value.zoomX(
-                new Date(first_day.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-        }
-        
-    
-}
+    const updateData = async (timeline) => {
+      selection.value = timeline
+      if (!chart.value) return
+
+      switch (timeline) {
+        case "one_month":
+          chart.value.zoomX(
+              new Date(one_month.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+        case "three_months":
+          chart.value.zoomX(
+              new Date(three_months.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+        case "six_months":
+          chart.value.zoomX(
+              new Date(six_months.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+        case "one_year":
+          chart.value.zoomX(
+              new Date(one_year.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+      }
+    }
+
+    // const updateData = async (timeline) => {
+    //   selection.value = timeline
+    //   if (!chart.value) return
+    //
+    //   switch (timeline) {
+    //     case "one_month":
+    //       chart.value.zoomX(
+    //           new Date(one_month.value).getTime(),
+    //           new Date(latest_date.value).getTime()
+    //       )
+    //       break
+    //
+    //     case "three_months":
+    //       chart.value.zoomX(
+    //           new Date(three_months.value).getTime(),
+    //           new Date(latest_date.value).getTime()
+    //       )
+    //       break
+    //
+    //     case "six_months":
+    //       chart.value.zoomX(
+    //           new Date(six_months.value).getTime(),
+    //           new Date(latest_date.value).getTime()
+    //       )
+    //       break
+    //
+    //     case "twelve_months":
+    //       chart.value.zoomX(
+    //           new Date(twelve_months.value).getTime(),
+    //           new Date(latest_date.value).getTime()
+    //       )
+    //       break
+    //
+    //     case "all":
+    //       chart.value.zoomX(
+    //           new Date(first_day.value).getTime(),
+    //           new Date(latest_date.value).getTime()
+    //       )
+    //       break
+    //   }
+    // }
+
     onMounted( () => {
         fetchData()
     })
 
     const indexDifference = () => {
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
+    }
+
+    // check and disable range button
+    const isRangeDisabled = (timeline) => {
+      const range = RANGE_MAP[timeline]
+      if (!range) return true
+      return !allowedRanges.value.includes(range)
     }
 
     watch(
@@ -348,6 +442,7 @@
                         rounded
                         @click="updateData('one_month')" 
                         :active="selection === 'one_month'"
+                        :disabled="isRangeDisabled('one_month')"
                         :class="['mx-1']"
                     >
                     1M
@@ -360,6 +455,7 @@
                         rounded
                         @click="updateData('three_months')" 
                         :active="selection === 'three_months'"
+                        :disabled="isRangeDisabled('three_months')"
                         :class="['mx-1']"
                     >
                     3M
@@ -372,6 +468,7 @@
                         rounded
                         @click="updateData('six_months')" 
                         :active="selection === 'six_months'"
+                        :disabled="isRangeDisabled('six_months')"
                         :class="['mx-1']"
                     >
                     6M
@@ -382,11 +479,12 @@
                         color="blue-grey-darken-2"
                         dark
                         rounded
-                        @click="updateData('all')" 
-                        :active="selection === 'all'"
+                        @click="updateData('one_year')"
+                        :active="selection === 'one_year'"
+                        :disabled="isRangeDisabled('one_year')"
                         :class="['mx-1']"
                     >
-                    ALL
+                    1Y
                     </v-btn>
                 </div>
             </div>

@@ -2,6 +2,7 @@
     import axios from '@/axios';
     import { onMounted, reactive, ref, watch } from 'vue';
     import { useArtistStore } from '@/stores/artist'
+    import { useUserStore } from '@/stores/user'
 
     const props = defineProps({
         value: Object,
@@ -12,111 +13,51 @@
 
     const series = ref([])
 
-    // const artistId = ref("1")
+    const userStore = useUserStore()
     const artistStore = useArtistStore()
+    const range = ref(5)
     const recent10Series = ref(null)
-    const recent30Series = ref(null)
-    const allSeries = ref(null)
     const selection = ref('10_hashtags')
 
-    const fetch10Hashtag = async () => {
-        
-        if (recent10Series.value) {
-            series.value = recent10Series.value
-            return
-        }
-        try {
-            loadingCard.value = true
-            selection.value = '10_hashtags'
+    const fetchHashtag = async (limit) => {
+      // free user limits to 5
+      if (!userStore.isPremium && limit !== 5) {
+        return
+      }
 
-            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-five?artist_id=${artistStore.mid}`)
-            const result = data.data.data
-            // console.log(result)
-    
-            const hashtags = result.map((e, i) => {
-                return {
-                    x: e._id,
-                    y: e.count,
-                };
-            });
+      range.value = limit
+      loadingCard.value = true
 
-          // update the series with axios data
-            series.value = [
-                {
-                    name: 'Counts',
-                    data: hashtags,
-                }
-            ];
-            loadingCard.value = false
-        } catch (e) {
-            console.error(e);
-        }
-    }
-    const fetch30Hashtag = async () => {
-        if (recent30Series.value) {
-            series.value = recent30Series.value
-            return
-        }
+      try {
+        const {data} = await axios.get(
+            `/${props.value.apiType}/v1/hashtag/most-used`,
+            {
+              headers: {
+                Authorization: `Bearer ${userStore.firebaseToken}`
+              },
+              params: {
+                artist_id: artistStore.artistId,
+                range: range.value
+              }
+            }
+        )
 
-        try{
-            loadingCard.value = true
-            selection.value = '30_hashtags'
+        const result = data.data || []
 
-            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-eight?artist_id=${artistStore.mid}`)
-            const result = data.data.data
-    
-            const hashtags = result.map((e, i) => {
-                return {
-                x: e._id,
-                y: e.count,
-                };
-            });
-    
-          // update the series with axios data
-            series.value = recent30Series.value = [
-                {
-                    name: 'Counts',
-                    data: hashtags,
-                }
-            ];
-            loadingCard.value = false
-            
-        } catch(e) {
-            console.error(e);
-        }
-        }
-
-    const fetchAllHashtag = async () => {
-        if (allSeries.value) {
-            series.value = allSeries.value
-            return
-        }
-        try{
-            loadingCard.value = true
-            selection.value = 'all'
-
-            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-used-twelve?artist_id=${artistStore.mid}`)
-            const result = data.data.data
-    
-            const hashtags = result.map((e, i) => {
-                return {
-                x: e._id,
-                y: e.count,
-                };
-            });
-    
-          // update the series with axios data
-            series.value = allSeries.value = [
-                {
-                    name: 'Counts',
-                    data: hashtags,
-                }
-            ];
-            loadingCard.value = false
-            
-        } catch(e) {
-            console.error(e);
-        }
+        series.value = [
+          {
+            name: 'Counts',
+            data: result.map(e => ({
+              x: e._id,
+              y: e.count
+            }))
+          }
+        ]
+      } catch (e) {
+        console.error(e)
+      } finally {
+        loadingCard.value = false
+      }
     }
 
     const chartOptions = {
@@ -199,15 +140,15 @@
     }
 
     onMounted(() => {
-        fetch10Hashtag()
+        fetchHashtag(5)
     })
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
             // console.log("🎯 hashtag mid changed:", newMid)
-            fetch10Hashtag()
+            fetchHashtag(5)
           }
         },
         {immediate: true}
@@ -254,10 +195,10 @@
                         color="blue-grey-darken-2"
                         dark
                         rounded
-                        :active="selection === '10_hashtags'"
-                        @click="fetch10Hashtag()"
+                        :active="range === 5"
+                        @click="fetchHashtag(5)"
                     >
-                    Latest 10 Posts
+                    Latest 5 Posts
                     </v-btn>
                     <v-btn
                         :class="['mx-1']"
@@ -266,10 +207,10 @@
                         color="blue-grey-darken-2"
                         dark
                         rounded
-                        :active="selection === '30_hashtags'"
-                        @click="fetch30Hashtag()"
+                        :active="range === 8"
+                        @click="fetchHashtag(8)"
                     >
-                    Latest 30 Posts
+                    Latest 8 Posts
                     </v-btn>
                     <v-btn
                         :class="['mx-1']"
@@ -278,10 +219,10 @@
                         color="blue-grey-darken-2"
                         dark
                         rounded
-                        :active="selection === 'all'"
-                        @click="fetchAllHashtag()"
+                        :active="range === 12"
+                        @click="fetchHashtag(12)"
                     >
-                    All Posts
+                    Latest 12 Posts
                     </v-btn>
                 </div>
             </div>

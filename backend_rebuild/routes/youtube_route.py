@@ -34,13 +34,17 @@ def get_youtube_channel_view():
 # get youtube latest 12 videos total views
 @youtube_bp.route('/v1/video-view', methods=['GET'])
 def get_youtube_video_view():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    video_view = YoutubeController.get_youtube_video_view(artist_id, date_end, filter)
+    result = YoutubeController.get_youtube_total_video_view(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return video_view
+    return result
 
 # ARCHIVE
 # get youtube channel hashtag counts
@@ -69,23 +73,32 @@ def get_youtube_video_hashtag():
 # get youtube channel basic info
 @youtube_bp.route('/v1/channel', methods=['GET'])
 def get_youtube_channel_basic_info():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    result = YoutubeController.get_channel_basic(artist_id, date_end, filter)
+    result = YoutubeController.get_youtube_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
     return result
 
 # get youtube latest 50 videos indexes
 @youtube_bp.route('/v1/video-index', methods=['GET'])
 def get_youtube_video_index():
-    artist_id = request.args.get('artist_id', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    video_index = YoutubeController.get_youtube_video_index(artist_id, filter)
+    result = YoutubeController.get_youtube_latest_video_like_and_comment(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return video_index
+    return result
 
 # get youtube latest videos information
 @youtube_bp.route('/v1/posts', methods=['GET'])
@@ -177,6 +190,19 @@ def get_youtube_engagement_growth():
     campaign_start = request.args.get('start', type=str)
 
     return YoutubeController.get_youtube_engagement_growth(artist_id, campaign_start)
+
+# get youtube most-used hashtags
+@youtube_bp.route("/v1/hashtag/most-used", methods=["GET"])
+def get_most_used_hashtags():
+    artist_id = request.args.get("artist_id", type=str)
+    range_key = request.args.get("range", default="5", type=str)
+    result = YoutubeController.get_youtube_most_used_hashtag(
+        artist_id=artist_id,
+        range_key=range_key
+    )
+
+    return result
+
 
 #################### v2 Endpoint ####################
 @youtube_bp.route("/v2/channel/<string:artist_id>", methods=['GET'])

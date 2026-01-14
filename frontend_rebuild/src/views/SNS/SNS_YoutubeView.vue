@@ -6,22 +6,33 @@
     import SNSTopicAnalytics from '@/views/SNS/components/SNS_TopicAnalytics.vue';
     import SNSAllPosts from '@/views/SNS/components/SNS_AllPosts.vue'
     import youtubeJSON from './json/youtubeViewDetails.json'
-    import { computed, watch, ref } from 'vue';
+    import { defineProps, computed, watch, ref } from 'vue';
     import axios from '@/axios';
     import { useArtistStore } from '@/stores/artist'
+    import { useUserStore } from "@/stores/user.js";
 
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg"
     const colors = ["#D62828", "#FCBF49"]
     const posts = ref([])
     const platform = "youtube"
-
+    const props = defineProps({
+      isPremium: {
+        type: Boolean,
+        required: true
+      }
+    });
+    const userStore = useUserStore()
     const artistStore = useArtistStore()
     // date value
     const today = new Date().toISOString().slice(0, 10)
 
     const cardValueLists = computed(() => {
       // if mid not exists, do not render the chart
-      if (!artistStore.mid) return []
+      if (!artistStore.artistId) return []
+      if (userStore.isPremium === undefined) return []
+
+      const range = userStore.isPremium ? "365d" : "28d"
+
       const keys = [
         "youtubeSubscribersValue",
         "youtubeTotalChannelVideosValue",
@@ -37,13 +48,13 @@
         const base = youtubeJSON[key]
         return {
           ...base,
-          fetchURL: `${base.fetchURL}?date_end=${today}&filter=365d&artist_id=${artistStore.mid}`,
+          fetchURL: `${base.fetchURL}?date_end=${today}&range=${range}&artist_id=${artistStore.artistId}`,
         }
       })
     })
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
             // console.log("🎯 mid changed:", newMid)
