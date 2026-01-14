@@ -12,7 +12,8 @@ export const useUserStore = defineStore("user", {
     followedArtists: [],
     admin: null,
     created_at: null,
-    last_login_at: null
+    last_login_at: null,
+    isPremium: null
   }),
   actions: {
     setUser(user) {
@@ -26,6 +27,7 @@ export const useUserStore = defineStore("user", {
       this.admin = user.admin;
       this.created_at = user.created_at;
       this.last_login_at = user.last_login_at;
+      this.isPremium = !!user.is_premium
     },
     reset() {
       this.firebase_id = null
@@ -38,6 +40,7 @@ export const useUserStore = defineStore("user", {
       this.admin = null
       this.created_at = null
       this.last_login_at = null
+      this.isPremium = false
     },
     setFollowedArtists(artists) {
       // console.log("Setting followedArtists in store:", artists);

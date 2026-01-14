@@ -2,15 +2,29 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useArtistStore = defineStore('artist', () => {
-  const mid = ref(null)
+  // const mid = ref(null)
+  const artistId = ref(null)
 
-  function setMid(newMid) {
-    mid.value = newMid
+  // function setMid(newMid) {
+  //   mid.value = newMid
+  // }
+
+  function setArtist(newArtistId) {
+    artistId.value = newArtistId
   }
+
+  // function reset() {
+  //   mid.value = null
+  // }
 
   function reset() {
-    mid.value = null
+    artistId.value = null
   }
 
-  return { mid, setMid, reset }
+  // return { mid, setMid, reset }
+  return {
+    artistId,
+    setArtist,
+    reset
+  }
 }, {persist: true})
