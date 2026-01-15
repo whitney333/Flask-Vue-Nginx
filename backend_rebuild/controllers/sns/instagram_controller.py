@@ -6,6 +6,7 @@ from flask import jsonify, request
 import pandas as pd
 import numpy as np
 from services.instagram_service import InstagramService
+from libs.utils import get_current_user
 
 
 class InstagramController:
@@ -1264,3 +1265,165 @@ class InstagramController:
     @staticmethod
     def get_instagram_engagement_growth(artist_id, campaign_start):
         pass
+
+    @staticmethod
+    def get_instagram_follower(artist_id, date_end, range):
+        # validate
+        if not artist_id or not date_end or not range:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            date_end = datetime.datetime.strptime(date_end, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({
+                "err": "Invalid date format. Use YYYY-MM-DD"
+            }), 400
+
+        # get user
+        user = get_current_user(optional=True)
+
+        try:
+            result = InstagramService.get_chart_follower(
+                user=user,
+                artist_id=artist_id,
+                date_end=date_end,
+                range_key=range
+            )
+        except ValueError as e:
+            return jsonify({"err": str(e)}), 404
+
+        # response
+        if result.get("locked"):
+            return jsonify({
+                "status": "locked",
+                "data": [],
+                "meta": {
+                    "allowed_ranges": result["allowed_ranges"],
+                    "is_premium": bool(user and user.is_premium)
+                }
+            }), 200
+
+        return jsonify({
+            "status": "success",
+            "data": result["data"],
+            "meta": result["meta"]
+        }), 200
+
+    @staticmethod
+    def get_instagram_threads_follower(artist_id, date_end, range):
+        # validate
+        if not artist_id or not date_end or not range:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            date_end = datetime.datetime.strptime(date_end, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({
+                "err": "Invalid date format. Use YYYY-MM-DD"
+            }), 400
+
+        # get user
+        user = get_current_user(optional=True)
+
+        try:
+            result = InstagramService.get_chart_threads_follower(
+                user=user,
+                artist_id=artist_id,
+                date_end=date_end,
+                range_key=range
+            )
+        except ValueError as e:
+            return jsonify({"err": str(e)}), 404
+
+        # response
+        if result.get("locked"):
+            return jsonify({
+                "status": "locked",
+                "data": [],
+                "meta": {
+                    "allowed_ranges": result["allowed_ranges"],
+                    "is_premium": bool(user and user.is_premium)
+                }
+            }), 200
+
+        return jsonify({
+            "status": "success",
+            "data": result["data"],
+            "meta": result["meta"]
+        }), 200
+
+    @staticmethod
+    def get_instagram_post(artist_id, date_end, range):
+        # validate
+        if not artist_id or not date_end or not range:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            date_end = datetime.datetime.strptime(date_end, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({
+                "err": "Invalid date format. Use YYYY-MM-DD"
+            }), 400
+
+        # get user
+        user = get_current_user(optional=True)
+
+        try:
+            result = InstagramService.get_chart_post(
+                user=user,
+                artist_id=artist_id,
+                date_end=date_end,
+                range_key=range
+            )
+        except ValueError as e:
+            return jsonify({"err": str(e)}), 404
+
+        # response
+        if result.get("locked"):
+            return jsonify({
+                "status": "locked",
+                "data": [],
+                "meta": {
+                    "allowed_ranges": result["allowed_ranges"],
+                    "is_premium": bool(user and user.is_premium)
+                }
+            }), 200
+
+        return jsonify({
+            "status": "success",
+            "data": result["data"],
+            "meta": result["meta"]
+        }), 200
+
+    @staticmethod
+    def get_instagram_most_used_hashtag(artist_id, range_key):
+        # get user info
+        user = get_current_user(optional=True)
+
+        # normalize range
+        range_key = str(range_key) if range_key else "5"
+
+        try:
+            data = InstagramService.get_chart_most_used_hashtag(
+                user=user,
+                artist_id=artist_id,
+                range_key=range_key
+            )
+
+            return jsonify(data), 200
+
+        except PermissionError as e:
+            return jsonify({
+                "error": str(e)
+            }), 403
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500

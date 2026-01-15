@@ -5,35 +5,35 @@ from flask_restful import Api
 instagram_bp = Blueprint('instagram', __name__)
 instagram_api = Api(instagram_bp)
 
-@instagram_bp.route('/v1/follower', methods=['GET'])
-def get_instagram_follower():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+# @instagram_bp.route('/v1/follower', methods=['GET'])
+# def get_instagram_follower():
+#     artist_id = request.args.get('artist_id', type=str)
+#     date_end = request.args.get('date_end', type=str)
+#     filter = request.args.get('filter', type=str)
+#
+#     followers = InstagramController.get_follower(artist_id, date_end, filter)
+#
+#     return followers
 
-    followers = InstagramController.get_follower(artist_id, date_end, filter)
+# @instagram_bp.route('/v1/threads-follower', methods=['GET'])
+# def get_instagram_threads_follower():
+#     artist_id = request.args.get('artist_id', type=str)
+#     date_end = request.args.get('date_end', type=str)
+#     filter = request.args.get('filter', type=str)
+#
+#     threads_followers = InstagramController.get_threads_follower(artist_id, date_end, filter)
+#
+#     return threads_followers
 
-    return followers
-
-@instagram_bp.route('/v1/threads-follower', methods=['GET'])
-def get_instagram_threads_follower():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
-
-    threads_followers = InstagramController.get_threads_follower(artist_id, date_end, filter)
-
-    return threads_followers
-
-@instagram_bp.route('/v1/post-count', methods=['GET'])
-def get_instagram_post_count():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
-
-    post_count = InstagramController.get_post_count(artist_id, date_end, filter)
-
-    return post_count
+# @instagram_bp.route('/v1/post-count', methods=['GET'])
+# def get_instagram_post_count():
+#     artist_id = request.args.get('artist_id', type=str)
+#     date_end = request.args.get('date_end', type=str)
+#     filter = request.args.get('filter', type=str)
+#
+#     post_count = InstagramController.get_post_count(artist_id, date_end, filter)
+#
+#     return post_count
 
 @instagram_bp.route('/v1/like', methods=['GET'])
 def get_instagram_like():
@@ -132,3 +132,57 @@ def get_threads_follower_growth():
     campaign_start = request.args.get('start', type=str)
 
     return InstagramController.get_threads_follower_growth(artist_id, campaign_start)
+
+@instagram_bp.route('/v1/follower', methods=['GET'])
+def get_instagram_follower():
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
+
+    result = InstagramController.get_instagram_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
+
+@instagram_bp.route('/v1/threads-follower', methods=['GET'])
+def get_instagram_threads_follower():
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
+
+    result = InstagramController.get_instagram_threads_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
+
+@instagram_bp.route('/v1/post-count', methods=['GET'])
+def get_instagram_post_count():
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
+
+    result = InstagramController.get_instagram_post(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
+
+@instagram_bp.route("/v1/hashtag/most-used", methods=["GET"])
+def get_instagram_most_used_hashtags():
+    artist_id = request.args.get("artist_id", type=str)
+    range_key = request.args.get("range", default="5", type=str)
+
+    result = InstagramController.get_instagram_most_used_hashtag(
+        artist_id=artist_id,
+        range_key=range_key
+    )
+
+    return result

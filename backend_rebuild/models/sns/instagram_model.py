@@ -25,8 +25,9 @@ class PostDetails(EmbeddedDocument):
     play_count =IntField()
     view_count = IntField()
     caption_text = StringField(required=True)
-    thumbnail = URLField(required=True)
-    video_url = URLField(required=True)
+    thumbnail = StringField(required=True)
+    video_url = StringField()
+    hashtag = ListField(default=None)
 
 class InstagramLatest(Document):
     datetime = DateTimeField(default=datetime.now())

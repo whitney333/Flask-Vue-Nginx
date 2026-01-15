@@ -16,7 +16,7 @@
   const router = useRouter()
   //pinia store mid
   const artistStore = useArtistStore()
-  const mid = ref(null) // to do
+  // const mid = ref(null)
   const page = ref(1)
   const q = ref("t024")
   const limit = ref(10)
@@ -57,8 +57,8 @@
       // console.log(followedArtists.value[0]["artist_id"])
       if (followedArtists.value.length > 0) {
         // fetch first artist_id
-        const firstArtistId = followedArtists.value[0]["artist_id"]
-        artistStore.setMid(firstArtistId)
+        const firstArtistId = followedArtists.value[0]["id"]
+        artistStore.setArtist(firstArtistId)
         // mid.value = firstArtistId
         cardLoading.artist = true
 
@@ -96,7 +96,7 @@
       }
       // update mid.value with the selected artistId
       // mid.value = artistId
-      artistStore.setMid(artistId)
+      artistStore.setArtist(artistId)
 
       const resp = await axios.get(`/artist/info?artist_id=${artistId}`, {
         headers: {
@@ -167,14 +167,14 @@
     return new Date(dateStr).toISOString().slice(0, 10);
   }
 
-  watch(() => artistStore.mid, (newId) => {
+  watch(() => artistStore.artistId, (newId) => {
     if (newId) {
       fetchArtistInfo(newId)
     }
   }, { immediate: true })
 
   // watch mid & artistInfo, in order to update graphItems
-  watch([artistStore.mid, artistInfo], ([newMid, newInfo]) => {
+  watch([artistStore.artistId, artistInfo], ([newMid, newInfo]) => {
     // if (!newMid || !newInfo) {
     //   graphItems.value = []
     //   return
@@ -191,13 +191,13 @@
       {
         name: 'Instagram Followers',
         type: 'Followers',
-        fetchURL: artistStore.mid
-            ? `/instagram/v1/follower?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`
+        fetchURL: artistStore.artistId
+            ? `/instagram/v1/follower?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`
             : "",
         iconHref: artistInfo.value?.instagram_user
             ? `https://www.instagram.com/${artistInfo.value.instagram_user}`
             : "#",
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg",
+        iconSrc: "https://cdn.revmishkan.com/dist/instagram-logo.svg",
         fetchFollowerType: 'data',
         followerDataType: 'follower',
         fetchDateType: 'datetime',
@@ -207,10 +207,10 @@
         name: 'Spotify Followers',
         type: 'Followers',
         range: "28d",
-        fetchURL: artistStore.mid
-            ? `/spotify/v1/follower?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`
+        fetchURL: artistStore.artistId
+            ? `/spotify/v1/follower?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`
             : "",
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
+        iconSrc: "https://cdn.revmishkan.com/dist/spotify-logo.svg",
         iconHref: artistInfo.value?.spotify_id
             ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
             : "#",
@@ -223,8 +223,8 @@
         name: 'Spotify Listeners',
         type: 'Listeners',
         range: "28d",
-        fetchURL: `/spotify/v1/monthly-listener?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`,
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/spotify-logo.svg",
+        fetchURL: `/spotify/v1/monthly-listener?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
+        iconSrc: "https://cdn.revmishkan.com/dist/spotify-logo.svg",
         iconHref: artistInfo.value?.spotify_id
             ? `https://open.spotify.com/artist/${artistInfo.value.spotify_id}`
             : "#",
@@ -237,7 +237,7 @@
         name: 'Tiktok Followers',
         type: 'Followers',
         range: "28d",
-        fetchURL: `/tiktok/v1/follower?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`,
+        fetchURL: `/tiktok/v1/follower?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
         iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg",
         iconHref: artistInfo.value?.tiktok_id
             ? `https://www.tiktok.com/@${artistInfo.value.tiktok_id}`
@@ -251,8 +251,8 @@
         name: 'Youtube Subscribes',
         type: 'Subscribers',
         range: "28d",
-        fetchURL: `/youtube/v1/channel?date_end=${end}&filter=28d&artist_id=${artistStore.mid}`,
-        iconSrc: "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/youtube-logo.svg",
+        fetchURL: `/youtube/v1/channel?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
+        iconSrc: "https://cdn.revmishkan.com/dist/youtube-logo.svg",
         iconHref: artistInfo.value?.youtube_id
             ? `https://www.youtube.com/channel/${artistInfo.value.youtube_id}`
             : "#",
@@ -474,10 +474,10 @@
             <v-list class="overflow-y-auto" style="max-height: 250px">
               <v-list-item
                   v-for="artist in followedArtists"
-                  :key="artist.artist_id"
+                  :key="artist.id"
                   class="artist-item"
                   :prepend-avatar="artist.image"
-                  @click="fetchArtistInfo(artist.artist_id)"
+                  @click="fetchArtistInfo(artist.id)"
               >
                 <v-list-item-title class="text-body-1 font-weight-medium">
                   {{ artist.english_name }}
