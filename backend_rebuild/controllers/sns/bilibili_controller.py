@@ -641,3 +641,28 @@ class BilibiliController:
             "data": result["data"],
             "meta": result["meta"]
         }), 200
+
+    @staticmethod
+    def get_bilibili_latest_videos(artist_id):
+        # get user info
+        user = get_current_user(optional=True)
+
+        try:
+            data = BilibiliService.get_posts(
+                artist_id=artist_id
+            )
+
+            return jsonify({
+                "status": "success",
+                "data": data
+            }), 200
+
+        except PermissionError as e:
+            return jsonify({
+                "error": str(e)
+            }), 403
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500

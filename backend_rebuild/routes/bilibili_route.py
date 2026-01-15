@@ -7,14 +7,6 @@ bilibili_bp = Blueprint('bilibili', __name__)
 bilibili_api = Api(bilibili_bp)
 
 
-@bilibili_bp.route('/v1/posts', methods=['GET'])
-def get_bilibili_latest_posts():
-    artist_id = request.args.get('artist_id', type=str)
-
-    posts = BilibiliController.get_latest_thirty_posts(artist_id)
-
-    return posts
-
 @bilibili_bp.route('/v1/follower/growth', methods=['GET'])
 def get_bilibili_follower_growth():
     artist_id = request.args.get('artist_id', type=str)
@@ -144,6 +136,16 @@ def get_bilibili_engagement_rate():
         artist_id=artist_id,
         date_end=date_end,
         range=range_key
+    )
+
+    return result
+
+@bilibili_bp.route('/v1/posts', methods=['GET'])
+def get_bilibili_latest_posts():
+    artist_id = request.args.get('artist_id', type=str)
+
+    result = BilibiliController.get_bilibili_latest_videos(
+        artist_id=artist_id
     )
 
     return result

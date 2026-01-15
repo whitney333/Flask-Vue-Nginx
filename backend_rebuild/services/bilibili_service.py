@@ -742,3 +742,55 @@ class BilibiliService:
                 "allowed_ranges": allowed_ranges
             }
         }
+
+    @staticmethod
+    def get_posts(artist_id):
+        if not artist_id:
+            raise ValueError("Missing artist_id parameter")
+
+        # ---------- get bilibili id ----------
+        bilibili_id = ArtistService.get_bilibili_id(artist_id)
+
+        bilibili_doc = (
+            Bilibili.objects(user_id=bilibili_id)
+                .order_by("-datetime")
+                .only("datetime", "user_id", "data")
+                .first()
+        )
+
+        if not bilibili_doc or not bilibili_doc.data:
+            return []
+
+        result = []
+
+        for video in bilibili_doc.data:
+            view = int(video.view or 0)
+            like = int(video.like or 0)
+            comment = int(video.comment or 0)
+            coin = int(video.coin or 0)
+            share = int(video.share or 0)
+            collect = int(video.collect or 0)
+            danmu = int(video.danmu or 0)
+
+            eng_rate = (
+                ((like + comment + share + coin + collect + danmu) / view) * 100
+                if view > 0 else 0
+            )
+
+            result.append({
+                "aid": video.aid,
+                "bvid": video.bvid,
+                "coin": video.coin,
+                "collect": video.collect,
+                "comment": video.comment,
+                "danmu": video.danmu,
+                "image": video.image,
+                "like": video.like,
+                "share": video.share,
+                "title": video.title,
+                "upload_date": video.upload_date,
+                "view": video.view,
+                "eng_rate": round(eng_rate, 4)
+            })
+
+        return result
