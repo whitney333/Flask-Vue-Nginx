@@ -4,7 +4,6 @@ from rules.tiktok_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
 
 
-
 def to_int(value, default=0):
     try:
         return int(value)
@@ -174,7 +173,8 @@ class TiktokService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges
             }
         }
 

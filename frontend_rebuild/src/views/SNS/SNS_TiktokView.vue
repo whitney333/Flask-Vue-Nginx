@@ -9,10 +9,12 @@
     import SNSAllPosts from '@/views/SNS/components/SNS_AllPosts.vue';
     import axios from '@/axios';
     import { useArtistStore } from "@/stores/artist.js";
+     import { useUserStore } from "@/stores/user.js";
 
     const artistStore = useArtistStore()
+    const userStore = useUserStore()
 
-    const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/tiktok-logo.svg"
+    const iconSrc = "https://cdn.revmishkan.com/dist/tiktok-logo.svg"
     const colors = ["#000000", "#000000"]
     const posts = ref([])
     const platform = "tiktok"
@@ -21,7 +23,11 @@
     const today = new Date().toISOString().slice(0, 10)
     const cardValueLists = computed(() => {
       // if mid not exists, do not render the chart
-      if (!artistStore.mid) return []
+      if (!artistStore.artistId) return []
+      if (userStore.isPremium === undefined) return []
+
+      const range = userStore.isPremium ? "365d" : "28d"
+
       const keys = [
         tiktokJSON.tiktokFollowerValue,
         tiktokJSON.tiktokHashtagValue,
@@ -35,12 +41,12 @@
 
       return keys.map((base) => ({
           ...base,
-          fetchURL: `${base.fetchURL}?date_end=${today}&filter=365d&artist_id=${artistStore.mid}`,
+          fetchURL: `${base.fetchURL}?date_end=${today}&range=${range}&artist_id=${artistStore.artistId}`,
       }))
     })
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
             // console.log("🎯 mid changed:", newMid)
