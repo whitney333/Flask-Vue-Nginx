@@ -648,5 +648,97 @@ class BilibiliService:
         }
 
     @staticmethod
-    def get_engagement_rate(user, artist_id, date_end, range_key):
-        pass
+    def get_chart_engagement_rate(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "allowed_ranges": allowed_ranges
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get bilibili id ----------
+        bilibili_id = ArtistService.get_bilibili_id(artist_id)
+
+        # query
+        records = (
+            Bilibili.objects(
+                user_id=bilibili_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+                .order_by("datetime")
+                .only("datetime", "data")
+        )
+
+        if not records:
+            return []
+
+        bucket = defaultdict(lambda: {
+            "total_view": 0,
+            "total_like": 0,
+            "total_comment": 0,
+            "total_share": 0,
+            "total_collect": 0,
+            "total_coin": 0,
+            "total_danmu": 0,
+        })
+
+        # ---------- unwind + group ----------
+        for doc in records:
+            day_key = doc.datetime.strftime("%Y-%m-%d")
+
+            for post in (doc.data or []):
+                bucket[day_key]["total_view"] += int(post.view or 0)
+                bucket[day_key]["total_like"] += int(post.like or 0)
+                bucket[day_key]["total_comment"] += int(post.comment or 0)
+                bucket[day_key]["total_share"] += int(post.share or 0)
+                bucket[day_key]["total_collect"] += int(post.collect or 0)
+                bucket[day_key]["total_coin"] += int(post.coin or 0)
+                bucket[day_key]["total_danmu"] += int(post.danmu or 0)
+
+        # ---------- build result ----------
+        result = []
+
+        for day, v in sorted(bucket.items()):
+            total_view = v["total_view"]
+
+            engagement = (
+                    v["total_like"]
+                    + v["total_comment"]
+                    + v["total_share"]
+                    + v["total_collect"]
+                    + v["total_coin"]
+                    + v["total_danmu"]
+            )
+
+            engagement_rate = (
+                engagement / total_view if total_view > 0 else 0
+            )
+
+            result.append({
+                "datetime": day,
+                "engagement_rate": engagement_rate
+            })
+
+        return {
+            "locked": False,
+            "data": result,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }

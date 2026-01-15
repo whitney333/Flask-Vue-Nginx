@@ -7,16 +7,6 @@ bilibili_bp = Blueprint('bilibili', __name__)
 bilibili_api = Api(bilibili_bp)
 
 
-@bilibili_bp.route('/v1/engagement-rate', methods=['GET'])
-def get_bilibili_engagement_rate():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
-
-    engagement_rate = BilibiliController.get_engagement_rate(artist_id, date_end, filter)
-
-    return engagement_rate
-
 @bilibili_bp.route('/v1/posts', methods=['GET'])
 def get_bilibili_latest_posts():
     artist_id = request.args.get('artist_id', type=str)
@@ -137,6 +127,20 @@ def get_bilibili_danmu():
     range_key = request.args.get("range")
 
     result = BilibiliController.get_bilibili_danmus(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
+
+@bilibili_bp.route('/v1/engagement-rate', methods=['GET'])
+def get_bilibili_engagement_rate():
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
+
+    result = BilibiliController.get_bilibili_engagement(
         artist_id=artist_id,
         date_end=date_end,
         range=range_key
