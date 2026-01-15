@@ -1427,3 +1427,30 @@ class InstagramController:
             return jsonify({
                 "error": str(e)
             }), 500
+
+    @staticmethod
+    def get_instagram_most_engaged_hashtag(artist_id, range_key):
+        # get user info
+        user = get_current_user(optional=True)
+
+        # normalize range
+        range_key = str(range_key) if range_key else "5"
+
+        try:
+            data = InstagramService.get_chart_most_engaged_hashtag(
+                user=user,
+                artist_id=artist_id,
+                range_key=range_key
+            )
+
+            return jsonify(data), 200
+
+        except PermissionError as e:
+            return jsonify({
+                "error": str(e)
+            }), 403
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500

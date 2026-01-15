@@ -186,3 +186,15 @@ def get_instagram_most_used_hashtags():
     )
 
     return result
+
+@instagram_bp.route("/v1/hashtag/most-engaged", methods=["GET"])
+def get_instagram_most_engaged_hashtags():
+    artist_id = request.args.get("artist_id", type=str)
+    range_key = request.args.get("range", default="5", type=str)
+
+    result = InstagramController.get_instagram_most_engaged_hashtag(
+        artist_id=artist_id,
+        range_key=range_key
+    )
+
+    return result
