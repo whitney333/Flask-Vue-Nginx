@@ -172,7 +172,8 @@ class InstagramService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges
             }
         }
 
@@ -225,7 +226,8 @@ class InstagramService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges
             }
         }
 
@@ -267,7 +269,7 @@ class InstagramService:
         data = [
             {
                 "datetime": r.datetime.strftime("%Y-%m-%d"),
-                "post": r.media_count
+                "post_count": r.media_count
             }
             for r in records
         ]
@@ -278,7 +280,8 @@ class InstagramService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges,
             }
         }
 
