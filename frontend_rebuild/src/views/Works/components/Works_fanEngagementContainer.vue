@@ -5,14 +5,16 @@
     import WorksCardTopCities from './Works_cardTopCities.vue';
     import axios from '@/axios';
     import { useArtistStore } from "@/stores/artist";
+    import { useUserStore } from "@/stores/user.js";
 
     const artistStore = useArtistStore()
-    const artistId = ref('1')
+    const userStore = useUserStore()
+    // const artistId = ref('1')
     const end = new Date().toISOString().slice(0, 10)
-    const filter = ref('365d')
+    const filter = ref('7d')
     const spotifyUrl = `/spotify/v1`
-    console.log("artistId: ", artistId.value)
-    console.log("artistStore: ", artistStore.mid)
+
+    console.log("artistStore: ", artistStore.artistId)
 
     const props = defineProps({
         iconSrc: String
@@ -24,23 +26,32 @@
     const melonIconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/melon.svg"
 
     const spotifyFollowersValue = computed(() => {
+      if (userStore.isPremium === undefined) return []
+      const range = userStore.isPremium ? "365d" : "28d"
+
       return {
         ...musicJSON.spotifyFollowersValue,
-        fetchURL: `/spotify/v1/follower?artist_id=${artistStore.mid}`
+        fetchURL: `/spotify/v1/follower?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
       }
     })
 
     const spotifyMonthlyListenersValue = computed(() => {
+      if (userStore.isPremium === undefined) return []
+      const range = userStore.isPremium ? "365d" : "28d"
+
       return {
         ...musicJSON.spotifyMonthlyListenersValue,
-        fetchURL: `/spotify/v1/monthly-listener?artist_id=${artistStore.mid}`
+        fetchURL: `/spotify/v1/monthly-listener?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
       }
     })
 
     const spotifyFanConversionRateValue = computed(() => {
+      if (userStore.isPremium === undefined) return []
+      const range = userStore.isPremium ? "365d" : "28d"
+
       return {
         ...musicJSON.spotifyFanConversionRateValue,
-        fetchURL: `/spotify/v1/conversion-rate?artist_id=${artistStore.mid}`
+        fetchURL: `/spotify/v1/conversion-rate?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
       }
     })
 
@@ -52,24 +63,30 @@
     })
 
     const spotifyPopularityIndexValue = computed(() => {
+      if (userStore.isPremium === undefined) return []
+      const range = userStore.isPremium ? "365d" : "28d"
+
       return {
         ...musicJSON.spotifyPopularityIndexValue,
-        fetchURL: `/spotify/v1/popularity?artist_id=${artistStore.mid}`
+        fetchURL: `/spotify/v1/popularity?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
       }
     })
 
     const melonFollowerValue = computed(() => {
+      if (userStore.isPremium === undefined) return []
+      const range = userStore.isPremium ? "365d" : "28d"
+
       return {
         ...musicJSON.melonFollowerValue,
-        fetchURL: `/melon/v1/follower?artist_id=${artistStore.mid}`
+        fetchURL: `/melon/v1/follower?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
       }
     })
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
-            console.log("Music component 拿到 mid:", newMid)
+            console.log("Music component 拿到 artistId:", newMid)
           }
         },
         {immediate: true} // run at the first time

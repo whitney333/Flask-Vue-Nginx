@@ -1,12 +1,25 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue';
+import {computed, nextTick, onMounted, ref, watch} from 'vue';
     import axios from '@/axios';
+    import { useArtistStore } from "@/stores/artist.js";
+    import { useUserStore} from "@/stores/user.js";
+
     const props = defineProps({
         value: Object,
         colors: Object,
         iconSrc: String,
         end: String
     })
+    const userStore = useUserStore()
+    const artistStore = useArtistStore()
+    const allowedRanges = ref([])
+    const maxRange = ref("28d")
+    const RANGE_MAP = {
+      one_month: "28d",
+      three_months: "90d",
+      six_months: "180d",
+      one_year: "365d"
+    }
     const series = ref([])
     const latest_date = ref("")
     const index_number = ref("")
@@ -156,8 +169,16 @@ import {computed, onMounted, ref, watch} from 'vue';
         try {
             loadingBar.value = true
 
-            const res = await axios.get(`${props.value.fetchURL}&date_end=${props.end}&filter=${props.value.range}`, {setTimeout: 10000})
-            
+            const res = await axios.get(props.value.fetchURL,
+            {headers: {
+              Authorization: `Bearer ${userStore.firebaseToken}`
+              },
+              params: {
+                date_end: props.end,
+                range: props.value.range,
+                artist_id: artistStore.artistId
+              }})
+
             data.value = res.data[props.value.fetchFollowerType]
             latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
             first_day.value = data.value[0][props.value.fetchDateType]
@@ -214,6 +235,24 @@ import {computed, onMounted, ref, watch} from 'vue';
                     }
                 ]
             }
+          // set up allowed ranges（UI button enable/disable）
+          allowedRanges.value = res.data?.meta?.allowed_ranges || ["28d"]
+          const isPremium = res.data?.meta?.is_premium
+          // console.log("allowedRanges:", allowedRanges.value, "isPremium:", isPremium)
+
+          // set up zoom
+          await nextTick()
+          if (allowedRanges.value.includes("365d")) {
+            selection.value = "one_year"
+            safeZoom(one_year.value)
+          } else if (allowedRanges.value.includes("180d")) {
+            selection.value = "six_months"
+            safeZoom(six_months.value)
+          } else {
+            selection.value = "one_month"
+            safeZoom(one_month.value)
+          }
+
             // update the series with axios data
             loadingBar.value = false
         } catch (e) {
@@ -221,43 +260,50 @@ import {computed, onMounted, ref, watch} from 'vue';
         }
     }
 
-    const updateData = (timeline) => {
-        selection.value = timeline
+    const safeZoom = (start) => {
+      if (!start || !latest_date.value) return
+      chart.value?.zoomX(
+          new Date(start).getTime(),
+          new Date(latest_date.value).getTime()
+      )
+    }
 
-        switch (timeline) {
-        case 'one_month':
-            chart.value.zoomX(
-                new Date(one_month.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'three_months':
-            chart.value.zoomX(
-                new Date(three_months.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'six_months':
-            chart.value.zoomX(
-                new Date(six_months.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'one_year':
-            chart.value.zoomX(
-                new Date(one_year.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-            break
-        case 'all':
-            chart.value.zoomX(
-                new Date(first_day.value).getTime(),
-                new Date(latest_date.value).getTime()
-            )
-        }
-        
-    
-}
+    const updateData = async (timeline) => {
+      selection.value = timeline
+      if (!chart.value) return
+
+      switch (timeline) {
+        case "one_month":
+          chart.value.zoomX(
+              new Date(one_month.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+        case "three_months":
+          chart.value.zoomX(
+              new Date(three_months.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+        case "six_months":
+          chart.value.zoomX(
+              new Date(six_months.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+        case "one_year":
+          chart.value.zoomX(
+              new Date(one_year.value).getTime(),
+              new Date(latest_date.value).getTime()
+          )
+          break
+
+      }
+    }
+
     onMounted(() => {
         fetchData()
     })
@@ -265,6 +311,13 @@ import {computed, onMounted, ref, watch} from 'vue';
     const indexDifference = () => {
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
     }
+
+  // check and disable range button
+  const isRangeDisabled = (timeline) => {
+    const range = RANGE_MAP[timeline]
+    if (!range) return true
+    return !allowedRanges.value.includes(range)
+  }
 
 
   watch(
@@ -319,6 +372,7 @@ import {computed, onMounted, ref, watch} from 'vue';
                         rounded
                         @click="updateData('one_month')" 
                         :active="selection === 'one_month'"
+                        :disabled="isRangeDisabled('one_month')"
                         :class="['mx-1']"
                     >
                     1M
@@ -331,6 +385,7 @@ import {computed, onMounted, ref, watch} from 'vue';
                         rounded
                         @click="updateData('three_months')" 
                         :active="selection === 'three_months'"
+                        :disabled="isRangeDisabled('three_months')"
                         :class="['mx-1']"
                     >
                     3M
@@ -343,6 +398,7 @@ import {computed, onMounted, ref, watch} from 'vue';
                         rounded
                         @click="updateData('six_months')" 
                         :active="selection === 'six_months'"
+                        :disabled="isRangeDisabled('six_months')"
                         :class="['mx-1']"
                     >
                     6M
@@ -353,11 +409,12 @@ import {computed, onMounted, ref, watch} from 'vue';
                         color="blue-grey-darken-2"
                         dark
                         rounded
-                        @click="updateData('all')" 
-                        :active="selection === 'all'"
+                        @click="updateData('one_year')"
+                        :active="selection === 'one_year'"
+                        :disabled="isRangeDisabled('one_year')"
                         :class="['mx-1']"
                     >
-                    ALL
+                    1Y
                     </v-btn>
                 </div>
             </div>
