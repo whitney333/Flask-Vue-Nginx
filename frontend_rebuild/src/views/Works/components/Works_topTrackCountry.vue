@@ -4,11 +4,11 @@
   import getUnicodeFlagIcon from 'country-flag-icons/unicode'
   import { useArtistStore } from "@/stores/artist.js";
 
-  const props = defineProps({
+    const props = defineProps({
         iconSrc: String
     })
     const tracks = ref({})
-    // const artistId = ref('1')
+
     const artistStore = useArtistStore()
 
     const selected = ref('South Korea')
@@ -143,105 +143,105 @@
     }
 ]
 
-    chartOptions.value = {
-            chart: {
-                height: 350,
-                type: 'bar',
-            },
-            plotOptions: {
-                bar: {
-                    borderRadius: 4,
-                    borderRadiusApplication: 'around',
-                    horizontal: true,
-                }
-            },
-            colors: [
-                function ({ value, seriesIndex, dataPointIndex, w }) {
-                    
-                    if (dataPointIndex % 2) {
-                        return '#191414';
-                    } else {
-                        return '#1db954';
-                    }
-                }
-            ],
-            dataLabels: {
-                enabled: false
-            },
-            xaxis: {
-                categories: trackList.value
-            }
+  chartOptions.value = {
+    chart: {
+      height: 350,
+      type: 'bar',
+    },
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        borderRadiusApplication: 'around',
+        horizontal: true,
+      }
+    },
+    colors: [
+      function ({value, seriesIndex, dataPointIndex, w}) {
+
+        if (dataPointIndex % 2) {
+          return '#191414';
+        } else {
+          return '#1db954';
         }
+      }
+    ],
+    dataLabels: {
+      enabled: false
+    },
+    xaxis: {
+      categories: trackList.value
+    }
+  }
 
-    const getTopTrackRegion = async () => {
-        try {
-            loadingCard.value = true
+  const getTopTrackRegion = async () => {
+    try {
+      loadingCard.value = true
 
-            const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${countriesFlag[selected.value]}`, {setTimeout: 10000})
-            const data = res.data.data[0]
+      const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=${countriesFlag[selected.value]}`, {setTimeout: 10000})
+      const data = res.data.data[0]
 
-            lastUpdate.value = data.datetime
-            trackList.value = data.top_track.map((val) => val.track)
-            
+      lastUpdate.value = data.datetime
+      trackList.value = data.top_track.map((val) => val.track)
 
-            const formattedData = data.top_track.map((e, i) => {
-                return {
-                    x: e.track,
-                    y: e.popularity,
-                }
-            })
-            // // update the series with axios data
-            series.value = [
-                {
-                    name: 'Popularity',
-                    data: formattedData,
-                }
-            ]
-            
-            loadingCard.value = false
-        } catch (e) {
-            console.error(e);
+
+      const formattedData = data.top_track.map((e, i) => {
+        return {
+          x: e.track,
+          y: e.popularity,
         }
-    }
-
-    const getTopSong = async () => {
-        try {
-            loadingCard.value = true
-            const date = new Date()
-            end_date.value = date.toISOString().split('T')[0]
-
-            const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${selected.value}`, {setTimeout: 5000})
-            selected.value = res.data.data["top_track"]
-
-            loadingCard.value = false
-
-        } catch (e) {
-            console.error(e);
+      })
+      // // update the series with axios data
+      series.value = [
+        {
+          name: 'Popularity',
+          data: formattedData,
         }
+      ]
+
+      loadingCard.value = false
+    } catch (e) {
+      console.error(e);
     }
+  }
 
-    const created = async () => {
-        loadingCard.value = true
-        await getTopTrackRegion()
-        loadingCard.value = false
+  const getTopSong = async () => {
+    try {
+      loadingCard.value = true
+      const date = new Date()
+      end_date.value = date.toISOString().split('T')[0]
+
+      const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=${selected.value}`, {setTimeout: 5000})
+      selected.value = res.data.data["top_track"]
+
+      loadingCard.value = false
+
+    } catch (e) {
+      console.error(e);
     }
+  }
 
-    onMounted(() => {
-        created()
-    }) 
-    watch(selected, getTopTrackRegion)
+  const created = async () => {
+    loadingCard.value = true
+    await getTopTrackRegion()
+    loadingCard.value = false
+  }
 
-    watch(
-        () => artistStore.mid,
-        async (newMid) => {
-          if (newMid) {
-            // console.log("🎯 mid changed:", newMid)
-            await getTopSong()
-            await getTopTrackRegion()
-          }
-        },
-        {immediate: true}
-    )
+  onMounted(() => {
+    created()
+  })
+  watch(selected, getTopTrackRegion)
+
+  watch(
+      () => artistStore.artistId,
+      async (newMid) => {
+        if (newMid) {
+          // console.log("🎯 mid changed:", newMid)
+          await getTopSong()
+          await getTopTrackRegion()
+        }
+      },
+      {immediate: true}
+  )
 
 </script>
 

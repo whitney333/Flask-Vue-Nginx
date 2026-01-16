@@ -525,3 +525,222 @@ class SpotifyService:
                 "allowed_ranges": allowed_ranges
             }
         }
+
+    @staticmethod
+    def get_chart_top_city(user, artist_id):
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+
+        # ----------get spotify id ----------
+        spotify_id = ArtistService.get_spotify_id(artist_id)
+        # print("sp id: ", spotify_id)
+
+        record = (
+            Spotify.objects(spotify_id=spotify_id)
+                .order_by("-datetime")
+                .only("datetime", "spotify_id", "top_country")
+                .first()
+        )
+
+        if not record or not record.top_country:
+            return {
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium
+                }
+            }
+
+        # ---------- format response ----------
+        result = [
+            {
+                "datetime": record.datetime.strftime("%Y-%m-%d"),
+                "id": record.spotify_id,
+                "top_city": [
+                    {
+                        "city": city.city,
+                        "country": city.country,
+                        "listener": int(city.listener)
+                    }
+                    for city in record.top_country
+                ]
+            }
+        ]
+
+        return {
+            "data": result,
+            "meta": {
+                "is_premium": is_premium
+            }
+        }
+
+    @staticmethod
+    def get_chart_top_track_by_region(user, artist_id, country):
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+
+        # ----------get spotify id ----------
+        spotify_id = ArtistService.get_spotify_id(artist_id)
+        # print("sp id: ", spotify_id)
+
+        if not spotify_id:
+            return {
+                "locked": False,
+                "data": [],
+                "tracks": [],
+                "meta": {
+                    "is_premium": is_premium
+                }
+            }
+
+        if not is_premium:
+            return {
+                "locked": True,
+                "data": [],
+                "tracks": [],
+                "meta": {
+                    "is_premium": False
+                }
+            }
+
+        # ---------- pipelines ----------
+        get_track_title_pipeline = [
+            {"$match": {
+                "spotify_id": spotify_id
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$top_track"},
+            {"$project": {
+                "tracks": "$top_track.tracks"
+            }},
+            {"$unwind": "$tracks"},
+            {"$group": {
+                "_id": None,
+                "tracks": {
+                    "$addToSet": "$tracks.track"
+                }
+            }},
+            {"$project": {"_id": 0}}
+        ]
+
+        pipeline = [
+            {"$match": {
+                "spotify_id": spotify_id
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$top_track"},
+            {"$project": {
+                "region": "$top_track.region",
+                "tracks": "$top_track.tracks"
+            }},
+            {"$unwind": "$tracks"},
+            {"$group": {
+                "_id": {
+                    "region": "$region",
+                    "track": "$tracks.track"
+                },
+                "popularity": {
+                    "$avg": "$tracks.popularity"
+                }
+            }},
+            {"$group": {
+                "_id": "$_id.track",
+                "track_info": {
+                    "$push": {
+                        "region": "$_id.region",
+                        "agg_popularity": {
+                            "$round": ["$popularity", 2]}
+                    }
+                }
+            }},
+            {"$project": {
+                "_id": 0,
+                "track_info": 1
+            }}
+        ]
+
+        track_list = Spotify.objects.aggregate(*get_track_title_pipeline)
+        track_list_result = list(track_list)
+
+        _result = Spotify.objects.aggregate(*pipeline)
+        result = list(_result)
+
+        return {
+            "locked": False,
+            "data": result,
+            "tracks": track_list_result,
+            "meta": {
+                "is_premium": True
+            }
+        }
+
+
+    @staticmethod
+    def get_chart_top_track_by_country(user, artist_id, country):
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+
+        # ----------get spotify id ----------
+        spotify_id = ArtistService.get_spotify_id(artist_id)
+        # print("sp id: ", spotify_id)
+
+        pipeline = [
+            {"$match": {
+                "spotify_id": spotify_id
+            }},
+            {"$sort": {"datetime": -1}},
+            {"$limit": 1},
+            {"$unwind": "$top_track"},
+            # match country
+            {"$match": {
+                "top_track.country": country
+            }},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$datetime"
+                    }
+                },
+                "country": "$top_track.country",
+                "top_track": "$top_track.tracks",
+            }},
+            {"$unwind": "$top_track"},
+            {"$sort": {"top_track.popularity": -1}},
+            {"$group": {
+                "_id": {
+                    "datetime": "$datetime",
+                    "country": "$country"
+                },
+                "top_track": {"$push": "$top_track"}
+            }},
+            {"$project": {
+                "_id": 0,
+                "datetime": "$_id.datetime",
+                "country": "$_id.country",
+                "top_track": "$top_track"
+            }}
+        ]
+
+        results = Spotify.objects.aggregate(*pipeline)
+        result = list(results)
+
+        if not result:
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium
+                }
+            }
+
+        # ---------- format response ----------
+        return {
+            "locked": False,
+            "data": result,
+            "meta": {
+                "is_premium": is_premium,
+            }
+        }

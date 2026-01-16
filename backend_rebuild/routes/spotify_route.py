@@ -9,24 +9,21 @@ spotify_api = Api(spotify_bp)
 # spotify follower route
 @spotify_bp.route('/v1/follower', methods=['GET'])
 def get_spotify_follower():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    follower = SpotifyController.get_follower(artist_id, date_end, filter)
+    result = SpotifyController.get_spotify_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return follower
+    return result
 
 # spotify monthly_listener route
 @spotify_bp.route('/v1/monthly-listener', methods=['GET'])
 def get_spotify_monthly_listener():
-    # artist_id = request.args.get('artist_id', type=str)
-    # date_end = request.args.get('date_end', type=str)
-    # filter = request.args.get('filter', type=str)
-    #
-    # listener = SpotifyController.get_monthly_listener(artist_id, date_end, filter)
-    #
-    # return listener
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
     range_key = request.args.get("range")
@@ -42,47 +39,66 @@ def get_spotify_monthly_listener():
 # spotify popularity route
 @spotify_bp.route('/v1/popularity', methods=['GET'])
 def get_spotify_popularity():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    popularity = SpotifyController.get_popularity(artist_id, date_end, filter)
+    result = SpotifyController.get_spotify_popularity(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return popularity
+    return result
 
 # spotify fan conversion rate route
 @spotify_bp.route('/v1/conversion-rate', methods=['GET'])
 def get_spotify_conversion_rate():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    conversion_rate = SpotifyController.get_conversion_rate(artist_id, date_end, filter)
+    result = SpotifyController.get_spotify_fan_conversion_rate(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return conversion_rate
+    return result
 
 @spotify_bp.route('/v1/top-city', methods=['GET'])
 def get_spotify_top_five_city():
-    artist_id = request.args.get('artist_id', type=str)
+    artist_id = request.args.get("artist_id")
 
-    top_five_city = SpotifyController.get_top_five_city(artist_id)
+    result = SpotifyController.get_spotify_top_five_city(
+        artist_id=artist_id,
+    )
 
-    return top_five_city
+    return result
 
 @spotify_bp.route('/v1/country/top-tracks', methods=['GET'])
 def get_top_tracks_by_country():
-    artist_id = request.args.get('artist_id', type=str)
-    country = request.args.get('country', type=str)
-    top_tracks_by_country = SpotifyController.get_top_tracks_by_country(artist_id, country)
+    artist_id = request.args.get("artist_id")
+    country = request.args.get("country")
 
-    return top_tracks_by_country
+    result = SpotifyController.get_spotify_top_track_by_country(
+        artist_id=artist_id,
+        country=country
+    )
+
+    return result
 
 @spotify_bp.route('/v1/region/top-tracks', methods=['GET'])
 def get_top_tracks_by_region():
-    artist_id = request.args.get('artist_id', type=str)
-    top_tracks_by_region = SpotifyController.get_top_tracks_by_region(artist_id)
+    artist_id = request.args.get("artist_id")
+    country = request.args.get("country")
 
-    return top_tracks_by_region
+    result = SpotifyController.get_spotify_top_track_by_region(
+        artist_id=artist_id,
+        country=country
+    )
+
+    return result
 
 @spotify_bp.route("/v1/follower/growth", methods=["GET"])
 def get_spotify_follower_growth():
@@ -111,20 +127,6 @@ def get_spotify_top_city_growth():
     campaign_start = request.args.get('start', type=str)
 
     return SpotifyController.get_spotify_top_five_city_growth(artist_id, campaign_start)
-
-@spotify_bp.route("/v1/test/follower", methods=["GET"])
-def get_spotify_test_follower():
-    artist_id = request.args.get("artist_id")
-    date_end = request.args.get("date_end")
-    range_key = request.args.get("range")
-
-    result = SpotifyController.get_spotify_follower(
-        artist_id=artist_id,
-        date_end=date_end,
-        range=range_key
-    )
-
-    return result
 
 #################### v2 Endpoint ####################
 

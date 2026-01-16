@@ -2,11 +2,12 @@
     import axios from '@/axios';
     import { onMounted, ref, watch } from 'vue';
     import { useArtistStore } from "@/stores/artist.js";
+    import { useUserStore } from "@/stores/user.js";
 
     const props = defineProps({
         iconSrc: String
     })
-    const tracks = ref({})
+    const tracks = ref([])
     const selected = ref('')
     const trackList = ref([])
     const country = ref('KR')
@@ -14,7 +15,7 @@
 
     // const artistId = ref('1')
     const artistStore = useArtistStore()
-
+    const userStore = useUserStore()
     const drange = ref('')
     const chartOptions = ref({})
     const series = ref([])
@@ -24,37 +25,45 @@
     }
 
     chartOptions.value = {
-            chart: {
-                height: 350,
-                type: 'radar',
-            },
-            title: {
-                text: ''
-            },
-            yaxis: {
-                stepSize: 20
-            },
-            xaxis: {
-                categories: [
-                    "North America",
-                    "Asia",
-                    "Oceania",
-                    "Europe",
-                    "South America"
-                ]
-            },
-            colors: ['#1db954']
-        }
+      chart: {
+        height: 350,
+        type: 'radar',
+      },
+      title: {
+        text: ''
+      },
+      yaxis: {
+        stepSize: 20
+      },
+      xaxis: {
+        categories: [
+          "North America",
+          "Asia",
+          "Oceania",
+          "Europe",
+          "South America"
+        ]
+      },
+      colors: ['#1db954']
+    }
 
     const getTopTrackRegion = async () => {
         try {
             loadingCard.value = true
 
-            const res = await axios.get(`/spotify/v1/region/top-tracks?artist_id=${artistStore.mid}&country=KR`, {setTimeout: 10000})
-            tracks.value = res.data.data[0]["track_info"]
-            // console.log("tracks:", tracks.value)
-            trackList.value = res.data["track_list_result"][0]["tracks"]
+            const res = await axios.get(`/spotify/v1/region/top-tracks?`,
+                {headers: {
+                    Authorization: `Bearer ${userStore.firebaseToken}`
+                  },
+                params: {
+                  artist_id: artistStore.artistId,
+                  country: "KR"
+                }})
 
+            tracks.value = res.data?.data[0]["track_info"] || []
+
+            if (!tracks.value.length) return
+            trackList.value = res.data["tracks"][0]["tracks"]
             const formattedData = tracks.value.map((e, i) => {
                 return {
                     x: e.region,
@@ -68,24 +77,32 @@
                     data: formattedData,
                 }
             ]
-            
-            loadingCard.value = false
         } catch (e) {
             console.error(e);
+        } finally {
+          loadingCard.value = false
         }
     }
 
     const getTopSong = async () => {
         try {
-            loadingCard.value = true
-            const date = new Date()
-            end_date.value = date.toISOString().split('T')[0]
+          loadingCard.value = true
 
-            const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.mid}&country=${country.value}`, {setTimeout: 5000})
-            selected.value = res.data.data[0]["top_track"][0]["track"]
+          const res = await axios.get(`/spotify/v1/country/top-tracks`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userStore.firebaseToken}`
+                },
+                params: {
+                  artist_id: artistStore.artistId,
+                  country: country.value
+                }
+              })
+          const topTracks = res.data?.data?.[0]?.top_track || []
 
-            loadingCard.value = false
-
+          trackList.value = topTracks.map(t => t.track)
+          selected.value = trackList.value[0] || ''
+          // console.log("track list: ", trackList)
         } catch (e) {
             console.error(e);
         }
@@ -105,7 +122,7 @@
     watch(selected, getTopTrackRegion)
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         async (newMid) => {
           if (newMid) {
             // console.log("🎯 mid changed:", newMid)
