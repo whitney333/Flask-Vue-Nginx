@@ -7,7 +7,7 @@
         "fetchURL": "/spotify/v1/follower",
         "fetchFollowerType": "data",
         "followerDataType": "follower",
-        "range": "365d",
+        "range": "7d",
         "fetchDateType": "datetime"
     },
     "spotifyMonthlyListenersValue": {

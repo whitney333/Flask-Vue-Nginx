@@ -30,6 +30,7 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue';
     const one_month = ref('')
     const three_months = ref('')
     const six_months = ref('')
+    const one_year = ref('')
     const chart = ref(null)
     const selection = ref("all")
     const chartOptions = ref({})
@@ -254,9 +255,11 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue';
           }
 
             // update the series with axios data
-            loadingBar.value = false
+
         } catch (e) {
             console.error(e);
+        } finally {
+           loadingBar.value = false
         }
     }
 
