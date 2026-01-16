@@ -1,6 +1,6 @@
 from datetime import timedelta
 from models.spotify_model import Spotify
-from rules.spotify_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
+from rules.music_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
 
 
@@ -334,7 +334,8 @@ class SpotifyService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges
             }
         }
 
@@ -387,8 +388,140 @@ class SpotifyService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges
             }
         }
 
+    @staticmethod
+    def get_chart_popularity(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
 
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "allowed_ranges": allowed_ranges
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get spotify id ----------
+        spotify_id = ArtistService.get_spotify_id(artist_id)
+        # print("sp id: ", spotify_id)
+
+        records = (
+            Spotify.objects(
+                spotify_id=spotify_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+                .order_by("datetime")
+                .only("datetime", "popularity")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "popularity": r.popularity
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }
+
+    @staticmethod
+    def get_chart_fan_conversion_rate(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "allowed_ranges": allowed_ranges
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get spotify id ----------
+        spotify_id = ArtistService.get_spotify_id(artist_id)
+        # print("sp id: ", spotify_id)
+
+        pipeline = [
+            # match artist spotify id
+            {"$match": {
+                "spotify_id": str(spotify_id)
+            }},
+            # sort by datetime
+            {"$sort": {"datetime": 1}},
+            # match date range
+            {"$match": {
+                "datetime": {
+                    "$lte": date_end,
+                    "$gt": start_date
+                }
+            }},
+            {"$project": {
+                "_id": 0,
+                "id": "$spotify_id",
+                "date": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$datetime"
+                    }
+                },
+                "follower": "$follower",
+                "monthly_listener": "$monthly_listener"
+            }},
+            # add conversion rate field
+            {"$project": {
+                "_id": 0,
+                "datetime": "$date",
+                "conversion_rate": {
+                    "$multiply": [{"$divide": ["$follower", "$monthly_listener"]}, 100]
+                }
+            }}
+        ]
+
+        # Execute pipeline
+        results = Spotify.objects().aggregate(pipeline)
+
+        # Format results
+        result = list(results)
+
+        # ---------- format response ----------
+        return {
+            "locked": False,
+            "data": result,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }

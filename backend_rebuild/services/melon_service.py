@@ -54,7 +54,8 @@ class MelonService:
             "meta": {
                 "is_premium": is_premium,
                 "range": range_key,
-                "days": days
+                "days": days,
+                "allowed_ranges": allowed_ranges
             }
         }
 
