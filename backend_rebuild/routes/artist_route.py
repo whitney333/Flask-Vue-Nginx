@@ -23,6 +23,6 @@ def get_all_artist():
 def get_artist_info():
     artist_id = request.args.get("artist_id", type=str)
 
-    artist = ArtistsController.get_artist_info(artist_id)
+    result = ArtistsController.new_get_artist_info(artist_id)
 
-    return artist
+    return result

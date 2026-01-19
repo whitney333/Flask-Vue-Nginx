@@ -263,7 +263,8 @@ class UserController:
             # print(user)
             return jsonify({
                 "exists": True,
-                "admin": user.admin
+                "admin": user.admin,
+                "is_premium": user.is_premium
             }), 200
         else:
             # no user data in database yet

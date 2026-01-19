@@ -26,7 +26,7 @@
         "tooltipText": "Number of posts on Instagram",
         "fetchURL": "/instagram/v1/post-count",
         "fetchFollowerType": "data",
-        "followerDataType": "posts_count",
+        "followerDataType": "post_count",
         "fetchDateType": "datetime"
     },
     "instagramLikesValue": {

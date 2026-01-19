@@ -16,7 +16,6 @@
     const userStore = useUserStore()
     const artistStore = useArtistStore()
     const range = ref(5)
-    const recent10Series = ref(null)
 
     const fetchHashtag = async (limit) => {
       // free user limits to 5

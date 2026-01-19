@@ -103,65 +103,17 @@ def get_youtube_video_index():
 # get youtube latest videos information
 @youtube_bp.route('/v1/posts', methods=['GET'])
 def get_youtube_videos():
+    # artist_id = request.args.get('artist_id', type=str)
+    #
+    # videos = YoutubeController.get_youtube_latest_video_info(artist_id)
+    #
+    # return videos
     artist_id = request.args.get('artist_id', type=str)
+    result = YoutubeController.get_youtube_latest_videos(
+        artist_id=artist_id
+    )
 
-    videos = YoutubeController.get_youtube_latest_video_info(artist_id)
-
-    return videos
-
-# get youtube most-used hashtags in recent 5 posts
-@youtube_bp.route('/v1/hashtag/most-used-five', methods=['GET'])
-def get_most_used_recent_five_hashtags():
-    artist_id = request.args.get('artist_id', type=str)
-
-    hashtags = YoutubeController.get_hashtags_most_used_recent_five(artist_id)
-
-    return hashtags
-
-# get youtube most-used hashtags in recent 8 posts
-@youtube_bp.route('/v1/hashtag/most-used-eight', methods=['GET'])
-def get_most_used_recent_eight_hashtags():
-    artist_id = request.args.get('artist_id', type=str)
-
-    hashtags = YoutubeController.get_hashtags_most_used_recent_eight(artist_id)
-
-    return hashtags
-
-# get youtube most-used hashtags in recent 12 posts
-@youtube_bp.route('/v1/hashtag/most-used-twelve', methods=['GET'])
-def get_most_used_recent_twelve_hashtags():
-    artist_id = request.args.get('artist_id', type=str)
-
-    hashtags = YoutubeController.get_hashtags_most_used_recent_twelve(artist_id)
-
-    return hashtags
-
-# get youtube most-engaged hashtags in recent 5 posts
-@youtube_bp.route('/v1/hashtag/most-engaged-five', methods=['GET'])
-def get_most_engaged_recent_five_hashtags():
-    artist_id = request.args.get('artist_id', type=str)
-
-    hashtags = YoutubeController.get_hashtags_most_engaged_recent_five(artist_id)
-
-    return hashtags
-
-# get youtube most-engaged hashtags in recent 8 posts
-@youtube_bp.route('/v1/hashtag/most-engaged-eight', methods=['GET'])
-def get_most_engaged_recent_eight_hashtags():
-    artist_id = request.args.get('artist_id', type=str)
-
-    hashtags = YoutubeController.get_hashtags_most_engaged_recent_eight(artist_id)
-
-    return hashtags
-
-# get youtube most-engaged hashtags in recent 12 posts
-@youtube_bp.route('/v1/hashtag/most-engaged-twelve', methods=['GET'])
-def get_most_engaged_recent_twelve_hashtags():
-    artist_id = request.args.get('artist_id', type=str)
-
-    hashtags = YoutubeController.get_hashtags_most_engaged_recent_twelve(artist_id)
-
-    return hashtags
+    return result
 
 @youtube_bp.route("/v1/follower/growth", methods=["GET"])
 def get_youtube_follower_growth():
@@ -191,7 +143,6 @@ def get_youtube_engagement_growth():
 
     return YoutubeController.get_youtube_engagement_growth(artist_id, campaign_start)
 
-# get youtube most-used hashtags
 @youtube_bp.route("/v1/hashtag/most-used", methods=["GET"])
 def get_most_used_hashtags():
     artist_id = request.args.get("artist_id", type=str)
@@ -203,6 +154,16 @@ def get_most_used_hashtags():
 
     return result
 
+@youtube_bp.route("/v1/hashtag/most-engaged", methods=["GET"])
+def get_most_engaged_hashtags():
+    artist_id = request.args.get("artist_id", type=str)
+    range_key = request.args.get("range", default="5", type=str)
+    result = YoutubeController.get_youtube_most_engaged_hashtag(
+        artist_id=artist_id,
+        range_key=range_key
+    )
+
+    return result
 
 #################### v2 Endpoint ####################
 @youtube_bp.route("/v2/channel/<string:artist_id>", methods=['GET'])

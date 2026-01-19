@@ -675,7 +675,6 @@ class SpotifyService:
             }
         }
 
-
     @staticmethod
     def get_chart_top_track_by_country(user, artist_id, country):
         # ---------- check if user is premium or not ----------

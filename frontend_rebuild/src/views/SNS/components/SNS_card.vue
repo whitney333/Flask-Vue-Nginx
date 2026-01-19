@@ -15,7 +15,6 @@
     const series = ref([])
 
     const date_end = new Date().toISOString().slice(0, 10);
-    const filter = ref("7d")
     const allowedRanges = ref([])
     const maxRange = ref("28d")
     const RANGE_MAP = {
@@ -182,7 +181,7 @@
             {headers: {
               Authorization: `Bearer ${userStore.firebaseToken}`
               }})
-        console.log("📡 fetchURL", props.value.fetchURL)
+        // console.log("fetchURL", props.value.fetchURL)
         if (!res || !res.data) {
           console.warn("Response is empty or invalid");
           data.value = []
@@ -262,12 +261,12 @@
           ]
         }
 
-        // 5️⃣ 設定 allowed ranges（UI button enable/disable）
+        // set up allowed ranges（UI button enable/disable）
         allowedRanges.value = res.data?.meta?.allowed_ranges || ["28d"]
         const isPremium = res.data?.meta?.is_premium
-        console.log("allowedRanges:", allowedRanges.value, "isPremium:", isPremium)
+        // console.log("allowedRanges:", allowedRanges.value, "isPremium:", isPremium)
 
-        // 6️⃣ 預設 zoom
+        // set up zoom
         await nextTick()
         if (allowedRanges.value.includes("365d")) {
           selection.value = "one_year"
@@ -330,48 +329,6 @@
 
       }
     }
-
-    // const updateData = async (timeline) => {
-    //   selection.value = timeline
-    //   if (!chart.value) return
-    //
-    //   switch (timeline) {
-    //     case "one_month":
-    //       chart.value.zoomX(
-    //           new Date(one_month.value).getTime(),
-    //           new Date(latest_date.value).getTime()
-    //       )
-    //       break
-    //
-    //     case "three_months":
-    //       chart.value.zoomX(
-    //           new Date(three_months.value).getTime(),
-    //           new Date(latest_date.value).getTime()
-    //       )
-    //       break
-    //
-    //     case "six_months":
-    //       chart.value.zoomX(
-    //           new Date(six_months.value).getTime(),
-    //           new Date(latest_date.value).getTime()
-    //       )
-    //       break
-    //
-    //     case "twelve_months":
-    //       chart.value.zoomX(
-    //           new Date(twelve_months.value).getTime(),
-    //           new Date(latest_date.value).getTime()
-    //       )
-    //       break
-    //
-    //     case "all":
-    //       chart.value.zoomX(
-    //           new Date(first_day.value).getTime(),
-    //           new Date(latest_date.value).getTime()
-    //       )
-    //       break
-    //   }
-    // }
 
     onMounted( () => {
         fetchData()

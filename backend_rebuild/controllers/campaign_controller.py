@@ -7,6 +7,7 @@ import datetime
 import uuid
 from bson import ObjectId, Decimal128
 from services.campaign_service import CampaignService
+from libs.utils import get_current_user
 
 
 def convert_value(v):
@@ -262,16 +263,20 @@ class CampaignController:
                 "err": "Missing required parameters"
             }), 400
 
+        # get user
+        user = get_current_user(optional=True)
+
         try:
             campaign = Campaign.objects.get(campaign_id=campaign_id)
-            result = CampaignService.get_campaign_follower_growth(campaign)
+            result = CampaignService.get_campaign_follower_growth(campaign, user)
 
-            if not result:
+            if result is None:
+            # free user or insufficient data
                 return jsonify({
-                    "status": "success",
+                    "status": "error",
                     "data": None,
-                    "message": "Insufficient data"
-                }), 200
+                    "message": "This feature is only available for premium users."
+                }), 403
             return jsonify({
                 "status": "success",
                 "data": result

@@ -8,7 +8,7 @@
     import bilibiliJSON from './json/bilibiliViewDetails.json'
     import { useArtistStore } from "@/stores/artist.js";
     import {computed, watch} from "vue";
-     import { useUserStore } from "@/stores/user.js";
+    import { useUserStore } from "@/stores/user.js";
 
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/bilibili-logo.svg"
     const platform ="bilibili"

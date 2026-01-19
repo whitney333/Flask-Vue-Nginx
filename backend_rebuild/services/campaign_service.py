@@ -41,12 +41,18 @@ class CampaignService:
         return result
 
     @staticmethod
-    def get_campaign_follower_growth(campaign):
+    def get_campaign_follower_growth(campaign, user):
         """
-
         :param campaign:
         :return:
         """
+        # check if user is premium
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+        if not is_premium:
+            # free user, return None to lock page
+            return None
+
         if not campaign.approved_at:
             return None
 

@@ -109,3 +109,15 @@ class ArtistService:
             raise ValueError("Missing youtube_id")
 
         return artist.youtube_id
+
+    @staticmethod
+    def get_melon_id(artist_id):
+        """
+        return melon_id（for MelonService）
+        """
+        artist = ArtistService.get_artist(artist_id)
+
+        if not artist.melon_id:
+            raise ValueError("Missing melon_id")
+
+        return artist.melon_id

@@ -295,12 +295,8 @@ class YoutubeService:
             }
 
         # ---------- calculate date ----------
-        if range_key == "all":
-            start_date = None
-            days = None
-        else:
-            days = RANGE_DAYS[range_key]
-            start_date = date_end - timedelta(days=days)
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
 
         # ----------get youtube id ----------
         youtube_id = ArtistService.get_youtube_id(artist_id)
@@ -620,5 +616,122 @@ class YoutubeService:
         return df.to_dict(orient="records")[:hashtag_limit]
 
     @staticmethod
-    def get_chart_most_engaged_hashtag(user, artist_id):
-        pass
+    def get_chart_most_engaged_hashtag(user, artist_id, range_key="5"):
+        range_key = str(range_key)
+        # ---------- check if user is premium or not ----------
+        plan = "premium" if (user and user.is_premium) else "free"
+        rule = HASHTAG_RANGE_RULES[plan]
+
+        # ---------- validate range ----------
+        if range_key not in rule["ranges"]:
+            raise PermissionError(
+                f"Range {range_key} not allowed for plan {plan}"
+            )
+
+        video_limit = int(range_key)
+        hashtag_limit = rule["hashtag_limit"]
+
+        # ----------get youtube id ----------
+        youtube_id = ArtistService.get_youtube_id(artist_id)
+
+        youtube_doc = (
+            Youtube.objects(channel_id=youtube_id)
+                .order_by("-datetime")
+                .only("video")
+                .first()
+        )
+
+        if not youtube_doc or not youtube_doc.video:
+            return []
+
+        videos = youtube_doc.video[:video_limit]
+
+        hashtag_eng_map = {}  # { hashtag: [eng_rate, eng_rate, ...] }
+
+        for video in videos:
+            view_count = int(video.view_count or 0)
+            if view_count == 0:
+                continue
+
+            sub_total = (video.like_count or 0) + (video.comment_count or 0)
+            eng_rate = sub_total / view_count  # raw rate (0.x)
+
+            hashtags = []
+
+            # title hashtags
+            title = (video.title or "").replace("#", " #")
+            hashtags.extend(extract_hashtags_keyword(title))
+
+            # tag hashtags
+            if video.tags:
+                hashtags.extend(video.tags)
+
+            for tag in hashtags:
+                if not tag:
+                    continue
+                hashtag_eng_map.setdefault(tag, []).append(eng_rate)
+
+        if not hashtag_eng_map:
+            return []
+
+        # ---------- calculate avg engagement rate ----------
+        result = []
+        for tag, rates in hashtag_eng_map.items():
+            avg_rate = sum(rates) / len(rates) * 100  # %
+            result.append({
+                "_id": tag,
+                "eng_rate": round(avg_rate, 4)
+            })
+
+        # ---------- sort & limit ----------
+        result.sort(key=lambda x: x["eng_rate"], reverse=True)
+
+        return result[:hashtag_limit]
+
+    @staticmethod
+    def get_posts(artist_id):
+        if not artist_id:
+            raise ValueError("Missing artist_id parameter")
+
+        # ---------- get youtube id ----------
+        youtube_id = ArtistService.get_youtube_id(artist_id)
+
+        youtube_doc = (
+            Youtube.objects(channel_id=youtube_id)
+                .order_by("-datetime")
+                .only("datetime", "channel_id", "video")
+                .first()
+        )
+
+        if not youtube_doc or not youtube_doc.video:
+            return []
+
+        result = []
+
+        for video in youtube_doc.video:
+            view_count = int(video.view_count or 0)
+            like_count = int(video.like_count or 0)
+            comment_count = int(video.comment_count or 0)
+
+            eng_rate = (
+                ((like_count + comment_count) / view_count) * 100
+                if view_count > 0 else 0
+            )
+
+            result.append({
+                "datetime": youtube_doc.datetime,
+                "channel_id": youtube_doc.channel_id,
+                "published_at": video.published_at,
+                "title": video.title,
+                "thumbnail": video.thumbnail,
+                "tags": video.tags,
+                "url": f"https://www.youtube.com/watch?v={video.code}",
+                "category_id": video.category_id,
+                "view_count": view_count,
+                "comment_count": comment_count,
+                "like_count": like_count,
+                "favorite_count": int(video.favorite_count or 0),
+                "eng_rate": round(eng_rate, 4)
+            })
+
+        return result

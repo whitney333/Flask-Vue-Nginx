@@ -78,3 +78,39 @@ def admin_required(f):
         request.current_user = user
         return f(*args, **kwargs)
     return wrapper
+
+def get_current_user(optional=False):
+    """
+    從 Authorization: Bearer <token> 解析 user
+    optional=True -> 未登入回 None
+    """
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header:
+        if optional:
+            return None
+        raise ValueError("Missing Authorization header")
+
+    try:
+        scheme, token = auth_header.split()
+        if scheme.lower() != "bearer":
+            raise ValueError("Invalid auth scheme")
+    except ValueError:
+        raise ValueError("Invalid Authorization header")
+
+    try:
+        decoded = auth.verify_id_token(token)
+        # print("decoded uid:", decoded.get("uid"))
+    except Exception:
+        if optional:
+            return None
+        raise ValueError("Invalid token")
+
+    user = Users.objects(firebase_id=decoded["uid"]).first()
+    # print("db user:", user.firebase_id)
+    if not user:
+        if optional:
+            return None
+        raise ValueError("User not found")
+
+    return user
