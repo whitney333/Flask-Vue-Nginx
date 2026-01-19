@@ -1,4 +1,10 @@
 import os
+from dotenv import load_dotenv
+
+environment = os.getenv("FLASK_ENV", "development")  # default to 'dev'
+env_file = f".env.{environment}"
+if os.path.exists(env_file):
+    load_dotenv(dotenv_path=env_file)
 
 from flask import Flask
 from routes.melon_route import *
@@ -15,22 +21,17 @@ from routes.campaign_route import *
 from routes.admin_route import *
 from routes.stripe_route import *
 from db_connect import connect_db
-from config import  Config
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials
 import stripe
-from dotenv import load_dotenv
 
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+if stripe.api_key is None:
+    raise ValueError("Stripe API key not found in environment")
 
 def create_app():
-    load_dotenv()
-
     app = Flask(__name__)
-
-    # get Stripe API
-    app.config.from_object(Config)
-    stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
     CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
 
