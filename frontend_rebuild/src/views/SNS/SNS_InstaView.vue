@@ -34,8 +34,8 @@
         instaJSON.instagramFollowerValue,
         instaJSON.instagramThreadsFollowerValue,
         instaJSON.instagramPostsValue,
-        instaJSON.instagramLikesValue,
-        instaJSON.instagramCommentsValue,
+        // instaJSON.instagramLikesValue,
+        // instaJSON.instagramCommentsValue,
         // instaJSON.instagramEngagementRateValue,
       ]
 
