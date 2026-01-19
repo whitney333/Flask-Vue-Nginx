@@ -287,7 +287,67 @@ class InstagramService:
 
     @staticmethod
     def get_chart_like(user, artist_id, date_end, range_key):
-        pass
+        # ---------- check if user is premium or not ----------
+        is_premium = bool(user and user.is_premium)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "allowed_ranges": allowed_ranges
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get instagram id ----------
+        instagram_id = ArtistService.get_instagram_id(artist_id)
+        # print("ins id: ", instagram_id)
+
+        pipeline = [
+            # Match artist
+            {"$match": {
+                "user_id": instagram_id
+            }},
+            # Sort by datetime for consistent results
+            {"$sort": {"datetime": 1}},
+            # Limit to specified number of days
+            {"$limit": days},
+            # Unwind posts array to work with individual posts
+            {"$unwind": "$posts"},
+            # Project required fields
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "code": "$posts.code",
+                "like_count": "$posts.like_count",
+            }},
+            # Group by date to calculate daily totals
+            {"$group": {
+                "_id": "$datetime",
+                "total_like": {"$sum": "$like_count"},
+                "likes_per_post": {"$avg": "$like_count"},
+            }},
+            {"$sort": {"_id": 1}},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$_id"
+                    }
+                },
+                "total_likes": "$total_like",
+                "likes_per_post": "$likes_per_post",
+            }}
+        ]
+
 
     @staticmethod
     def get_chart_comment(user, artist_id, date_end, range_key):
