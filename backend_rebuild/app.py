@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from routes.melon_route import *
 from routes.spotify_route import *
@@ -11,15 +13,24 @@ from routes.bilibili_route import *
 from routes.tenant_route import *
 from routes.campaign_route import *
 from routes.admin_route import *
+from routes.stripe_route import *
 from db_connect import connect_db
 from config import  Config
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials
+import stripe
+from dotenv import load_dotenv
 
 
 def create_app():
+    load_dotenv()
+
     app = Flask(__name__)
+
+    # get Stripe API
+    app.config.from_object(Config)
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
     CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
 
@@ -41,6 +52,7 @@ def create_app():
     app.register_blueprint(tenant_bp, url_prefix="/api/tenant")
     app.register_blueprint(campaign_bp, url_prefix="/api/campaign")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(stripe_bp, url_prefix="/api/stripe")
 
     # init DB
     try:
