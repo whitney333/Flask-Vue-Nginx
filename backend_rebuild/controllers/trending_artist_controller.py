@@ -1263,3 +1263,148 @@ class TrendingArtistController:
             results.append(result)
 
         return results
+
+    ########################################################
+    # V1 API methods for Trending Artists feature
+    ########################################################
+
+    @classmethod
+    def get_trending_rank(cls, country, year, week):
+        """
+        Get ranked list of artists by popularity for a given country/region.
+        Wraps calculate_overall_popularity and adds artist details from DB.
+
+        :param country: Country/region code (e.g., 'global', 'south-korea', 'taiwan')
+        :param year: Year for the data
+        :param week: Week number for the data
+        :return: JSON response with ranked artist list
+        """
+        if not all([country, year, week]):
+            return jsonify({'error': 'Missing required parameters: country, year, week'}), 400
+
+        try:
+            # Get popularity data
+            popularity_data = cls.calculate_overall_popularity(country, year, week)
+
+            # Sort by popularity descending
+            sorted_data = sorted(popularity_data, key=lambda x: x.get('popularity', 0) or 0, reverse=True)
+
+            # Enrich with artist details from database
+            results = []
+            for rank, item in enumerate(sorted_data, start=1):
+                artist_id = item.get('artist_id')
+
+                # Query artist details from database
+                artist_info = cls.get_db_artist_ids(artist_id)
+
+                artist_data = {
+                    'rank': rank,
+                    'artist_id': artist_id,
+                    'english_name': None,
+                    'korean_name': None,
+                    'image_url': None,
+                    'type': None,
+                    'nation': None,
+                    'popularity': item.get('popularity', 0),
+                    'total_music_score': item.get('total_music_score', 0),
+                    'total_sns_score': item.get('total_sns_score', 0),
+                    'total_drama_score': item.get('total_drama_score', 0),
+                    'instagram_id': None,
+                    'instagram_user': None,
+                    'youtube_id': item.get('youtube_id'),
+                    'tiktok_id': item.get('tiktok_id'),
+                    'spotify_id': item.get('spotify_id'),
+                }
+
+                # If artist found in database, enrich with details
+                if artist_info and len(artist_info) > 0:
+                    db_artist = artist_info[0]
+                    artist_data.update({
+                        'english_name': db_artist.get('artist'),
+                        'korean_name': db_artist.get('korean_name'),
+                        'type': db_artist.get('type'),
+                        'instagram_id': db_artist.get('instagram_id'),
+                        'youtube_id': db_artist.get('youtube_id') or artist_data['youtube_id'],
+                        'tiktok_id': db_artist.get('tiktok_id') or artist_data['tiktok_id'],
+                        'spotify_id': db_artist.get('spotify_id') or artist_data['spotify_id'],
+                    })
+
+                # Get additional artist info (image_url, nation) from Artist model
+                try:
+                    artist_doc = Artists.objects(artist_id=artist_id).first()
+                    if artist_doc:
+                        artist_data['image_url'] = artist_doc.image_url
+                        artist_data['nation'] = artist_doc.nation
+                        artist_data['instagram_user'] = artist_doc.instagram_user
+                except Exception:
+                    pass
+
+                results.append(artist_data)
+
+            return jsonify({
+                'status': 'success',
+                'country': country,
+                'year': year,
+                'week': week,
+                'total_count': len(results),
+                'data': results
+            }), 200
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @classmethod
+    def get_artist_scores(cls, artist_id, year, week):
+        """
+        Get popularity, SNS, music, and drama scores for an artist.
+        For artist details, use /api/artist/v1/artist/<artist_id> instead.
+
+        :param artist_id: The artist's unique identifier
+        :param year: Year for the score data
+        :param week: Week number for the score data
+        :return: JSON response with artist scores
+        """
+        if not all([artist_id, year, week]):
+            return jsonify({'error': 'Missing required parameters: artist_id, year, week'}), 400
+
+        try:
+            result = {
+                'artist_id': artist_id,
+                'year': year,
+                'week': week,
+                'popularity': 0,
+                'total_music_score': 0,
+                'total_sns_score': 0,
+                'total_drama_score': 0,
+                'global_rank': None,
+            }
+
+            # Calculate scores using existing calculate_overall_popularity
+            popularity_data = cls.calculate_overall_popularity('global', year, week)
+
+            # Find this artist in the data
+            artist_scores = next(
+                (item for item in popularity_data if item.get('artist_id') == artist_id),
+                None
+            )
+
+            if artist_scores:
+                result['popularity'] = artist_scores.get('popularity', 0)
+                result['total_music_score'] = artist_scores.get('total_music_score', 0)
+                result['total_sns_score'] = artist_scores.get('total_sns_score', 0)
+                result['total_drama_score'] = artist_scores.get('total_drama_score', 0)
+
+            # Calculate global rank
+            sorted_data = sorted(popularity_data, key=lambda x: x.get('popularity', 0) or 0, reverse=True)
+            for rank, item in enumerate(sorted_data, start=1):
+                if item.get('artist_id') == artist_id:
+                    result['global_rank'] = rank
+                    break
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500

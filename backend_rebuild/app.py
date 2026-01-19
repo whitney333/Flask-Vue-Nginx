@@ -6,6 +6,8 @@ from routes.instagram_route import *
 from routes.tiktok_route import *
 from routes.user_route import *
 from routes.trending_artist_route import *
+from routes.artist_route import *
+from routes.tenant_route import *
 from db_connect import connect_db
 from config import Config
 from mongoengine import connect, disconnect
@@ -31,5 +33,7 @@ def create_app(config_class=Config):
     app.register_blueprint(tiktok_bp, url_prefix="/api/tiktok")
     app.register_blueprint(user_bp, url_prefix="/api/user")
     app.register_blueprint(trending_artist_bp, url_prefix="/api/trending-artist")
+    app.register_blueprint(artist_bp, url_prefix="/api/artist")
+    app.register_blueprint(tenant_bp, url_prefix="/api/tenant")
 
     return app

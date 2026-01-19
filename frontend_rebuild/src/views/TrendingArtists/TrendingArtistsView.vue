@@ -3,6 +3,39 @@ import { computed, onMounted, ref, watch } from 'vue';
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
 import axios from '@/axios';
 import TACard from '@/views/TrendingArtists/components/TA_card.vue';
+
+// Helper function to get ISO week number
+const getISOWeek = (date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+// Country code mapping for API calls
+const countryCodeMap = {
+    'Global': 'global',
+    'Taiwan': 'taiwan',
+    'Hong Kong': 'hong-kong',
+    'Japan': 'japan',
+    'South Korea': 'south-korea',
+    'Thailand': 'thailand',
+    'Vietnam': 'vietnam',
+    'Philippines': 'philippines',
+    'Indonesia': 'indonesia',
+    'United States': 'united-states',
+    'Canada': 'canada',
+    'Brazil': 'brazil',
+    'Mexico': 'mexico',
+    'United Kingdom': 'united-kingdom',
+    'Germany': 'germany',
+    'France': 'france',
+    'Spain': 'spain',
+    'Italy': 'italy',
+    'Australia': 'australia'
+}
+
 const countriesFlag = {
     'Global': 'UN',
     'Taiwan': 'TW',
@@ -114,68 +147,79 @@ const countries = ref([
 ])
 const selectType = ref('All')
 const types = ref(['All', 'Actor', 'Musician'])
-const artistList = ref([
-    {
-        artistId: 15,
-        artistName: 'Byeon WooSeok',
-        rank: 1,
-        icon: 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
-        type: 'Actor',
-        popularity: 78426,
 
-    },
-    {
-        artistId: 2,
-        artistName: 'Kim SooHyun',
-        rank: 2,
-        icon: 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
-        type: 'Actor',
-        popularity: 72391
-    },
-    {
-        artistId: 44,
-        artistName: 'Kim JiWon',
-        rank: 3,
-        icon: 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
-        type: 'Actor',
-        popularity: 70514
-    },
-    {
-        artistId: 10,
-        artistName: 'Kim HyeYoon',
-        rank: 4,
-        icon: 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
-        type: 'Actor',
-        popularity: 69685
-    },
-    {
-        artistId: 55,
-        artistName: 'NewJeans',
-        rank: 5,
-        icon: 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
-        type: 'Musician',
-        popularity: 68125
+// Loading and error states
+const loading = ref(false)
+const error = ref(null)
+
+// Year and week for API calls (defaults to current)
+const currentYear = ref(new Date().getFullYear())
+const currentWeek = ref(getISOWeek(new Date()))
+
+// Artist list - starts empty, populated from API
+const artistList = ref([])
+
+const artistPresentList = computed(() => {
+    if (selectType.value == 'Actor') {
+        return artistList.value.filter((x) => x.type == 'Actor')
+    } else if (selectType.value == 'Musician') {
+        return artistList.value.filter((x) => x.type == 'Musician')
+    } else {
+        return artistList.value
     }
+})
 
-])
-    const artistPresentList = computed(() => {
-        if (selectType.value == 'Actor') {
-            return artistList.value.filter((x) => x.type == 'Actor')
-        } else if (selectType.value == 'Musician') {
-            return artistList.value.filter((x) => x.type == 'Musician')
-        } else {
-            return artistList.value
+// Fetch Artist List from API
+const fetchArtistList = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+        const countryCode = countryCodeMap[selectCountry.value.value] || 'global'
+        const response = await axios.get(
+            `/trending-artist/v1/rank/${countryCode}`,
+            {
+                params: {
+                    year: currentYear.value,
+                    week: currentWeek.value
+                }
+            }
+        )
+
+        // Map API response to component's expected format
+        if (response.data && response.data.data) {
+            artistList.value = response.data.data.map((artist) => ({
+                artistId: artist.artist_id,
+                artistName: artist.english_name || artist.korean_name || 'Unknown',
+                rank: artist.rank,
+                icon: artist.image_url || 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
+                type: Array.isArray(artist.type) ? artist.type[0] : (artist.type || 'Unknown'),
+                popularity: artist.popularity || 0,
+                nation: artist.nation,
+                // Additional data for potential use
+                musicScore: artist.total_music_score || 0,
+                snsScore: artist.total_sns_score || 0,
+                dramaScore: artist.total_drama_score || 0,
+            }))
         }
-        // todo Region
-    })
-
-    // fetch Artist List everytime the country changed
-    const fetchArtistList = async () => {
-        const data = await axios.get(`trendingartist/rank/${selectCountry.value.split(" ").join('').toLowerCase()}`)
-        artistList.value = data
+    } catch (err) {
+        console.error('Error fetching artist list:', err)
+        error.value = 'Failed to load artist rankings. Please try again.'
+        // Keep existing data if fetch fails
+    } finally {
+        loading.value = false
     }
-    
-    // watch(selectCountry, fetchArtistList)
+}
+
+// Watch for country changes and refetch
+watch(selectCountry, () => {
+    fetchArtistList()
+})
+
+// Fetch on component mount
+onMounted(() => {
+    fetchArtistList()
+})
 </script>
 
 <template>
@@ -241,8 +285,23 @@ const artistList = ref([
             <span :class="['font-weight-medium', 'text-body-1']">{{ $t('7-day Change') }}</span>
             </v-col>
         </v-row>
-        <TACard v-for="(artist, i) in artistPresentList" :value="artist" :key="i">
+        <!-- Loading State -->
+        <v-row v-if="loading" justify="center" class="my-5">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+        </v-row>
 
+        <!-- Error State -->
+        <v-alert v-else-if="error" type="error" class="my-3">
+            {{ error }}
+        </v-alert>
+
+        <!-- Empty State -->
+        <v-alert v-else-if="artistPresentList.length === 0" type="info" class="my-3">
+            No artists found for the selected criteria.
+        </v-alert>
+
+        <!-- Artist Cards -->
+        <TACard v-else v-for="(artist, i) in artistPresentList" :value="artist" :key="i">
         </TACard>
     </v-container>
 

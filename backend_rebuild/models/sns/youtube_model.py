@@ -11,7 +11,7 @@ class YoutubeVideo(EmbeddedDocument):
     code = StringField(required=True)
     tags = ListField(required=True)
     category_id = StringField(required=True)
-    view_count = StringField(required=True)
+    view_count = IntField(required=True)
     like_count = IntField(required=True)
     favorite_count = IntField(required=True)
     comment_count = IntField(required=True)

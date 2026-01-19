@@ -123,3 +123,32 @@ def _drama_score():
     drama_score = TrendingArtistController.get_drama_score(country, year, week)
 
     return drama_score
+
+########################################################
+# V1 endpoints for Trending Artists feature
+########################################################
+
+@trending_artist_bp.route('/v1/rank/<string:country>', methods=['GET'])
+def get_trending_rank(country):
+    """
+    Get ranked list of artists by popularity for a given country/region.
+    Query params: year, week
+    Returns: List of artists sorted by popularity with rank
+    """
+    year = request.args.get('year', type=int)
+    week = request.args.get('week', type=int)
+
+    return TrendingArtistController.get_trending_rank(country, year, week)
+
+@trending_artist_bp.route('/v1/artist/<string:artist_id>/scores', methods=['GET'])
+def get_artist_scores(artist_id):
+    """
+    Get popularity, SNS, music, and drama scores for an artist.
+    For artist details, use /api/artist/v1/artist/<artist_id> instead.
+    Query params: year (required), week (required)
+    Returns: Artist scores (popularity, total_music_score, total_sns_score, total_drama_score, global_rank)
+    """
+    year = request.args.get('year', type=int)
+    week = request.args.get('week', type=int)
+
+    return TrendingArtistController.get_artist_scores(artist_id, year, week)

@@ -13,6 +13,10 @@ def create_artist():
 def get_artist_by_id(artist_id):
     return ArtistController.get_artist_by_id(artist_id)
 
+@artist_bp.route("/v1/artist/tenant/<string:tenant_id>", methods=["GET"])
+def get_artists_by_tenant_id(tenant_id):
+    return ArtistController.get_artists_by_tenant_id(tenant_id)
+
 @artist_bp.route("/v1/artist/all", methods=["GET"])
 def get_all_artists():
     return ArtistController.get_all_artists()
