@@ -1,6 +1,8 @@
 from flask import request, jsonify, g
 from models.user_model import Users
 from services.stripe_service import StripeService
+import stripe
+import os
 
 
 class StripeController:
@@ -31,9 +33,65 @@ class StripeController:
             }), 400
         except Exception as e:
             return jsonify({
-                "error": "Stripe checkout failed"
+                "error": "Stripe checkout failed",
+                "message": str(e)
             }), 500
 
         return jsonify({
             "checkout_url": session.url
         }), 200
+
+    @staticmethod
+    def handle_webhook(payload, sig_header):
+        try:
+            event = stripe.Webhook.construct_event(
+                payload,
+                sig_header,
+                os.getenv("STRIPE_WEBHOOK_SECRET")
+            )
+        except ValueError as e:
+            return jsonify({
+                "error": "Invalid payload"
+            }), 400
+        except stripe.error.SignatureVerificationError:
+            return jsonify({
+                "error": "Invalid signature"
+            }), 400
+
+        event_type = event["type"]
+        data_object = event["data"]["object"]
+
+        handlers = {
+            "checkout.session.completed": StripeService.handle_checkout_completed,
+            "customer.subscription.deleted": StripeService.handle_subscription_canceled
+        }
+
+        handler = handlers.get(event_type)
+        if handler:
+            handler(data_object)
+        else:
+            print(f"[Stripe] Unhandled event type: {event_type}")
+
+        return jsonify({
+            "status": "success"
+        }), 200
+
+    @staticmethod
+    def customer_portal():
+        try:
+            url = StripeService.create_customer_portal(
+                firebase_id=g.firebase_id,
+                return_url="http://localhost/profile"
+            )
+            return jsonify({
+                "url": url
+            })
+        except ValueError as e:
+            return jsonify({
+                "error": str(e)
+            }), 404
+        except Exception as e:
+            return jsonify({
+                "error": "Failed to create portal session",
+                "message": str(e)
+            }), 500
