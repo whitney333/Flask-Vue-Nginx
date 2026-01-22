@@ -63,9 +63,14 @@ class StripeController:
 
         handlers = {
             "checkout.session.completed": StripeService.handle_checkout_completed,
+            # get premium expired_at
+            "customer.subscription.created": StripeService.handle_subscription_created,
+            # for switching plan or continue plan
+            # "customer.subscription.updated": StripeService.handle_subscription_updated,
+            # subscription cancelled
             "customer.subscription.deleted": StripeService.handle_subscription_canceled
         }
-
+        print("Webhook event type:", event["type"], flush=True)
         handler = handlers.get(event_type)
         if handler:
             handler(data_object)
