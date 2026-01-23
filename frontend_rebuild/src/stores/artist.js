@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export const useArtistStore = defineStore('artist', () => {
   // const mid = ref(null)
@@ -27,4 +27,5 @@ export const useArtistStore = defineStore('artist', () => {
     setArtist,
     reset
   }
-}, {persist: true})
+}, {persist: true},
+)

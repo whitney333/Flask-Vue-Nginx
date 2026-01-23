@@ -40,7 +40,7 @@ export const useUserStore = defineStore("user", {
         })
 
         if (!res.ok) {
-          throw new Error("fetchMe failed")
+           new Error("fetchMe failed")
         }
 
         const user = await res.json()
@@ -56,14 +56,18 @@ export const useUserStore = defineStore("user", {
       this.name = user.name;
       this.photo = user.photo;
       this.tenant = user.tenant;
-      this.followedArtists = user.followedArtists || [];
+      if (Array.isArray(user.followedArtists)) {
+        this.followedArtists = user.followedArtists;
+      }
       this.firebaseToken = user.firebaseToken;
       this.admin = user.admin;
       this.created_at = user.created_at;
       this.last_login_at = user.last_login_at;
       this.isPremium = !!user.is_premium;
       this.plan = user.plan;
-      this.expiredAt = user.expired_at;
+      if (user.expired_at !== undefined) {
+        this.expiredAt = user.expired_at;
+      }
     },
     reset() {
       this.firebase_id = null
@@ -81,7 +85,7 @@ export const useUserStore = defineStore("user", {
       this.expiredAt = null
     },
     setFollowedArtists(artists) {
-      // console.log("Setting followedArtists in store:", artists);
+      console.log("Setting followedArtists in store:", artists);
       this.followedArtists = artists || [];
     },
     removeFollowedArtist(artistId) {

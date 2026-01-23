@@ -202,7 +202,7 @@ onMounted(async () => {
               ? userStore.followedArtists
               : userStore.followedArtists.slice(0, 3)
           )"
-            :key="artist.artist_id"
+            :key="artist.id"
             class="px-6 py-4 flex items-center gap-4"
         >
           <img
