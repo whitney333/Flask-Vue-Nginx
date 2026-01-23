@@ -256,7 +256,7 @@ class UserController:
     @classmethod
     def check_user_exists(cls):
         data = request.get_json()
-        # print("here", data)
+        print("here", data)
         firebase_uid = data.get("firebase_id")
         user = Users.objects(firebase_id=firebase_uid).first()
 
