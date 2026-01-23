@@ -51,3 +51,8 @@ def get_all_artists_of_per_tenant(tenant_id):
     result = UserController.get_all_artist_by_tenant(tenant_id)
 
     return result
+
+@user_bp.route("/me", methods=["GET"])
+@auth_required
+def get_me():
+    return UserController.get_me()

@@ -25,6 +25,7 @@ import Admin_CampaignView from "@/views/Admin/AdminCampaignsView.vue"
 import Admin_UserView from "@/views/Admin/AdminUsersView.vue"
 import Admin_TenantView from "@/views/Admin/AdminTenantsView.vue"
 import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
+import Payment_SuccessView from "@/views/Payment/Payment_successView.vue"
 
 
 const routes = [
@@ -116,7 +117,13 @@ const routes = [
             { path: 'tenants', name: 'Manage Tenants', component: Admin_TenantView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }}
         ]
-    }
+    },
+    // {
+    //     path: '/payment/success',
+    //     name: 'Payment Success',
+    //     component: Payment_SuccessView,
+    //     meta: { requireAuth: true}
+    // }
 ]
 
   const router = createRouter({

@@ -81,10 +81,11 @@
 
           // const token = response.data;
           // if data exists then return
-          const {exists, admin, is_premium, plan} = response.data
+          const {exists, admin, is_premium, plan, expired_at} = response.data
           userStore.admin = admin || false;
           userStore.isPremium = is_premium || false;
           userStore.plan = plan || false;
+          userStore.expiredAt = expired_at || false;
 
           // get followed artists list
           if (exists === true) {
@@ -167,10 +168,11 @@
             );
             // const token = response.data;
             // if data exists then return
-            const { exists, admin, is_premium, plan } = response.data
+            const { exists, admin, is_premium, plan, expired_at } = response.data
             userStore.admin = admin || false;
             userStore.isPremium = is_premium || false;
             userStore.plan = plan || false;
+            userStore.expiredAt = expired_at || false;
 
             // get followed artists list
             if (exists === true) {

@@ -41,9 +41,16 @@ class StripeService:
     @staticmethod
     def handle_checkout_completed(session):
         firebase_id = session.get("client_reference_id")
-        plan = session.get("metadata", {}).get("plan")
         customer_id = session.get("customer")
         subscription_id = session.get("subscription")
+
+        subscription = stripe.Subscription.retrieve(subscription_id)
+
+        plan = subscription.metadata.get("plan")
+
+        if not plan:
+            print("[Stripe] subscription metadata missing plan")
+            print("subscription.metadata =", subscription.metadata)
 
         user = Users.objects(firebase_id=firebase_id).first()
         if not user:
@@ -71,10 +78,10 @@ class StripeService:
         customer_id = subscription.get("customer")
         firebase_id = subscription.get("metadata", {}).get("firebase_id")
 
-        print(subscription)
-        print("subscription.created incoming")
-        print("customer_id:", customer_id)
-        print("firebase_id: ", subscription.get("metadata"))
+        # print(subscription)
+        # print("subscription.created incoming")
+        # print("customer_id:", customer_id)
+        # print("firebase_id: ", subscription.get("metadata"))
 
         if not customer_id:
             print("[Stripe] subscription.created missing customer_id")
@@ -104,7 +111,9 @@ class StripeService:
             period_end_ts,
             tz=timezone.utc).replace(tzinfo=None)
 
-        user.update(set__premium_expired_at=expired_at)
+        user.update(
+            set__premium_expired_at=expired_at
+        )
 
         print(
             f"[Stripe] subscription.created → "

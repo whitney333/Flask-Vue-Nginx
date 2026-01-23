@@ -1,12 +1,13 @@
 <script setup>
 import { useUserStore } from "@/stores/user.js";
-import { computed } from "vue"
+import { computed, ref, onMounted } from "vue"
+import { getAuth } from "firebase/auth"
 
 const userStore = useUserStore()
 const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
-const isPremium = computed(() => userStore.is_premium)
-
+const isPremium = computed(() => userStore.isPremium)
+const selectedPlan = ref("monthly")
 const planLabel = computed(() => {
   if (userStore.plan === "free") return "Free Plan"
   if (userStore.plan === "monthly") return "Premium Monthly"
@@ -14,25 +15,54 @@ const planLabel = computed(() => {
   return "Premium"
 })
 
+const expiredDate = computed(() => {
+  if (!userStore.expiredAt) return ""
+  return new Date(userStore.expiredAt).toLocaleDateString(
+    undefined,
+    { year: "numeric", month: "short", day: "numeric" }
+  )
+})
+
 const upgrade = async () => {
+  const auth = getAuth()
+  const user = auth.currentUser
+
+  if (!user) {
+    alert("Not logged in")
+    return
+  }
+
+  const idToken = await user.getIdToken(true)
+
   const res = await fetch("/api/stripe/checkout-session", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${userStore.firebaseToken}`,
+      Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ plan: "monthly" })
+    body: JSON.stringify({plan: selectedPlan.value})
   })
   const data = await res.json()
-  window.location.href = data.checkout_url
+  if (data.checkout_url) {
+    window.location.href = data.checkout_url
+  } else {
+    alert("Failed to open Stripe checkout")
+  }
 }
 
 const manageSubscription = async () => {
   const res = await fetch("/api/stripe/customer-portal")
   const data = await res.json()
-  window.location.href = data.url
+  if (data.url) {
+    window.location.href = data.url
+  } else {
+    alert("Failed to open Customer Portal")
+  }
 }
 
+onMounted(async () => {
+  await userStore.fetchMe()
+})
 </script>
 
 
@@ -70,6 +100,12 @@ const manageSubscription = async () => {
         >
           {{ planLabel }}
         </span>
+        <span
+            v-if="isPremium && expiredDate"
+            class="text-sm text-gray-500"
+        >
+            Expires: {{ expiredDate }}
+        </span>
       </div>
     </div>
 
@@ -78,22 +114,63 @@ const manageSubscription = async () => {
         class="border rounded-lg p-6"
         :class="isPremium ? 'bg-white border-gray-200' : 'bg-indigo-50 border-indigo-200'"
     >
+      <!-- ===== FREE USER ===== -->
       <template v-if="!isPremium">
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
           Upgrade to Premium
         </h3>
-        <ul class="text-sm text-gray-600 space-y-1 mb-4">
-          <li>• Full Campaign analytics access</li>
-          <li>• Historical data insights</li>
+
+        <!-- Plan selector -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <!-- Monthly -->
+          <button
+              @click="selectedPlan = 'monthly'"
+              :class="selectedPlan === 'monthly'
+          ? 'border-indigo-600 bg-white ring-2 ring-indigo-600'
+          : 'border-gray-300 bg-white hover:border-gray-400'"
+              class="border rounded-lg p-4 text-left transition"
+          >
+            <p class="text-sm font-medium text-gray-900">Monthly</p>
+            <p class="mt-1 text-2xl font-semibold text-gray-900">$10</p>
+            <p class="text-xs text-gray-500 mt-1">Billed monthly</p>
+          </button>
+
+          <!-- Yearly -->
+          <button
+              @click="selectedPlan = 'yearly'"
+              :class="selectedPlan === 'yearly'
+          ? 'border-indigo-600 bg-white ring-2 ring-indigo-600'
+          : 'border-gray-300 bg-white hover:border-gray-400'"
+              class="border rounded-lg p-4 text-left relative transition"
+          >
+        <span
+            class="absolute top-2 right-2 text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full"
+        >
+          Save 8%
+        </span>
+            <p class="text-sm font-medium text-gray-900">Yearly</p>
+            <p class="mt-1 text-2xl font-semibold text-gray-900">$110</p>
+            <p class="text-xs text-gray-500 mt-1">Billed yearly</p>
+          </button>
+        </div>
+
+        <!-- Features -->
+        <ul class="text-sm text-gray-600 space-y-1 mb-6">
+          <li>• Full campaign analytics</li>
+          <li>• Historical data access</li>
+          <li>• Unlimited artist tracking</li>
         </ul>
+
+        <!-- CTA -->
         <button
             @click="upgrade"
-            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium"
+            class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium"
         >
           Upgrade Now
         </button>
       </template>
 
+      <!-- ===== PREMIUM USER ===== -->
       <template v-else>
         <h3 class="text-lg font-semibold text-gray-900 mb-1">
           Your Subscription

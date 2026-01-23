@@ -9,6 +9,7 @@ from functools import wraps
 from firebase_admin import auth
 from bson import json_util
 import json
+from services.user_service import UserService
 
 
 class UserController:
@@ -264,7 +265,9 @@ class UserController:
             return jsonify({
                 "exists": True,
                 "admin": user.admin,
-                "is_premium": user.is_premium
+                "is_premium": user.is_premium,
+                "plan": user.plan,
+                "expired_at": user.premium_expired_at
             }), 200
         else:
             # no user data in database yet
@@ -302,3 +305,19 @@ class UserController:
             "status": "success",
             "data": artist_names
         }), 200
+
+    @staticmethod
+    def get_me():
+        firebase_id = getattr(g, "firebase_id", None)
+        if not firebase_id:
+            return jsonify({
+                "error": "Unauthorized"
+            }), 401
+
+        user_data = UserService.get_me(firebase_id)
+        if not user_data:
+            return jsonify({
+                "error": "User not found"
+            }), 404
+
+        return jsonify(user_data), 200
