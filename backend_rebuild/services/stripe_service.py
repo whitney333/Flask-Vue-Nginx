@@ -182,12 +182,67 @@ class StripeService:
         print(f"[Stripe] Subscription canceled for user {user.firebase_id}")
 
     @staticmethod
-    def create_customer_portal(firebase_id, return_url):
-        user = Users.objects(firebase_id=firebase_id).first()
-        if not user or not user.stripe_customer_id:
-            raise ValueError("User not found or no Stripe customer ID")
+    def handle_invoice_payment_succeeded(invoice):
+        """
+        to continue premium status
+        :param invoice:
+        :return:
+        """
+        customer_id = invoice.get("customer")
+        subscription_id = invoice.get("subscription")
 
-        # Stripe Customer Portal
+        if not customer_id or not subscription_id:
+            return
+
+        user = Users.objects(stripe_customer_id=customer_id).first()
+        if not user:
+            return
+
+        sub = stripe.Subscription.retrieve(subscription_id)
+
+        user.update(
+            set__is_premium=True,
+            set__premium_expired_at=datetime.fromtimestamp(
+                sub["current_period_end"]
+            )
+        )
+
+        print(f"[Stripe] Payment succeeded, extended premium: {customer_id}")
+
+    @staticmethod
+    def handle_invoice_payment_failed(invoice):
+        """
+        if payment failed
+        :param invoice:
+        :return:
+        """
+        customer_id = invoice.get("customer")
+
+        if not customer_id:
+            return
+
+        user = Users.objects(stripe_customer_id=customer_id).first()
+        if not user:
+            return
+
+        user.update(
+            set__is_premium=False
+        )
+
+        print(f"[Stripe] Payment failed, premium suspended: {customer_id}")
+
+    @staticmethod
+    def create_customer_portal(firebase_id, return_url) -> str:
+        """
+        Create Stripe Billing Portal session
+        """
+        user = Users.objects(firebase_id=firebase_id).first()
+        if not user:
+            raise ValueError("User not found")
+
+        if not user.stripe_customer_id:
+            raise ValueError("User has no Stripe customer")
+
         session = stripe.billing_portal.Session.create(
             customer=user.stripe_customer_id,
             return_url=return_url

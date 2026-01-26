@@ -62,20 +62,41 @@ class StripeController:
         data_object = event["data"]["object"]
 
         handlers = {
-            "checkout.session.completed": StripeService.handle_checkout_completed,
+            # new subscription
+            "checkout.session.completed":
+                StripeService.handle_checkout_completed,
+
             # get premium expired_at
-            "customer.subscription.created": StripeService.handle_subscription_created,
+            "customer.subscription.created":
+                StripeService.handle_subscription_created,
+
             # for switching plan or continue plan
-            # "customer.subscription.updated": StripeService.handle_subscription_updated,
+            "customer.subscription.updated":
+                StripeService.handle_subscription_updated,
             # subscription cancelled
-            "customer.subscription.deleted": StripeService.handle_subscription_canceled
+            "customer.subscription.deleted":
+                StripeService.handle_subscription_canceled,
+
+            # continue subscription/ invoice
+            "invoice.payment_succeeded":
+                StripeService.handle_invoice_payment_succeeded,
+            "invoice.payment_failed":
+                StripeService.handle_invoice_payment_failed,
         }
         print("Webhook event type:", event["type"], flush=True)
+
         handler = handlers.get(event_type)
-        if handler:
-            handler(data_object)
-        else:
+        if not handler:
             print(f"[Stripe] Unhandled event type: {event_type}")
+            return jsonify({"status": "ignored"}), 200
+
+        try:
+            handler(data_object)
+        except Exception as e:
+            print(f"[Stripe] Handler error ({event_type}): {str(e)}", flush=True)
+            return jsonify({
+                "error": "Webhook handler failed"
+            }), 500
 
         return jsonify({
             "status": "success"
@@ -86,17 +107,17 @@ class StripeController:
         try:
             url = StripeService.create_customer_portal(
                 firebase_id=g.firebase_id,
-                return_url="http://localhost/profile"
+                return_url="http://localhost/profile"  # 之後可換成正式 domain
             )
-            return jsonify({
-                "url": url
-            })
+            return jsonify({"url": url}), 200
+
         except ValueError as e:
             return jsonify({
                 "error": str(e)
-            }), 404
+            }), 400
+
         except Exception as e:
+            print("[Stripe] Portal error:", str(e), flush=True)
             return jsonify({
-                "error": "Failed to create portal session",
-                "message": str(e)
+                "error": "Failed to create customer portal"
             }), 500

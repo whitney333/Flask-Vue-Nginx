@@ -18,7 +18,7 @@ def webhook():
     sig_header = request.headers.get("Stripe-Signature")
     return StripeController.handle_webhook(payload, sig_header)
 
-@stripe_bp.route("/customer-portal", methods=["GET"])
+@stripe_bp.route("/customer-portal", methods=["POST"])
 @auth_required
 def customer_portal():
     return StripeController.customer_portal()
