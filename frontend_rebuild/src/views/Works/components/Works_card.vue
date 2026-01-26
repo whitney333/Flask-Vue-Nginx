@@ -1,8 +1,9 @@
 <script setup>
-import {computed, nextTick, onMounted, ref, watch} from 'vue';
+    import {computed, nextTick, onMounted, ref, watch} from 'vue';
     import axios from '@/axios';
     import { useArtistStore } from "@/stores/artist.js";
     import { useUserStore} from "@/stores/user.js";
+    import { useAuthStore } from "@/stores/auth.js";
 
     const props = defineProps({
         value: Object,
@@ -12,6 +13,7 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue';
     })
     const userStore = useUserStore()
     const artistStore = useArtistStore()
+    const authStore = useAuthStore()
     const allowedRanges = ref([])
     const maxRange = ref("28d")
     const RANGE_MAP = {
@@ -172,7 +174,7 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue';
 
             const res = await axios.get(props.value.fetchURL,
             {headers: {
-              Authorization: `Bearer ${userStore.firebaseToken}`
+              Authorization: `Bearer ${authStore.idToken}`
               },
               params: {
                 date_end: props.end,

@@ -86,7 +86,7 @@
         () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
-            console.log("Music component 拿到 artistId:", newMid)
+            // console.log("Music component 拿到 artistId:", newMid)
           }
         },
         {immediate: true} // run at the first time

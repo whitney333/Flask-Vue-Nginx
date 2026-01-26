@@ -3,6 +3,7 @@
     import { onMounted, ref, watch } from 'vue';
     import { useArtistStore } from "@/stores/artist.js";
     import { useUserStore } from "@/stores/user.js";
+    import { useAuthStore } from "@/stores/auth.js";
 
     const props = defineProps({
         iconSrc: String
@@ -16,6 +17,7 @@
     // const artistId = ref('1')
     const artistStore = useArtistStore()
     const userStore = useUserStore()
+    const authStore = useAuthStore()
     const drange = ref('')
     const chartOptions = ref({})
     const series = ref([])
@@ -53,7 +55,7 @@
 
             const res = await axios.get(`/spotify/v1/region/top-tracks?`,
                 {headers: {
-                    Authorization: `Bearer ${userStore.firebaseToken}`
+                    Authorization: `Bearer ${authStore.idToken}`
                   },
                 params: {
                   artist_id: artistStore.artistId,
@@ -91,7 +93,7 @@
           const res = await axios.get(`/spotify/v1/country/top-tracks`,
               {
                 headers: {
-                  Authorization: `Bearer ${userStore.firebaseToken}`
+                  Authorization: `Bearer ${authStore.idToken}`
                 },
                 params: {
                   artist_id: artistStore.artistId,

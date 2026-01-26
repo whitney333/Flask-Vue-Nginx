@@ -1,12 +1,14 @@
 <script setup>
-    import { computed, onMounted, ref, watch } from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
     import axios from '@/axios';
     import { useUserStore } from "@/stores/user.js";
     import { useArtistStore } from "@/stores/artist.js";
+    import { useAuthStore } from "@/stores/auth.js";
     import { nextTick } from 'vue'
 
     const userStore = useUserStore()
     const artistStore = useArtistStore()
+    const authStore = useAuthStore()
     const props = defineProps({
         value: Object,
         colors: Object,
@@ -179,7 +181,7 @@
         loadingBar.value = true
         const res = await axios.get(props.value.fetchURL,
             {headers: {
-              Authorization: `Bearer ${userStore.firebaseToken}`
+              Authorization: `Bearer ${authStore.idToken}`
               }})
         // console.log("fetchURL", props.value.fetchURL)
         if (!res || !res.data) {
@@ -330,8 +332,10 @@
       }
     }
 
-    onMounted( () => {
+    onMounted( async() => {
+      await nextTick()
         fetchData()
+        // console.log("📊 Chart mounted")
     })
 
     const indexDifference = () => {
