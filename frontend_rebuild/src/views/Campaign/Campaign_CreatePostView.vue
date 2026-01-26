@@ -19,10 +19,11 @@
     import { useUserStore } from "@/stores/user.js";
     import axios from '@/axios';
     import { useRouter } from 'vue-router';
+    import { useAuthStore } from "@/stores/auth.js";
 
     const router = useRouter()
     const artistStore = useArtistStore()
-
+    const authStore = useAuthStore()
     const userStore = useUserStore()
     const followedArtists = userStore.followedArtists
     const selectedArtist = ref(null)
@@ -142,7 +143,7 @@
             data,
             {
               headers: {
-                "Authorization": `Bearer ${userStore.firebaseToken}`,
+                "Authorization": `Bearer ${authStore.idToken}`,
                 "Content-Type": "application/json"
               }
             }

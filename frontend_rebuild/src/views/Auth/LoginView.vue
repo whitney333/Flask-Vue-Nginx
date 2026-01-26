@@ -63,7 +63,6 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken,
               created_at: result.user.metadata.creationTime,
               last_login_at: result.user.metadata.lastSignInTime
             })
@@ -153,7 +152,6 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken,
               created_at: result.user.metadata.creationTime,
               last_login_at: result.user.metadata.lastSignInTime
             })

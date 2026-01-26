@@ -2,8 +2,10 @@
 import { useUserStore } from "@/stores/user.js";
 import { computed, ref, onMounted } from "vue"
 import { getAuth } from "firebase/auth"
+import { useAuthStore } from "@/stores/auth.js";
 
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
 const isPremium = computed(() => userStore.isPremium)
@@ -51,13 +53,22 @@ const upgrade = async () => {
 }
 
 const manageSubscription = async () => {
-  const res = await fetch("/api/stripe/customer-portal")
-  const data = await res.json()
-  if (data.url) {
-    window.location.href = data.url
-  } else {
-    alert("Failed to open Customer Portal")
+  const res = await fetch("/api/stripe/customer-portal", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${authStore.idToken}`,
+      "Content-Type": "application/json"
+    }
+  })
+
+  if (!res.ok) {
+    console.error(await res.text())
+    alert("Failed to open portal")
+    return
   }
+
+  const data = await res.json()
+  window.location.href = data.url
 }
 
 onMounted(async () => {

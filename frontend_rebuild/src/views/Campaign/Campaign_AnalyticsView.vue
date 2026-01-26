@@ -9,11 +9,13 @@ import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
 import MiniKpiCard from "@/views/Campaign/components/Campaign_MiniKpiCard.vue"
 import * as XLSX from "xlsx"
+import {useAuthStore} from "@/stores/auth.js";
 
 
 const auth = getAuth()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const data = ref(null)
 const miniKpiData = ref({
   fastest_growing_city: {},
@@ -127,7 +129,7 @@ const getMiniKpi = async (artist_id, start) => {
         `/spotify/v1/top-city/growth`,
         {
           headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           },
           params: {
