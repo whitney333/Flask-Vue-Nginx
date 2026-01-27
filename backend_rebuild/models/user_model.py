@@ -19,7 +19,7 @@ class Users(Document):
     # membership
     is_premium = BooleanField(default=False)
     plan = StringField(choices=["free", "monthly", "yearly"], default="free")
-    premium_expired_at = DateTimeField()
+    premium_expired_at = DateTimeField(null=True)
     # Stripe
     stripe_customer_id = StringField()
     stripe_subscription_id = StringField()
