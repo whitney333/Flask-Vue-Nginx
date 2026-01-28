@@ -2,6 +2,7 @@ from datetime import timedelta
 from models.spotify_model import Spotify
 from rules.music_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
+from .user_service import UserService
 
 
 class SpotifyService:
@@ -288,18 +289,23 @@ class SpotifyService:
     @staticmethod
     def get_chart_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
             if is_premium
             else FOLLOWER_RANGE_RULES["free"]
         )
-
+        print("DEBUG is_premium:", is_premium)
+        print("DEBUG range_key repr:", repr(range_key))
+        print("DEBUG allowed_ranges:", allowed_ranges)
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -342,7 +348,7 @@ class SpotifyService:
     @staticmethod
     def get_chart_monthly_listener(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -353,7 +359,10 @@ class SpotifyService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -396,7 +405,7 @@ class SpotifyService:
     @staticmethod
     def get_chart_popularity(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -407,7 +416,10 @@ class SpotifyService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -450,7 +462,7 @@ class SpotifyService:
     @staticmethod
     def get_chart_fan_conversion_rate(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -461,7 +473,10 @@ class SpotifyService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -529,7 +544,7 @@ class SpotifyService:
     @staticmethod
     def get_chart_top_city(user, artist_id):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         # ----------get spotify id ----------
         spotify_id = ArtistService.get_spotify_id(artist_id)
@@ -576,7 +591,7 @@ class SpotifyService:
     @staticmethod
     def get_chart_top_track_by_region(user, artist_id, country):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         # ----------get spotify id ----------
         spotify_id = ArtistService.get_spotify_id(artist_id)
@@ -589,16 +604,6 @@ class SpotifyService:
                 "tracks": [],
                 "meta": {
                     "is_premium": is_premium
-                }
-            }
-
-        if not is_premium:
-            return {
-                "locked": True,
-                "data": [],
-                "tracks": [],
-                "meta": {
-                    "is_premium": False
                 }
             }
 
@@ -666,6 +671,13 @@ class SpotifyService:
         _result = Spotify.objects.aggregate(*pipeline)
         result = list(_result)
 
+        if not is_premium:
+            # free user: get the first data
+            result = result[:1]
+        else:
+            # premium user: get the first ten
+            result = result[:10]
+
         return {
             "locked": False,
             "data": result,
@@ -678,7 +690,7 @@ class SpotifyService:
     @staticmethod
     def get_chart_top_track_by_country(user, artist_id, country):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         # ----------get spotify id ----------
         spotify_id = ArtistService.get_spotify_id(artist_id)

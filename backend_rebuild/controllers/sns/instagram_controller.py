@@ -535,7 +535,7 @@ class InstagramController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -580,7 +580,7 @@ class InstagramController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -625,7 +625,7 @@ class InstagramController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -644,18 +644,28 @@ class InstagramController:
         range_key = str(range_key) if range_key else "5"
 
         try:
-            data = InstagramService.get_chart_most_used_hashtag(
+            result = InstagramService.get_chart_most_used_hashtag(
                 user=user,
                 artist_id=artist_id,
                 range_key=range_key
             )
 
-            return jsonify(data), 200
+            # locked response
+            if result.get("locked"):
+                return jsonify({
+                    "status": "locked",
+                    "data": [],
+                    "meta": {
+                        "allowed_ranges": result["meta"]["allowed_ranges"],
+                        "is_premium": result["meta"]["is_premium"]
+                    }
+                }), 200
 
-        except PermissionError as e:
             return jsonify({
-                "error": str(e)
-            }), 403
+                "status": "success",
+                "data": result["data"],
+                "meta": result["meta"]
+            }), 200
 
         except Exception as e:
             return jsonify({
@@ -671,18 +681,28 @@ class InstagramController:
         range_key = str(range_key) if range_key else "5"
 
         try:
-            data = InstagramService.get_chart_most_engaged_hashtag(
+            result = InstagramService.get_chart_most_engaged_hashtag(
                 user=user,
                 artist_id=artist_id,
                 range_key=range_key
             )
 
-            return jsonify(data), 200
+            # locked response
+            if result.get("locked"):
+                return jsonify({
+                    "status": "locked",
+                    "data": [],
+                    "meta": {
+                        "allowed_ranges": result["meta"]["allowed_ranges"],
+                        "is_premium": result["meta"]["is_premium"]
+                    }
+                }), 200
 
-        except PermissionError as e:
             return jsonify({
-                "error": str(e)
-            }), 403
+                "status": "success",
+                "data": result["data"],
+                "meta": result["meta"]
+            }), 200
 
         except Exception as e:
             return jsonify({

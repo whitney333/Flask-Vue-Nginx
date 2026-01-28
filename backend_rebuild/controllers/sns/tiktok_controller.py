@@ -113,7 +113,7 @@ class TiktokController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -158,7 +158,7 @@ class TiktokController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -203,7 +203,7 @@ class TiktokController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 

@@ -1,4 +1,5 @@
 from models.user_model import Users
+from datetime import datetime, timezone
 
 class UserService:
 
@@ -35,3 +36,37 @@ class UserService:
                 for a in (user.followed_artist or [])
             ]
         }
+
+    @staticmethod
+    def is_active_premium(user):
+        """
+        check if user is valid premium.
+        1. user.is_premium must be: True
+        2. premium_expired_at must exist and >= now
+        3. if premium expired, downgrade
+        :param user:
+        :return:
+        """
+        if not user or not user.is_premium:
+            return False
+
+        if not user.premium_expired_at:
+            return False
+
+        expired_at = user.premium_expired_at
+
+        if expired_at.tzinfo is None:
+            expired_at = expired_at.replace(tzinfo=timezone.utc)
+
+        now = datetime.now(timezone.utc)
+        if now <= expired_at:
+            return True
+        else:
+            # downgrade user
+            user.update(
+                set__is_premium=False,
+                set__plan="free",
+                set__stripe_subscription_id=None,
+                set__premium_expired_at=None
+            )
+            return False

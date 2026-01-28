@@ -2,13 +2,14 @@ from datetime import timedelta
 from models.melon_model import Melon
 from rules.music_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
+from .user_service import UserService
 
 
 class MelonService:
     @staticmethod
     def get_chart_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -58,5 +59,3 @@ class MelonService:
                 "allowed_ranges": allowed_ranges
             }
         }
-
-

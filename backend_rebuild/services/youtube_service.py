@@ -2,6 +2,7 @@ from datetime import timedelta
 from models.sns.youtube_model import Youtube
 from rules.youtube_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS, HASHTAG_RANGE_RULES
 from .artist_service import ArtistService
+from .user_service import UserService
 import pandas as pd
 import numpy as np
 
@@ -280,7 +281,7 @@ class YoutubeService:
     @staticmethod
     def get_chart_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -338,7 +339,7 @@ class YoutubeService:
     @staticmethod
     def get_chart_video_view(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -448,7 +449,7 @@ class YoutubeService:
     @staticmethod
     def get_chart_video_likes_and_comments(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -558,14 +559,21 @@ class YoutubeService:
     def get_chart_most_used_hashtag(user, artist_id, range_key="5"):
         range_key = str(range_key)
         # ---------- check if user is premium or not ----------
-        plan = "premium" if (user and user.is_premium) else "free"
+        is_premium = UserService.is_active_premium(user)
+        plan = "premium" if is_premium else "free"
         rule = HASHTAG_RANGE_RULES[plan]
 
         # ---------- validate range ----------
         if range_key not in rule["ranges"]:
-            raise PermissionError(
-                f"Range {range_key} not allowed for plan {plan}"
-            )
+            return {
+                "locked": True,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": rule["ranges"],
+                    "hashtag_limit": rule["hashtag_limit"]
+                }
+            }
 
         video_limit = int(range_key)
         hashtag_limit = rule["hashtag_limit"]
@@ -581,7 +589,15 @@ class YoutubeService:
         )
 
         if not youtube_doc or not youtube_doc.video:
-            return []
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": rule["ranges"],
+                    "hashtag_limit": hashtag_limit
+                }
+            }
 
         # get latest N videos
         videos = youtube_doc.video[:video_limit]
@@ -604,7 +620,15 @@ class YoutubeService:
         # calculate counts
         joined_list = titles_hashtags + tags_hashtags
         if not joined_list:
-            return []
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": rule["ranges"],
+                    "hashtag_limit": hashtag_limit
+                }
+            }
 
         w = pd.value_counts(np.array(joined_list))
 
@@ -613,25 +637,40 @@ class YoutubeService:
             columns=["_id", "count"]
         )
 
-        return df.to_dict(orient="records")[:hashtag_limit]
+        return {
+            "locked": False,
+            "data": df.to_dict(orient="records")[:hashtag_limit],
+            "meta": {
+                "is_premium": is_premium,
+                "allowed_ranges": rule["ranges"],
+                "hashtag_limit": hashtag_limit
+            }
+        }
 
     @staticmethod
     def get_chart_most_engaged_hashtag(user, artist_id, range_key="5"):
         range_key = str(range_key)
-        # ---------- check if user is premium or not ----------
-        plan = "premium" if (user and user.is_premium) else "free"
+        # check if user is premium or not
+        is_premium = UserService.is_active_premium(user)
+        plan = "premium" if is_premium else "free"
         rule = HASHTAG_RANGE_RULES[plan]
 
-        # ---------- validate range ----------
+        #validate range
         if range_key not in rule["ranges"]:
-            raise PermissionError(
-                f"Range {range_key} not allowed for plan {plan}"
-            )
+            return {
+                "locked": True,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": rule["ranges"],
+                    "hashtag_limit": rule["hashtag_limit"]
+                }
+            }
 
         video_limit = int(range_key)
         hashtag_limit = rule["hashtag_limit"]
 
-        # ----------get youtube id ----------
+        # get youtube id
         youtube_id = ArtistService.get_youtube_id(artist_id)
 
         youtube_doc = (
@@ -642,7 +681,15 @@ class YoutubeService:
         )
 
         if not youtube_doc or not youtube_doc.video:
-            return []
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": rule["ranges"],
+                    "hashtag_limit": rule["hashtag_limit"]
+                }
+            }
 
         videos = youtube_doc.video[:video_limit]
 
@@ -672,9 +719,17 @@ class YoutubeService:
                 hashtag_eng_map.setdefault(tag, []).append(eng_rate)
 
         if not hashtag_eng_map:
-            return []
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "allowed_ranges": rule["ranges"],
+                    "hashtag_limit": hashtag_limit
+                }
+            }
 
-        # ---------- calculate avg engagement rate ----------
+        # calculate avg engagement rate
         result = []
         for tag, rates in hashtag_eng_map.items():
             avg_rate = sum(rates) / len(rates) * 100  # %
@@ -683,10 +738,18 @@ class YoutubeService:
                 "eng_rate": round(avg_rate, 4)
             })
 
-        # ---------- sort & limit ----------
+        # sort & limit
         result.sort(key=lambda x: x["eng_rate"], reverse=True)
 
-        return result[:hashtag_limit]
+        return {
+            "locked": False,
+            "data": result[:hashtag_limit],
+            "meta": {
+                "is_premium": is_premium,
+                "allowed_ranges": rule["ranges"],
+                "hashtag_limit": hashtag_limit
+            }
+        }
 
     @staticmethod
     def get_posts(artist_id):

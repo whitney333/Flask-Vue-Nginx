@@ -104,7 +104,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -149,7 +149,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -194,7 +194,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -239,7 +239,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -284,7 +284,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -329,7 +329,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -374,7 +374,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -419,7 +419,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -464,7 +464,7 @@ class BilibiliController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -480,19 +480,23 @@ class BilibiliController:
         user = get_current_user(optional=True)
 
         try:
-            data = BilibiliService.get_posts(
+            result = BilibiliService.get_posts(
+                user=user,
                 artist_id=artist_id
             )
 
+            if result.get("locked"):
+                return jsonify({
+                    "status": "locked",
+                    "data": result["data"],
+                    "meta": result["meta"]
+                }), 200
+
             return jsonify({
                 "status": "success",
-                "data": data
+                "data": result["data"],
+                "meta": result["meta"]
             }), 200
-
-        except PermissionError as e:
-            return jsonify({
-                "error": str(e)
-            }), 403
 
         except Exception as e:
             return jsonify({

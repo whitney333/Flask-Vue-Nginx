@@ -3,6 +3,7 @@ from models.sns.instagram_model import Instagram, InstagramLatest
 from .artist_service import ArtistService
 from rules.instagram_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS, HASHTAG_RANGE_RULES
 from collections import Counter, defaultdict
+from .user_service import UserService
 
 
 class InstagramService:
@@ -126,7 +127,7 @@ class InstagramService:
     @staticmethod
     def get_chart_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -180,7 +181,7 @@ class InstagramService:
     @staticmethod
     def get_chart_threads_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -234,7 +235,7 @@ class InstagramService:
     @staticmethod
     def get_chart_post(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -288,7 +289,7 @@ class InstagramService:
     @staticmethod
     def get_chart_like(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -357,7 +358,8 @@ class InstagramService:
     def get_chart_most_used_hashtag(user, artist_id, range_key="5"):
         range_key = str(range_key)
         # ---------- check if user is premium or not ----------
-        plan = "premium" if (user and user.is_premium) else "free"
+        is_premium = UserService.is_active_premium(user)
+        plan = "premium" if is_premium else "free"
         rule = HASHTAG_RANGE_RULES[plan]
 
         # ---------- validate range ----------
@@ -421,7 +423,8 @@ class InstagramService:
     def get_chart_most_engaged_hashtag(user, artist_id, range_key="5"):
         range_key = str(range_key)
         # ---------- check if user is premium or not ----------
-        plan = "premium" if (user and user.is_premium) else "free"
+        is_premium = UserService.is_active_premium(user)
+        plan = "premium" if is_premium else "free"
         rule = HASHTAG_RANGE_RULES[plan]
 
         # ---------- validate range ----------

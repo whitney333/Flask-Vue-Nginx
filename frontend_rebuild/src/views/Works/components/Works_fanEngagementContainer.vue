@@ -31,7 +31,7 @@
 
       return {
         ...musicJSON.spotifyFollowersValue,
-        fetchURL: `/spotify/v1/follower?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/follower`
       }
     })
 
@@ -41,7 +41,7 @@
 
       return {
         ...musicJSON.spotifyMonthlyListenersValue,
-        fetchURL: `/spotify/v1/monthly-listener?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/monthly-listener`
       }
     })
 
@@ -51,14 +51,13 @@
 
       return {
         ...musicJSON.spotifyFanConversionRateValue,
-        fetchURL: `/spotify/v1/conversion-rate?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/conversion-rate`
       }
     })
 
     const spotifyTopCitiesValue = computed(() => {
       return {
-        ...musicJSON.spotifyTopCitiesValue,
-        fetchURL: ``
+        ...musicJSON.spotifyTopCitiesValue
       }
     })
 
@@ -68,7 +67,8 @@
 
       return {
         ...musicJSON.spotifyPopularityIndexValue,
-        fetchURL: `/spotify/v1/popularity?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/popularity`,
+        range: range
       }
     })
 
@@ -78,7 +78,8 @@
 
       return {
         ...musicJSON.melonFollowerValue,
-        fetchURL: `/melon/v1/follower?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/melon/v1/follower`,
+        range: range
       }
     })
 

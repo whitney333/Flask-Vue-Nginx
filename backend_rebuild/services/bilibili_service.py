@@ -2,6 +2,7 @@ from datetime import timedelta
 from models.sns.bilibili_model import Bilibili
 from rules.bilibili_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
+from .user_service import UserService
 from collections import defaultdict
 
 
@@ -72,7 +73,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -125,7 +126,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_view(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -200,7 +201,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_like(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -275,7 +276,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_comment(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -350,7 +351,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_share(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -425,7 +426,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_danmu(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -500,7 +501,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_coin(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -575,7 +576,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_collect(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -650,7 +651,7 @@ class BilibiliService:
     @staticmethod
     def get_chart_engagement_rate(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -744,9 +745,13 @@ class BilibiliService:
         }
 
     @staticmethod
-    def get_posts(artist_id):
+    def get_posts(user, artist_id):
+
         if not artist_id:
             raise ValueError("Missing artist_id parameter")
+
+        is_premium = UserService.is_active_premium(user)
+        FREE_LIMIT = 5
 
         # ---------- get bilibili id ----------
         bilibili_id = ArtistService.get_bilibili_id(artist_id)
@@ -759,7 +764,15 @@ class BilibiliService:
         )
 
         if not bilibili_doc or not bilibili_doc.data:
-            return []
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "visible_count": 0,
+                    "total_count": 0
+                }
+            }
 
         result = []
 
@@ -793,4 +806,27 @@ class BilibiliService:
                 "eng_rate": round(eng_rate, 4)
             })
 
-        return result
+        total_count = len(result)
+
+        # free user
+        if not is_premium:
+            return {
+                "locked": True,
+                "data": result[:FREE_LIMIT],
+                "meta": {
+                    "is_premium": False,
+                    "visible_count": min(FREE_LIMIT, total_count),
+                    "total_count": total_count
+                }
+            }
+
+        # premium user
+        return {
+            "locked": False,
+            "data": result,
+            "meta": {
+                "is_premium": True,
+                "visible_count": total_count,
+                "total_count": total_count
+            }
+        }
