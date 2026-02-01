@@ -1,59 +1,53 @@
-'''
-updated: 2025-08-04
-user route
-- create user (/v1/auth/register) -> POST
-    - args:
-        - firebase_id: string
-        - name: string
-        - image_url: string
-        - email: string
-        - tenant_id: string
-        - followed_artist: list of artist ids
-    - return: user object
-    - error:
-        - 400: bad request
-        - 500: internal server error
-- get user by firebase id (/v1/auth/firebase/<string:firebase_id>) -> GET
-    - args:
-        - firebase_id: string
-    - return: user object
-    - error:
-        - 400: bad request
-        - 500: internal server error
-- update user (/v1/auth/user/<string:user_id>) -> PUT
-    - args:
-        - user_id: string
-        - name: string
-        - image_url: string
-        - email: string
-        - tenant_id: string
-        - followed_artist: list of artist ids
-    - return: user object
-    - error:
-        - 400: bad request
-        - 500: internal server error
-'''
-
 from controllers.user_controller import UserController
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
+from libs.utils import auth_required
+
 
 user_bp = Blueprint('user', __name__)
 user_api = Api(user_bp)
 
+@user_bp.route("/v1/auth/me", methods=["GET"])
+def get_user_profile(firebase_id):
+    return UserController.get_user_info(firebase_id)
+
+@user_bp.route("/v1/auth/signup", methods=["POST"])
+def signup():
+    return UserController.signup()
+
+# used in RegisterDetailsView.vue to insert all user data
 @user_bp.route("/v1/auth/register", methods=["POST"])
 def create_user():
     return UserController.create_user()
 
-@user_bp.route("/v1/auth/firebase/<string:firebase_id>", methods=["GET"])
+@user_bp.route("/v1/auth/<string:firebase_id>", methods=["GET"])
 def get_user_by_firebase_id(firebase_id):
-    try:
-        result = UserController.get_user_by_firebase_id(firebase_id)
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({"err": str(e)}), 500
+    result = UserController.get_user_by_firebase_id(firebase_id)
 
-@user_bp.route("/v1/auth/user/<string:user_id>", methods=["PUT"])
-def update_user(user_id):
-    return UserController.update_user(user_id)
+    return result
 
+@user_bp.route("/v1/followed_artists", methods=['GET'])
+@auth_required
+def get_user_followed_artist_by_id():
+    result = UserController.get_user_followed_artist_by_id()
+    return result
+
+@user_bp.route("/v1/auth/check", methods=["POST"])
+def check_user_exists():
+    return UserController.check_user_exists()
+
+@user_bp.route("/v1/auth/check_admin", methods=["POST"])
+def check_is_admin():
+    return UserController.check_is_admin()
+
+@user_bp.route("/v1/company", methods=["GET"])
+def get_all_tenant_company():
+    result = UserController.get_all_tenant_company()
+
+    return result
+
+@user_bp.route("/v1/artists/<string:tenant_id>", methods=["GET"])
+def get_all_artists_of_per_tenant(tenant_id):
+    result = UserController.get_all_artist_by_tenant(tenant_id)
+
+    return result

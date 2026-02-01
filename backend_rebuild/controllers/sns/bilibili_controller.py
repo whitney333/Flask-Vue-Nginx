@@ -2,6 +2,7 @@ from models.sns.bilibili_model import Bilibili
 from models.artist_model import Artists
 import datetime
 from flask import jsonify, request
+from services.bilibili_service import BilibiliService
 
 
 class BilibiliController:
@@ -85,6 +86,7 @@ class BilibiliController:
                         "$gt": start_date
                     }
                 }},
+                {"$sort": {"datetime": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -92,9 +94,9 @@ class BilibiliController:
                             "format": format,
                             "date": "$datetime"
                     }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "follower": "$follower"
-                }}
+                }},
             ]
 
             results = Bilibili.objects().aggregate(pipeline)
@@ -176,6 +178,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_view": {"$sum": "$data.view"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -183,7 +186,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                         }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_view": "$total_view",
                     "avg_view": {
                         "$divide": [
@@ -273,6 +276,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_like": {"$sum": "$data.like"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -280,7 +284,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                         }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_like": "$total_like",
                     "avg_like": {
                         "$divide": [
@@ -370,6 +374,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_comment": {"$sum": "$data.comment"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -377,7 +382,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                         }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_comment": "$total_comment",
                     "avg_comment": {
                         "$divide": [
@@ -467,6 +472,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_share": {"$sum": "$data.share"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -474,7 +480,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                         }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_share": "$total_share",
                     "avg_share": {
                         "$divide": [
@@ -564,6 +570,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_danmu": {"$sum": "$data.danmu"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -571,7 +578,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                         }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_danmu": "$total_danmu",
                     "avg_danmu": {
                         "$divide": [
@@ -661,6 +668,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_coin": {"$sum": "$data.coin"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -668,7 +676,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                         }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_coin": "$total_coin",
                     "avg_coin": {
                         "$divide": [
@@ -758,6 +766,7 @@ class BilibiliController:
                     "count": {"$sum": {"$toInt": 1}},
                     "total_collect": {"$sum": "$data.collect"}
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -765,7 +774,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                     }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "total_collect": "$total_collect",
                     "avg_collect": {
                         "$divide": [
@@ -862,6 +871,7 @@ class BilibiliController:
                     "total_coin": {"$sum": "$data.coin"},
                     "total_danmu": {"$sum": "$data.danmu"},
                 }},
+                {"$sort": {"_id": 1}},
                 {"$project": {
                     "_id": 0,
                     "datetime": {
@@ -869,7 +879,7 @@ class BilibiliController:
                             "format": format,
                             "date": "$_id"
                     }},
-                    "user_id": "$user_id",
+                    "id": "$user_id",
                     "engagement_rate": {
                         "$divide": [{
                             "$sum": ["$total_like", "$total_comment", "$total_share", "$total_collect", "$total_coin",
@@ -900,3 +910,99 @@ class BilibiliController:
                 'status': 'error',
                 'err': str(e)
             })
+
+    @staticmethod
+    def get_latest_thirty_posts(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+
+        try:
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = BilibiliController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve bilibili id
+            new_artist_id = artist[0]['bilibili_id']
+
+            pipeline = [
+                {"$match": {
+                    "user_id": new_artist_id
+                }},
+                {"$sort": {"datetime": -1}},
+                {"$limit": 1},
+                {"$project": {
+                   "_id": 0,
+                   "data": "$data"
+                }},
+                {"$unwind": "$data"},
+                {"$project": {
+                    "_id": 0,
+                    "aid": "$data.aid",
+                    "bvid": "$data.bvid",
+                    "coin": "$data.coin",
+                    "collect": "$data.collect",
+                    "comment": "$data.comment",
+                    "danmu": "$data.danmu",
+                    "image": "$data.image",
+                    "like": "$data.like",
+                    "share": "$data.share",
+                    "title": "$data.title",
+                    "upload_date": "$data.upload_date",
+                    "view": "$data.view"
+                }}
+            ]
+
+
+            results = Bilibili.objects().aggregate(pipeline)
+            result = list(results)
+
+            if not result:
+                return jsonify({
+                    'status': 'success',
+                    'data': [],
+                    'message': 'No data found for the specified id'
+                }), 200
+
+            return jsonify({
+                'status': 'success',
+                'data': result
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_bilibili_follower_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = BilibiliService.get_follower_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500

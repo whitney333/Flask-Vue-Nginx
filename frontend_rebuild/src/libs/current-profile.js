@@ -1,25 +1,22 @@
 import axios from "@/axios"
 import { getAuth } from "firebase/auth"
-import { useRouter } from "vue-router"
 
 export const currentProfile = async () => {
-  const { currentUser } = getAuth()
-  const router = useRouter()
+  const auth = getAuth()
+  const user = auth.currentUser
 
-  if (!currentUser) {
-    return null
-  }
+  // if not login
+  if (!user) return null
 
   try {
-    const res = await axios.get(`/v1/auth/user/${currentUser.uid}`)
-    const profile = res.data.result
-    
-    return profile
+    // check if database has this user
+    const res = await axios.post("/user/v1/auth/check", {
+      firebase_id: user.uid
+    })
 
+    return res.data.exists
   } catch(error) {
     console.error("Error fetching profile:", error)
-    // If there's an error, redirect to login
-    await router.push('/auth/login')
-    return null
+    return false
   }
 }

@@ -1,18 +1,12 @@
-'''
-updated: 2025-08-04
-tenant model
-- tenant_name: string
-- tenant_created_at: datetime
-- tenant_updated_at: datetime
-- tenant_website: string
-- tenant_email: string
-'''
-
 from mongoengine import *
+from datetime import datetime
 
 class Tenant(Document):
-    tenant_name = StringField(required=True)
-    tenant_created_at = DateTimeField(required=True)
-    tenant_updated_at = DateTimeField(required=True)
-    tenant_website = StringField(required=True)
-    tenant_email = StringField(required=True)
+    tenant_id = IntField(required=True, unique=True)
+    tenant_name = StringField(unique=True, required=True)
+    created_at = DateTimeField(required=True, default=datetime.now())
+    updated_at = DateTimeField(null=True)
+    website = StringField(sparse=True)
+    email = EmailField(sparse=True, null=True)
+    status = StringField(default="active")
+    closed_at = DateTimeField(null=True)

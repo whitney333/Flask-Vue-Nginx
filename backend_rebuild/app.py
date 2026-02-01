@@ -7,24 +7,27 @@ from routes.tiktok_route import *
 from routes.user_route import *
 from routes.trending_artist_route import *
 from routes.artist_route import *
+from routes.bilibili_route import *
 from routes.tenant_route import *
+from routes.campaign_route import *
+from routes.admin_route import *
 from db_connect import connect_db
-from config import Config
-from mongoengine import connect, disconnect
+from config import  Config
+from flask_cors import CORS
+import firebase_admin
+from firebase_admin import credentials
 
-def create_app(config_class=Config):
+
+def create_app():
     app = Flask(__name__)
 
-    app.config.from_object(config_class)
+    CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
 
-    # connect database on startup
-    connect(
-        db='general',
-        username='admin',
-        password='demo1008',
-        authentication_source='admin',
-        host="18.162.155.254:27017"
-    )
+    # app.config.from_object(Config)
+    # Initialize Firebase Admin SDK
+    cred = credentials.Certificate('./firebase/venv/serviceAccountKey.json')
+    firebase_admin.initialize_app(cred)
+
     # register blueprints
     app.register_blueprint(melon_bp, url_prefix="/api/melon")
     app.register_blueprint(spotify_bp, url_prefix="/api/spotify")
@@ -34,6 +37,17 @@ def create_app(config_class=Config):
     app.register_blueprint(user_bp, url_prefix="/api/user")
     app.register_blueprint(trending_artist_bp, url_prefix="/api/trending-artist")
     app.register_blueprint(artist_bp, url_prefix="/api/artist")
+    app.register_blueprint(bilibili_bp, url_prefix="/api/bilibili")
     app.register_blueprint(tenant_bp, url_prefix="/api/tenant")
+    app.register_blueprint(campaign_bp, url_prefix="/api/campaign")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
+
+    # init DB
+    try:
+        print("Initializing DB connection...")
+        connect_db()
+        print("DB initialized.")
+    except Exception as e:
+        print(f"Database connection failed: {e}", flush=True)
 
     return app

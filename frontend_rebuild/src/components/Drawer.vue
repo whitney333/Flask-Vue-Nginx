@@ -1,13 +1,24 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { ref, watch, defineEmits } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useDisplay } from 'vuetify'
+  import LangSwitcher from "@/components/LangSwitcher.vue";
+  import { useUserStore } from "@/stores/user.js";
+
 
   const mishkanIcon = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/sidebar_logo.svg"
-  const drawer = ref(true)
+
+  const props = defineProps({
+    modelValue: Boolean
+  })
+  const emit = defineEmits(['update:modelValue'])
+  const drawer = ref(props.modelValue)
   const rail = ref(true)
   const isHovered = ref(false);
   const router = useRouter()
   const opened = ref([])
+  const userStore = useUserStore()
+
   const items = ref(
     [
       {
@@ -91,6 +102,58 @@
     ],
   )
 
+
+  watch(
+      () => userStore.admin,
+      (isAdmin) => {
+        if (isAdmin === true) {
+          const exists = items.value.some(i => i.title === 'Admin Manage')
+          if (!exists) {
+            items.value.push({
+              title: 'Admin Manage',
+              icon: 'mdi-shield-account',
+              to: '/admin',
+              hasSublinks: true,
+              isOpen: false,
+              sublinks: [
+                {
+                  title: 'Tenants',
+                  icon: 'mdi-domain',
+                  to: '/admin/tenants'
+                },
+                {
+                  title: 'User',
+                  icon: 'mdi-account-cog',
+                  to: '/admin/users'
+                },
+                {
+                  title: 'Artist',
+                  icon: 'mdi-star-box',
+                  to: '/admin/artists'
+                },
+                {
+                  title: 'Campaigns',
+                  icon: 'mdi-file-table-box-outline',
+                  to: '/admin/campaigns'
+                }
+              ]
+            });
+          }
+        }
+      },
+      {immediate: true}
+  )
+
+
+  watch(() => props.modelValue, (val) => {
+    drawer.value = val
+  })
+  watch(drawer, (val) => {
+    emit('update:modelValue', val)
+  })
+
+  const display = useDisplay()
+
   const handleMouseEnter = () => {
     isHovered.value = true;
   };
@@ -115,14 +178,13 @@
  <template>
       <v-navigation-drawer
         fill-height
+        mobile-breakpoint="960"
         expand-on-hover
-        mobile-breakpoint="xs"
-        rail
-        permanent
+        :rail="display.mdAndUp.value"
+        :temporary="display.smAndDown.value"
         app
         :color="`#212121`"
         v-model="drawer"
-        :mini-variant.sync="mini"
       >
         <v-list>
           <v-list-item>
@@ -133,11 +195,10 @@
         </v-list>
 
         <v-divider></v-divider>
-        
-        <v-list 
-          density="compact" 
-          nav 
-          lines="two" 
+        <v-list
+          density="compact"
+          nav
+          lines="two"
           app
           :opened="opened"
           @update:opened="newOpened => opened = newOpened.slice(-1)"
@@ -146,8 +207,8 @@
             <!-- Without sublinks -->
             <v-list-item
               v-if="!item.hasSublinks"
-              :prepend-icon="item.icon" 
-              :title="item.title" 
+              :prepend-icon="item.icon"
+              :title="item.title"
               :no-action="item.hasSublinks"
               :to="item.to"
               :value="item.title"
@@ -161,17 +222,17 @@
             <v-list-group
               :group="item.title"
               v-if="item.hasSublinks"
-              :prepend-icon="item.icon" 
-              :title="item.title" 
+              :prepend-icon="item.icon"
+              :title="item.title"
               no-action
               :value="item.title"
               v-model="item.isOpen"
               :item="item"
-              >        
+              >
               <template v-slot:activator="{ props }">
                 <v-list-item
                 v-bind="props"
-                :prepend-icon="item.icon" 
+                :prepend-icon="item.icon"
                 :title="item.title"
                 ></v-list-item>
               </template>
@@ -187,6 +248,13 @@
             </v-list-group>
           </template>
         </v-list>
+
+        <v-spacer />
+
+        <!-- only display in mobile version -->
+        <div v-show="display.smAndDown.value" class="drawer-bottom">
+          <LangSwitcher/>
+        </div>
       </v-navigation-drawer>
   </template>
 

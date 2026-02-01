@@ -1,20 +1,9 @@
-'''
-updated: 2025-08-04
-user model
-- firebase_id: string
-- name: string
-- image_url: string
-- email: string
-- followed_artist: list of artist ids (reference to artist)
-- tenant: string (reference to tenant)
-- admin: boolean
-'''
 from mongoengine import *
 from datetime import datetime
-from models.artist_model import Artists
-from models.tenant_model import Tenant
+from .tenant_model import Tenant
+from .artist_model import Artists
 
-class User(Document):
+class Users(Document):
     firebase_id = StringField(required=True, unique=True)
     name = StringField(required=True)
     image_url = URLField(default=None)

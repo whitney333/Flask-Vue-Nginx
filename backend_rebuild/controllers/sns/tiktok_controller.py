@@ -1,8 +1,39 @@
 from models.sns.tiktok_model import Tiktok, TiktokVideo
+from models.artist_model import Artists
 import datetime
 from flask import jsonify, request
+from services.tiktok_service import TiktokService
 
 class TiktokController:
+    @staticmethod
+    # get channel id by artist id
+    def get_artist_by_mid(artist_id):
+        # Validate required parameters
+        if not artist_id:
+            return jsonify({'err': 'Missing artist_id parameter'}), 400
+        try:
+            pipeline = [
+                {"$match": {
+                    # match artist mid
+                    'artist_id': artist_id
+                }},
+                {"$project": {
+                    "_id": 0
+                }}
+            ]
+
+            results = Artists.objects().aggregate(pipeline)
+
+            result = list(results)
+
+            return result
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'err': str(e)
+            }), 500
+
     # TODO Tiktok scraping method fix
     # get most-used hashtags
     def get_hashtags_most_used_recent_ten(self):
@@ -51,31 +82,36 @@ class TiktokController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = TiktokController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['tiktok_id']
+
             pipeline = [
-                # Match artist and date range
+                # match artist id
                 {"$match": {
-                    "$and": [
-                        {"id": artist_id},
-                        {
-                            "datetime": {
-                                "$lte": date_end,
-                                "$gt": start_date
-                            }
-                        }
-                    ]
+                    "id": new_artist_id
                 }},
-                # Sort by datetime for consistent results
                 {"$sort": {"datetime": 1}},
-                # Project required fields
+                # match date range
+                {"$match": {
+                    "datetime": {
+                        "$lte": date_end,
+                        "$gt": start_date
+                    }
+                }},
+                # return fields
                 {"$project": {
                     "_id": 0,
                     "datetime": {
                         "$dateToString": {
-                            "format": format,
+                            "format": "%Y-%m-%d",
                             "date": "$datetime"
                         }
                     },
-                    "follower": "$follower"
+                    "follower": {"$toInt": "$follower"}
                 }}
             ]
 
@@ -106,13 +142,6 @@ class TiktokController:
 
     @staticmethod
     def get_hashtag(artist_id, date_end, range):
-        """
-        Get TikTok hashtag data for a specific time range
-        :param artist_id: The ID of the artist to get hashtag data for
-        :param date_end: The end date for the data range in format 'YYYY-MM-DD'
-        :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
-        :return: JSON response containing hashtag data with dates and counts
-        """
         # Validate required parameters
         if not artist_id:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
@@ -143,35 +172,39 @@ class TiktokController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = TiktokController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['tiktok_id']
+
             pipeline = [
-                # Match artist and date range
+                # match artist id
                 {"$match": {
-                    "$and": [
-                        {"id": artist_id},
-                        {
-                            "datetime": {
-                                "$lte": date_end,
-                                "$gt": start_date
-                            }
-                        }
-                    ]
+                    "id": new_artist_id
                 }},
-                # Sort by datetime for consistent results
                 {"$sort": {"datetime": 1}},
-                # Project required fields
+                # match date range
+                {"$match": {
+                    "datetime": {
+                        "$lte": date_end,
+                        "$gt": start_date
+                    }
+                }},
+                # return fields
                 {"$project": {
                     "_id": 0,
                     "datetime": {
                         "$dateToString": {
-                            "format": format,
+                            "format": "%Y-%m-%d",
                             "date": "$datetime"
                         }
                     },
-                    "hashtag": "$hashtag"
+                    "hashtag": {"$toInt": "$hashtag"}
                 }}
             ]
 
-            # Execute pipeline
             results = Tiktok.objects().aggregate(pipeline)
 
             # Format results
@@ -192,19 +225,11 @@ class TiktokController:
 
         except Exception as e:
             return jsonify({
-                'status': 'error',
                 'err': str(e)
             }), 500
 
     @staticmethod
     def get_like(artist_id, date_end, range):
-        """
-        Get TikTok like count data for a specific time range
-        :param artist_id: The ID of the artist to get like data for
-        :param date_end: The end date for the data range in format 'YYYY-MM-DD'
-        :param range: The time range to analyze ('7d', '28d', '90d', '180d', '365d')
-        :return: JSON response containing like data with dates and counts
-        """
         # Validate required parameters
         if not artist_id:
             return jsonify({'err': 'Missing artist_id parameter'}), 400
@@ -235,35 +260,39 @@ class TiktokController:
             start_date = date_end - datetime.timedelta(days=days)
 
             # Construct MongoDB pipeline
+            # first get artist mid, then query spotify data
+            # Check artist's MID, call method: get_artist_by_mid
+            artists = TiktokController.get_artist_by_mid(artist_id)
+            artist = list(artists)
+            # retrieve id
+            new_artist_id = artist[0]['tiktok_id']
+
             pipeline = [
-                # Match artist and date range
+                # match artist id
                 {"$match": {
-                    "$and": [
-                        {"id": artist_id},
-                        {
-                            "datetime": {
-                                "$lte": date_end,
-                                "$gt": start_date
-                            }
-                        }
-                    ]
+                    "id": new_artist_id
                 }},
-                # Sort by datetime for consistent results
                 {"$sort": {"datetime": 1}},
-                # Project required fields
+                # match date range
+                {"$match": {
+                    "datetime": {
+                        "$lte": date_end,
+                        "$gt": start_date
+                    }
+                }},
+                # return fields
                 {"$project": {
                     "_id": 0,
                     "datetime": {
                         "$dateToString": {
-                            "format": format,
+                            "format": "%Y-%m-%d",
                             "date": "$datetime"
                         }
                     },
-                    "like": "$like"
+                    "like": {"$toInt": "$like"}
                 }}
             ]
 
-            # Execute pipeline
             results = Tiktok.objects().aggregate(pipeline)
 
             # Format results
@@ -284,10 +313,75 @@ class TiktokController:
 
         except Exception as e:
             return jsonify({
-                'status': 'error',
                 'err': str(e)
             }), 500
 
     def get_tiktok_video_index(self):
         ## TODO FIX SCRAPING POSTS METHOD
         pass
+
+    @staticmethod
+    def get_tiktok_follower_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = TiktokService.get_follower_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_tiktok_hashtag_growth(artist_id, campaign_start):
+        if not artist_id or not campaign_start:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            campaign_start_dt = datetime.datetime.strptime(campaign_start, "%Y-%m-%d")
+            result = TiktokService.get_hashtag_growth(artist_id, campaign_start_dt)
+
+            if not result:
+                return jsonify({
+                    "status": "success",
+                    "data": None,
+                    "message": "Insufficient data"
+                }), 200
+            return jsonify({
+                "status": "success",
+                "data": result
+            }), 200
+
+        except ValueError as ve:
+            return jsonify({
+                "err": str(ve)
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500

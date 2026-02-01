@@ -1,6 +1,7 @@
 <script setup>
     import axios from '@/axios';
-    import { onMounted, reactive, ref } from 'vue';
+    import {onMounted, reactive, ref, watch} from 'vue';
+    import { useArtistStore } from '@/stores/artist'
 
     const props = defineProps({
         value: Object,
@@ -9,6 +10,9 @@
 
     const loadingCard = ref(true)
     const series = ref([])
+
+    // const artistId = ref("1")
+    const artistStore = useArtistStore()
     const chartOptions = ref({})
     const recent10Series = ref(null)
     const recent30Series = ref(null)
@@ -23,21 +27,21 @@
         try {
             loadingCard.value = true
             selection.value = '10_hashtags'
-            const data = await axios.get(`/${props.value.apiType}/hashtags/most-engaged/recent-ten-posts`)
-            const result = data.data.result
-            
-    
+
+            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-engaged-five?artist_id=${artistStore.mid}`)
+            const result = data.data.data
+
             const hashtags = result.map((e, i) => {
                 return {
                     x: e._id,
-                    y: e.eng_rate_per_hashtag,
+                    y: e.eng_rate_per_hashtag.toFixed(2),
                 };
             });
     
           // update the series with axios data
             series.value = recent10Series.value = [
                 {
-                    name: 'Counts',
+                    name: 'Percentage',
                     data: hashtags,
                 }
             ];
@@ -51,20 +55,21 @@
             
             loadingCard.value = true
             selection.value = '30_hashtags'
-            const data = await axios.get(`/${props.value.apiType}/hashtags/most-engaged/recent-thirty-posts`)
-            const result =  data.data.result
+
+            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-engaged-eight?artist_id=${artistStore.mid}`)
+            const result =  data.data.data
     
             const hashtags = result.map((e, i) => {
                 return {
                 x: e._id,
-                y: e.eng_rate_per_hashtag,
+                y: e.eng_rate_per_hashtag.toFixed(2),
                 };
             });
     
           // update the series with axios data
             series.value = recent30Series.value = [
                 {
-                    name: 'Counts',
+                    name: 'Percentage',
                     data: hashtags,
                 }
             ];
@@ -78,20 +83,21 @@
         try{
             loadingCard.value = true
             selection.value = 'all'
-            const data = await axios.get(`/${props.value.apiType}/hashtags/most-engaged/overall-posts`)
-            const result =  data.data.result
+
+            const data = await axios.get(`/${props.value.apiType}/v1/hashtag/most-engaged-twelve?artist_id=${artistStore.mid}`)
+            const result =  data.data.data
     
             const hashtags = result.map((e, i) => {
                 return {
                 x: e._id,
-                y: e.eng_rate_per_hashtag,
+                y: e.eng_rate_per_hashtag.toFixed(2),
                 };
             });
     
           // update the series with axios data
             series.value = allSeries.value = [
                 {
-                    name: 'Counts',
+                    name: 'Percentage',
                     data: hashtags,
                 }
             ];
@@ -110,6 +116,18 @@
         dataLabels: {
             enabled: false
         },
+      noData: {
+        text: 'No relevant data',
+        align: 'center',
+        verticalAlign: 'middle',
+        offsetX: 0,
+        offsetY: 0,
+        style: {
+          fontSize: '14px',
+          fontFamily: 'Cairo, sans-serif',
+          fontWeight: 600,
+        }
+      },
         plotOptions: {
             bar: {
                 borderRadius: 4,
@@ -158,7 +176,7 @@
             }
           },
           title: {
-            text: 'Occurrence',
+            text: 'Percentage',
             offsetX: 0,
             offsetY: 0,
             style: {
@@ -189,7 +207,16 @@
         fetch10Hashtag()
     })
 
-
+    watch(
+        () => artistStore.mid,
+        (newMid) => {
+          if (newMid) {
+            console.log("🎯 new hashtag mid changed:", newMid)
+            fetch30Hashtag()
+          }
+        },
+        {immediate: true}
+    )
 
 </script>
 

@@ -21,9 +21,10 @@ class TopTrack(EmbeddedDocument):
 
 class Spotify(Document):
     datetime = DateTimeField(default=datetime.now())
-    spotify_id = StringField(required=True)
+    spotify_id = StringField(required=True, db_field="spotify_id")
+    artist = StringField()
     name = StringField(required=True)
-    genres = ListField(required=True)
+    genre = ListField(required=True)
     type = StringField(required=True)
     follower = IntField(required=True)
     monthly_listener = IntField(required=True)

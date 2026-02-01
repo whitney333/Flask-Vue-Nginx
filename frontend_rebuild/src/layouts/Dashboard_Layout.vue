@@ -3,9 +3,9 @@
   import { getAuth } from 'firebase/auth';
   import { useRouter } from 'vue-router';
 
-  console.log("Running Layout...");
-  
-
+  // console.log("Running Layout...");
+  //
+  //
   // const router = useRouter()
   // const { currentUser } = getAuth()
   //
@@ -17,7 +17,7 @@
   //   if (!profile) {
   //     router.push('/auth/register/details')
   //   }
-    
+  //
   // }
 
 </script>

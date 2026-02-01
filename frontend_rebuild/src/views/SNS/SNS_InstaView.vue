@@ -7,8 +7,9 @@
     import SNSAllPosts from '@/views/SNS/components/SNS_AllPosts.vue'
     import instaJSON from './json/instagramViewDetails.json'
     import axios from '@/axios';
-    import { ref } from 'vue';
-    
+    import {computed, ref, watch} from 'vue';
+    import { useArtistStore } from "@/stores/artist.js";
+
     const iconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/instagram-logo.svg"
     const colors = ["#405DE6", "#FCAF45"]
     const posts = ref([])
@@ -17,14 +18,46 @@
         profile: Object
     })
 
-    const cardValueLists = [
+    const artistStore = useArtistStore()
+     // date value
+    const today = new Date().toISOString().slice(0, 10)
+    const cardValueLists = computed(() => {
+      // if mid not exists, do not render the chart
+      if (!artistStore.mid) return []
+      const keys = [
         instaJSON.instagramFollowerValue,
         instaJSON.instagramThreadsFollowerValue,
         instaJSON.instagramPostsValue,
         instaJSON.instagramLikesValue,
         instaJSON.instagramCommentsValue,
-        instaJSON.instagramEngagementRateValue,
-    ]
+        // instaJSON.instagramEngagementRateValue,
+      ]
+
+      return keys.map((base) => ({
+          ...base,
+          fetchURL: `${base.fetchURL}?date_end=${today}&filter=365d&artist_id=${artistStore.mid}`,
+      }))
+    })
+
+    watch(
+        () => artistStore.mid,
+        (newMid) => {
+          if (newMid) {
+            // console.log("🎯 mid changed:", newMid)
+            // console.log("cardValueLists updated:", cardValueLists.value)
+          }
+        },
+        {immediate: true}
+    )
+
+    // const cardValueLists = [
+    //     instaJSON.instagramFollowerValue,
+    //     instaJSON.instagramThreadsFollowerValue,
+    //     instaJSON.instagramPostsValue,
+    //     instaJSON.instagramLikesValue,
+    //     instaJSON.instagramCommentsValue,
+    //     instaJSON.instagramEngagementRateValue,
+    // ]
 
 </script>
 
@@ -44,7 +77,7 @@
         <v-divider></v-divider>
         <SNSHashtagAnalytics :iconSrc="iconSrc" :colors="colors" :value="instaJSON.hashtagAnalyticsValue"></SNSHashtagAnalytics>
         <v-divider></v-divider>
-        <SNSTopicAnalytics :iconSrc="iconSrc" :colors="colors" :value="instaJSON.topAnalyticsValue"></SNSTopicAnalytics>
+<!--        <SNSTopicAnalytics :iconSrc="iconSrc" :colors="colors" :value="instaJSON.topAnalyticsValue"></SNSTopicAnalytics>-->
         <v-divider></v-divider>
         <SNSAllPosts :platform="platform"></SNSAllPosts>
     </v-container>

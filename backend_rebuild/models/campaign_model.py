@@ -1,4 +1,6 @@
 from mongoengine import *
+from models.artist_model import Artists
+from models.user_model import Users
 from datetime import datetime
 
 class CampaignPost(EmbeddedDocument):
