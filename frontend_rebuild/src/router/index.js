@@ -94,7 +94,7 @@ const routes = [
     {
         path: '/trending-artists',
         name: 'Trending Artists',
-        component: ComingSoonView,
+        component: TrendingArtistsView,
         meta: { requireAuth: true}
     },
     {

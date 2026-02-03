@@ -22,7 +22,7 @@ Flask-Vue-Nginx is a multi-tenant artist analytics platform that tracks social m
 ```bash
 cd backend_rebuild
 pip install -r requirements.txt
-python main.py  # Runs on port 5000 in debug mode
+python3 -m gunicorn -c ./gunicornConfig.py --reload main:app  # Runs on port 5000 in debug mode
 ```
 
 The backend connects to MongoDB on startup. Connection details are hardcoded in `app.py:create_app()` for the default environment. The `db_connect.py` file contains logic for SSH tunneling in development environments (requires `.env.development` file and PEM certificates).
@@ -193,6 +193,11 @@ Deployment workflow pushes Docker images to AWS ECR and triggers GitHub Actions 
 - camelCase for variables and functions
 - PascalCase for component names
 - Use `@` alias for `src/` directory (configured in vite.config.js)
+
+**MongoDB Queries:**
+- Use MongoEngine ORM for simple queries (filtering, ordering, limiting)
+- Only use aggregation pipelines for complex operations (grouping, calculations, joins)
+- Example: `Artists.objects(artist_id="15").first()` instead of aggregation pipeline
 
 ## Configuration & Secrets
 

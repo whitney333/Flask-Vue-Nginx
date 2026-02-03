@@ -1,26 +1,33 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
-import {ref, onMounted} from "vue";
+import { computed, onMounted } from 'vue'
 
 const { locale } = useI18n()
+
+const countriesFlag = {
+    'United Kingdom': 'GB',
+    'South Korea': 'KR'
+}
+
 const languages = [
     {
         lang: 'English',
         value: 'en',
+        flag: getUnicodeFlagIcon(countriesFlag['United Kingdom']),
         title: `${getUnicodeFlagIcon(countriesFlag['United Kingdom'])} English`
     },
     {
         lang: '한국어',
         value: 'kr',
-        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} 한국어`,
-    }]
-
-const lang = ref('en')
+        flag: getUnicodeFlagIcon(countriesFlag['South Korea']),
+        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} 한국어`
+    }
+]
 
 const currentFlag = computed(() => {
-  const lang = languages.find(l => l.code === locale.value)
-  return lang ? lang.flag : '🌐'
+    const currentLang = languages.find(l => l.value === locale.value)
+    return currentLang ? currentLang.flag : '🌐'
 })
 
 function setLang(code) {
@@ -44,11 +51,11 @@ onMounted(() => {
 
     <v-list>
       <v-list-item
-          v-for="lang in languages"
-          :key="lang.name"
-          @click="setLang(lang.name)"
+          v-for="language in languages"
+          :key="language.value"
+          @click="setLang(language.value)"
       >
-        <v-list-item-title>{{ lang.show }} {{ lang.flag }}</v-list-item-title>
+        <v-list-item-title>{{ language.flag }} {{ language.lang }}</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-menu>

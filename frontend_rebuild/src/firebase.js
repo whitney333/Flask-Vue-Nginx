@@ -13,7 +13,7 @@ const firebase = async () => {
         measurementId: import.meta.env.VITE_API_FIREBASE_MEASUREMENTID
     };
 
-    initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
     getAuth(app);
     console.log("Firebase running...");
 
