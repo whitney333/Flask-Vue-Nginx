@@ -11,6 +11,8 @@
     const artistId = route.params.artistId
 
     // Helper function to get ISO week number
+    const today = new Date().toISOString().slice(0, 10)
+
     const getISOWeek = (date) => {
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         const dayNum = d.getUTCDay() || 7;
@@ -165,46 +167,65 @@
                 }
             }
         } catch (err) {
-            console.error('Error fetching artist details:', err)
             error.value = 'Failed to load artist details. Please try again.'
         } finally {
             loading.value = false
         }
     }
 
-    // Chart configurations - these will be passed to AVCard components
-    // Note: The fetchURL paths need to match existing backend endpoints
+    // ==========================================================================
+    // TODO: Chart configurations currently use PROXY METRICS from existing endpoints.
+    //
+    // Current mapping (temporary):
+    //   - Popularity → Instagram Followers
+    //   - SNS        → YouTube Subscribers
+    //   - Music      → YouTube Channel Views
+    //
+    // FUTURE IMPROVEMENT: To show true calculated Popularity/SNS/Music scores over time,
+    // create a new MongoDB collection (e.g., "artist_score_history") that stores
+    // daily/weekly snapshots of calculated scores:
+    //   { artist_id, date, popularity_score, sns_score, music_score, drama_score }
+    //
+    // This requires a scheduled job to compute and store these values periodically.
+    // ==========================================================================
+
+    // Popularity Chart - Uses Instagram Followers as proxy
     const popularityDetails = computed(() => ({
         chart: "popularityDetails",
         title: "Popularity",
-        type: 'Popularity',
-        tooltipText: "Number of followers on Instagram",
-        fetchURL: `/instagram/v1/follower?artist_id=${artist.value.instagramId}`,
-        fetchFollowerType: 'result',
-        followerDataType: 'follower_count',
+        type: 'Instagram Followers',
+        tooltipText: "Number of followers on Instagram (proxy for popularity)",
+        fetchURL: `/instagram/v1/follower?date_end=${today}&filter=365d&artist_id=${artist.value.artistId}`,
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
         fetchDateType: 'datetime',
+        colors: ['#E1306C'],  // Instagram pink
     }))
 
+    // SNS Chart - Uses YouTube Subscribers as proxy
     const snsDetails = computed(() => ({
         title: 'SNS',
         chart: "snsDetails",
-        type: 'SNS',
-        tooltipText: "Threads followers count",
-        fetchURL: `/instagram/v1/threads-follower?artist_id=${artist.value.instagramId}`,
-        fetchFollowerType: 'result',
-        followerDataType: 'threads_followers',
+        type: 'YouTube Subscribers',
+        tooltipText: "Number of subscribers on YouTube (proxy for SNS activity)",
+        fetchURL: `/youtube/v1/channel?date_end=${today}&filter=365d&artist_id=${artist.value.artistId}`,
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
         fetchDateType: 'datetime',
+        colors: ['#FF0000'],  // YouTube red
     }))
 
+    // Music Chart - Uses YouTube Total Channel Views as proxy
     const musicDetails = computed(() => ({
         title: 'Music',
         chart: "musicDetails",
-        type: 'Music',
-        tooltipText: "Music streaming performance",
-        fetchURL: `/instagram/v1/comment?artist_id=${artist.value.instagramId}`,
-        fetchFollowerType: 'result',
-        followerDataType: 'total_comment',
+        type: 'YouTube Channel Views',
+        tooltipText: "Total channel views on YouTube (proxy for music performance)",
+        fetchURL: `/youtube/v1/channel?date_end=${today}&filter=365d&artist_id=${artist.value.artistId}`,
+        fetchFollowerType: 'data',
+        followerDataType: 'view_count',
         fetchDateType: 'datetime',
+        colors: ['#1DB954'],  // Spotify green (music theme)
     }))
 
     // Fetch data on mount
@@ -456,10 +477,10 @@
             </v-row>
             <br />
             <br />
-            <!-- Only show charts if we have the required IDs -->
+            <!-- Only show charts if we have the required platform IDs -->
             <AVCard v-if="artist.instagramId" :value="popularityDetails" />
-            <AVCard v-if="artist.instagramId" :value="snsDetails" />
-            <AVCard v-if="artist.instagramId" :value="musicDetails" />
+            <AVCard v-if="artist.youtubeId" :value="snsDetails" />
+            <AVCard v-if="artist.youtubeId" :value="musicDetails" />
         </v-container>
     </v-container>
 </template>

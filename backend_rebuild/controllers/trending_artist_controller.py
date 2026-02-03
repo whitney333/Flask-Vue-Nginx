@@ -1,8 +1,5 @@
-from flask import request, jsonify
-import json
+from flask import jsonify
 import re
-import pandas as pd
-from copy import deepcopy
 from collections import defaultdict
 from models.artist_model import Artists
 # music related data
@@ -98,7 +95,7 @@ class TrendingArtistController:
             merged_artist = artist.copy()
             if merged_artist.get("spotify_id"):
                 spotify_popularity = cls.get_spotify_popularity(artist.get("spotify_id"))
-                merged_artist["sp_pop_score"] = spotify_popularity[0]["popularity"]
+                merged_artist["sp_pop_score"] = spotify_popularity[0]["popularity"] if spotify_popularity else 0
             combined_spotify_score.append(merged_artist)
 
         return combined_spotify_score
@@ -118,16 +115,10 @@ class TrendingArtistController:
             week = int(week)
 
             pipeline = [
-            # match country
+            # match country, year, and week in single stage
             {"$match": {
-                "country": country
-            }},
-            # match year
-            {"$match": {
-                "year": year
-            }},
-            # match week
-            {"$match": {
+                "country": country,
+                "year": year,
                 "week": week
             }},
             {"$project": {
@@ -198,46 +189,10 @@ class TrendingArtistController:
                 }
             }},
             {"$sort": {"sp_chart_score": -1}},
-            # # lookup artist
-            # {"$lookup": {
-            #     "from": "artists",
-            #     "localField": "sp_id",
-            #     "foreignField": "spotify_id",
-            #     "as": "artist_info"
-            # }},
-            # # unwind artist_info field and simultaneously keep other records which do not have this field
-            # {"$unwind": {
-            #     "path": "$artist_info",
-            #     "preserveNullAndEmptyArrays": True
-            # }},
-            # # keep artist id from all platforms
-            # {"$project": {
-            #     "_id": 0,
-            #     "datetime": "$datetime",
-            #     "year": "$year",
-            #     "month": "$month",
-            #     "day": "$day",
-            #     "week": "$week",
-            #     "country": "$country",
-            #     "artist": "$artist",
-            #     "type": "$artist_info.type",
-            #     "mid": "$artist_info.artist_id",
-            #     "sp_chart_score": "$sp_total_score",
-            #     "spotify_id": "$sp_id",
-            #     "instagram_id": "$artist_info.instagram_id",
-            #     "instagram_user": "$artist_info.instagram_user",
-            #     "youtube_id": "$artist_info.youtube_id",
-            #     "tiktok_id": "$artist_info.tiktok_id"
-            # }}
         ]
 
             results = SpotifyCharts.objects().aggregate(pipeline)
-
-            result = []
-            for item in results:
-                result.append(item)
-
-            return result
+            return list(results)
         except Exception as e:
             return jsonify({'err': str(e)}), 500
 
@@ -330,7 +285,7 @@ class TrendingArtistController:
             return jsonify({
                 'status': 'error',
                 'err': str(e)
-            })
+            }), 500
 
     @staticmethod
     def get_youtube_charts_score(country, year, week):
@@ -342,13 +297,10 @@ class TrendingArtistController:
             week = int(week)
 
             pipeline = [
+                # match country, year, and week in single stage
                 {"$match": {
-                    "country": country
-                }},
-                {"$match": {
-                    "year": year
-                }},
-                {"$match": {
+                    "country": country,
+                    "year": year,
                     "week": week
                 }},
                 {"$project": {
@@ -434,11 +386,7 @@ class TrendingArtistController:
             ]
 
             results = YoutubeCharts.objects().aggregate(pipeline)
-            result = []
-            for item in results:
-                result.append(item)
-
-            return result
+            return list(results)
         except Exception as e:
             return jsonify({'err': str(e)}), 500
 
@@ -451,10 +399,9 @@ class TrendingArtistController:
             year = str(year)
             week = int(week)
             pipeline = [
+                # match year and week in single stage
                 {"$match": {
-                    "year": year
-                }},
-                {"$match": {
+                    "year": year,
                     "week": week
                 }},
                 {"$project": {
@@ -538,11 +485,7 @@ class TrendingArtistController:
             ]
 
             results = BillboardCharts.objects().aggregate(pipeline)
-            result = []
-            for item in results:
-                result.append(item)
-
-            return result
+            return list(results)
         except Exception as e:
             return jsonify({
                 'err': str(e)
@@ -555,35 +498,42 @@ class TrendingArtistController:
         yt_data = cls.get_youtube_charts_score(country, year, week)
         bb_data = cls.get_billboard_charts_score(year, week)
 
+        # Build lookup dicts for O(n) merging instead of O(n²)
+        sp_dict = {sp['artist']: sp for sp in sp_data}
+        bb_dict = {bb['artist']: bb for bb in bb_data}
+
         merged_data = []
+        merged_artists = set()
 
         # Step 1: Merge yt_data with sp_data and bb_data
         for yt_artist in yt_data:
-            merged_artist = yt_artist.copy()  # Start with YouTube data
+            merged_artist = yt_artist.copy()
+            artist_name = yt_artist['artist']
+            merged_artists.add(artist_name)
 
             # Check for match in sp_data
-            sp_match = next((sp for sp in sp_data if sp['artist'] == yt_artist['artist']), None)
+            sp_match = sp_dict.get(artist_name)
             if sp_match:
-                merged_artist.update(sp_match)  # Merge Spotify data
+                merged_artist.update(sp_match)
 
             # Check for match in bb_data
-            bb_match = next((bb for bb in bb_data if bb['artist'] == yt_artist['artist']), None)
+            bb_match = bb_dict.get(artist_name)
             if bb_match:
-                merged_artist.update(bb_match)  # Merge Billboard data
+                merged_artist.update(bb_match)
 
             merged_data.append(merged_artist)
 
         # Step 2: Add unmatched sp_data artists
         for sp_artist in sp_data:
-            if not any(artist['artist'] == sp_artist['artist'] for artist in merged_data):
+            if sp_artist['artist'] not in merged_artists:
                 merged_data.append(sp_artist)
+                merged_artists.add(sp_artist['artist'])
 
         # Step 3: Add unmatched bb_data artists
         for bb_artist in bb_data:
-            if not any(artist['artist'] == bb_artist['artist'] for artist in merged_data):
+            if bb_artist['artist'] not in merged_artists:
                 merged_data.append(bb_artist)
 
-        # print(merged_data)
         return merged_data
 
     @classmethod
@@ -615,7 +565,7 @@ class TrendingArtistController:
             }), 500
 
     @classmethod
-    def merge_all_sns_scores(self, country, year, week):
+    def merge_all_sns_scores(cls, country, year, week):
         """
         Based on music scores, add on sns_score
         :param country:
@@ -623,7 +573,7 @@ class TrendingArtistController:
         :param week:
         :return:
         """
-        merge_music_data = self.merge_music_scores(country, year, week)
+        merge_music_data = cls.merge_music_scores(country, year, week)
 
         concat_sns_list = []
 
@@ -633,14 +583,14 @@ class TrendingArtistController:
 
             # match youtube_sns_score
             if merged_artist.get("youtube_id"):
-                yt_sns_scores = self.get_youtube_score(merged_artist.get("youtube_id"))
-                merged_artist["youtube_sns_score"] = yt_sns_scores[0]["hashtag"]
+                yt_sns_scores = cls.get_youtube_score(merged_artist.get("youtube_id"))
+                merged_artist["youtube_sns_score"] = yt_sns_scores[0]["hashtag"] if yt_sns_scores else 0
             else:
                 merged_artist["youtube_sns_score"] = 0
             # match tiktok_sns_score
             if merged_artist.get("tiktok_id"):
-                tk_sns_scores = self.get_tiktok_score(merged_artist.get("tiktok_id"))
-                merged_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
+                tk_sns_scores = cls.get_tiktok_score(merged_artist.get("tiktok_id"))
+                merged_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"] if tk_sns_scores else 0
             else:
                 merged_artist["tiktok_sns_score"] = 0
             # match instagram_sns_score
@@ -652,7 +602,6 @@ class TrendingArtistController:
 
             concat_sns_list.append(merged_artist)
 
-        print(concat_sns_list)
         return concat_sns_list
 
     @staticmethod
@@ -773,74 +722,6 @@ class TrendingArtistController:
                     "thumbnail": "$thumbnail",
                     "play_counts": {"$toInt": "$play_counts"}
                 }}
-                # {"$match": {
-                #     "BROADCAST_YEAR": {
-                #         "$gte": year - 1,
-                #         "$lte": year
-                #     }
-                # }},
-                # {"$project": {
-                #     "english_name": "$NAME",
-                #     "korean_name": "$NAME_IN_KOREAN",
-                #     "artist_id": "$STARRING.MID"
-                # }},
-                # # lookup spotify ost
-                # {"$lookup": {
-                #     "from": "spotify_ost",
-                #     "let": {"english_name": "$english_name"},
-                #     "pipeline": [
-                #         {"$match": {
-                #             "year": year,
-                #             "week": week
-                #         }}
-                #     ],
-                #     "as": "spotify_ost"
-                # }},
-                # {"$unwind": "$spotify_ost"},
-                # # match drama name with album name
-                # {"$addFields": {
-                #     "is_match": {
-                #         "$regexMatch": {
-                #             "input": "$spotify_ost.album",
-                #             "regex": {
-                #                 "$concat": [".*", {"$toString": "$english_name"}, ".*"]
-                #             },
-                #             "options": "i"
-                #         }
-                #     }
-                # }},
-                # # return matched drama
-                # {"$match": {
-                #     "is_match": True
-                # }},
-                # # group by drama
-                # {"$group": {
-                #     "_id": "$english_name",
-                #     "korean_name": {"$first": "$korean_name"},
-                #     "artist_id": {"$first": "$artist_id"},
-                #     "year": {"$first": "$spotify_ost.year"},
-                #     "week": {"$first": "$spotify_ost.week"},
-                #     "play_counts": {"$push": {"$toInt": "$spotify_ost.play_counts"}}
-                # }},
-                # # return sum up play_counts
-                # {"$project": {
-                #     "_id": 0,
-                #     "english_name": "$_id",
-                #     "korean_name": "$korean_name",
-                #     "artist_id": "$artist_id",
-                #     "year": "$year",
-                #     "week": "$week",
-                #     "play_counts": {"$sum": "$play_counts"}
-                # }},
-                # {"$unwind": "$artist_id"},
-                # {"$group": {
-                #     "_id": "$artist_id",
-                #     "english_name": {"$push": "$english_name"},
-                #     "korean_name": {"$push": "$korean_name"},
-                #     "year": {"$first": "$year"},
-                #     "week": {"$first": "$week"},
-                #     "ost_score": {"$push": "$play_counts"}
-                # }}
             ]
 
             results = SpotifyOst.objects().aggregate(pipeline)
@@ -942,7 +823,7 @@ class TrendingArtistController:
             return jsonify({
                 'status': 'error',
                 'err': str(e)
-            })
+            }), 500
 
     @classmethod
     def filter_ost_by_drama_name(cls, year, week):
@@ -1080,11 +961,7 @@ class TrendingArtistController:
         ]
 
         artists = Artists.objects().aggregate(pipeline)
-        results = []
-        for artist in artists:
-            results.append(artist)
-
-        return results
+        return list(artists)
 
     @classmethod
     def get_drama_score(cls, country, year, week):
@@ -1177,7 +1054,7 @@ class TrendingArtistController:
             return jsonify({
                 'status': 'error',
                 'err': str(e)
-            })
+            }), 500
 
     ### SNS Score Section ###
     @staticmethod
@@ -1323,11 +1200,7 @@ class TrendingArtistController:
             ]
 
             results = Youtube.objects().aggregate(pipeline)
-            result = []
-            for item in results:
-                result.append(item)
-
-            return result
+            return list(results)
         except Exception as e:
             return jsonify({
                 'err': str(e)
@@ -1354,20 +1227,16 @@ class TrendingArtistController:
             ]
 
             results = Tiktok.objects().aggregate(pipeline)
-            result = []
-            for item in results:
-                result.append(item)
-
-            return result
+            return list(results)
         except Exception as e:
             return jsonify({
                 'err': str(e)
             }), 500
 
     @classmethod
-    def get_artist_sns_score(self):
+    def get_artist_sns_score(cls):
         # get all artists in db
-        artists = self.query_db_artist()
+        artists = cls.query_db_artist()
         # print(artists)
 
         combined_artist_sns_score = []
@@ -1377,15 +1246,15 @@ class TrendingArtistController:
             combined_artist = artist.copy()
             # match youtube_sns_score
             if combined_artist.get("youtube_id"):
-                yt_sns_scores = self.get_youtube_score(combined_artist.get("youtube_id"))
-                combined_artist["youtube_sns_score"] = yt_sns_scores[0]["hashtag"]
+                yt_sns_scores = cls.get_youtube_score(combined_artist.get("youtube_id"))
+                combined_artist["youtube_sns_score"] = yt_sns_scores[0]["hashtag"] if yt_sns_scores else 0
             else:
                 combined_artist["youtube_sns_score"] = 0
             # match tiktok_sns_score
             if combined_artist.get("tiktok_id"):
-                tk_sns_scores = self.get_tiktok_score(combined_artist.get("tiktok_id"))
+                tk_sns_scores = cls.get_tiktok_score(combined_artist.get("tiktok_id"))
                 # if list is not null
-                if len(tk_sns_scores) == 1:
+                if tk_sns_scores and len(tk_sns_scores) >= 1:
                     combined_artist["tiktok_sns_score"] = tk_sns_scores[0]["hashtag"]
                 else:
                     combined_artist["tiktok_sns_score"] = 0
@@ -1393,12 +1262,10 @@ class TrendingArtistController:
                 combined_artist["tiktok_sns_score"] = 0
             # match instagram_sns_score
             if combined_artist.get("instagram_id"):
-                ig_sns_scores = self.get_instagram_score(combined_artist.get("instagram_id"))
-                # print(ig_sns_scores)
+                ig_sns_scores = cls.get_instagram_score(combined_artist.get("instagram_id"))
                 # if list is not null
-                if len(ig_sns_scores) == 1:
+                if ig_sns_scores and len(ig_sns_scores) >= 1:
                     combined_artist["instagram_sns_score"] = ig_sns_scores[0]["instagram_score"]
-                    # print(type(ig_sns_scores))
                 else:
                     combined_artist["instagram_sns_score"] = 0
             else:
@@ -1423,10 +1290,10 @@ class TrendingArtistController:
         return sorted_list
 
     @classmethod
-    def get_sns_score(self):
+    def get_sns_score(cls):
         try:
-            combined_list = self.get_artist_sns_score()
-            total_sns_score = self.calculate_sns_score(combined_list)
+            combined_list = cls.get_artist_sns_score()
+            total_sns_score = cls.calculate_sns_score(combined_list)
 
             return total_sns_score
         except Exception as e:
@@ -1593,5 +1460,75 @@ class TrendingArtistController:
         return filtered_list
 
     @classmethod
-    def get_popularity_score(cls):
-        pass
+    def get_artist_detail(cls, artist_id, year, week):
+        """
+        Get detailed artist info with scores for a specific week.
+
+        :param artist_id: The artist's ID
+        :param year: Year for score calculation
+        :param week: Week number for score calculation
+        :return: JSON response with artist details and scores
+        """
+        if not artist_id:
+            return jsonify({'status': 'error', 'message': 'Missing artist_id parameter'}), 400
+
+        try:
+            # Get base artist info
+            artist = Artists.objects(artist_id=artist_id).first()
+            if not artist:
+                return jsonify({'status': 'error', 'message': 'Artist not found'}), 404
+
+            # Build base result from artist data
+            result = {
+                'artist_id': artist.artist_id,
+                'english_name': artist.english_name,
+                'korean_name': artist.korean_name,
+                'type': artist.type,
+                'nation': artist.nation.value if hasattr(artist.nation, 'value') else artist.nation,
+                'image_url': artist.image_url,
+                'instagram_id': artist.instagram_id,
+                'instagram_user': artist.instagram_user,
+                'youtube_id': artist.youtube_id,
+                'tiktok_id': artist.tiktok_id,
+                'spotify_id': artist.spotify_id,
+            }
+
+            # Get individual scores
+            # SNS scores
+            total_sns_score = 0
+            if artist.youtube_id:
+                yt_scores = cls.get_youtube_score(artist.youtube_id)
+                if yt_scores and len(yt_scores) > 0:
+                    total_sns_score += yt_scores[0].get('hashtag', 0)
+
+            if artist.tiktok_id:
+                tk_scores = cls.get_tiktok_score(artist.tiktok_id)
+                if tk_scores and len(tk_scores) > 0:
+                    total_sns_score += tk_scores[0].get('hashtag', 0)
+
+            if artist.instagram_id:
+                ig_scores = cls.get_instagram_score(artist.instagram_id)
+                if ig_scores and len(ig_scores) > 0:
+                    total_sns_score += ig_scores[0].get('instagram_score', 0)
+
+            result['total_sns_score'] = total_sns_score
+
+            # Music score - get Spotify popularity as base
+            total_music_score = 0
+            if artist.spotify_id:
+                sp_pop = cls.get_spotify_popularity(artist.spotify_id)
+                if sp_pop and len(sp_pop) > 0:
+                    total_music_score = sp_pop[0].get('popularity', 0)
+
+            result['total_music_score'] = total_music_score
+
+            # Drama score - would require country context, set to 0 for now
+            result['total_drama_score'] = 0
+
+            # Calculate overall popularity
+            result['popularity'] = total_sns_score + total_music_score
+
+            return jsonify({'status': 'success', 'data': result}), 200
+
+        except Exception as e:
+            return jsonify({'status': 'error', 'err': str(e)}), 500

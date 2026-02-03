@@ -169,13 +169,42 @@ const artistList = ref([
         // todo Region
     })
 
+    const loading = ref(false)
+    const fetchError = ref(null)
+
     // fetch Artist List everytime the country changed
     const fetchArtistList = async () => {
-        const data = await axios.get(`trending-artist/rank/${selectCountry.value.split(" ").join('').toLowerCase()}`)
-        artistList.value = data
+        loading.value = true
+        fetchError.value = null
+        try {
+            // selectCountry.value is an object with {title, value}, use .value for the country name
+            const countrySlug = selectCountry.value.value.split(" ").join('').toLowerCase()
+            const response = await axios.get(`/trending-artist/rank/${countrySlug}`)
+            if (response.data?.data) {
+                artistList.value = response.data.data.map(artist => ({
+                    artistId: artist.artist_id,
+                    artistName: artist.artist || artist.korean_name,
+                    rank: artist.rank,
+                    icon: artist.image_url || 'https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/twitter-logo.svg',
+                    type: Array.isArray(artist.type) ? artist.type[0] : artist.type,
+                    popularity: artist.popularity_score,
+                    // Platform IDs for mini chart
+                    instagramId: artist.instagram_id
+                }))
+            }
+        } catch (err) {
+            fetchError.value = 'Failed to load artist rankings. Please try again.'
+            artistList.value = []
+        } finally {
+            loading.value = false
+        }
     }
-    
-    // watch(selectCountry, fetchArtistList)
+
+    watch(selectCountry, fetchArtistList)
+
+    onMounted(() => {
+        fetchArtistList()
+    })
 </script>
 
 <template>
@@ -222,28 +251,40 @@ const artistList = ref([
                     </template>
                 </v-select>
         </div>
-        <v-row
-        :class="['px-3']">
-            <v-col
-            cols="1">
-            <span :class="['font-weight-medium', 'text-body-1']">{{ $t('Rank') }}</span>
-            </v-col>
-            <v-col
-            cols="6">
-            <span :class="['font-weight-medium', 'text-body-1']">{{ $t('Artist') }}</span>
-            </v-col>
-            <v-col
-            cols="2">
-            <span :class="['font-weight-medium', 'text-body-1']">{{ $t('Popularity') }}</span>
-            </v-col>
-            <v-col
-            cols="3">
-            <span :class="['font-weight-medium', 'text-body-1']">{{ $t('7-day Change') }}</span>
-            </v-col>
-        </v-row>
-        <TACard v-for="(artist, i) in artistPresentList" :value="artist" :key="i">
+        <!-- Error State -->
+        <v-alert v-if="fetchError" type="error" class="my-3">
+            {{ fetchError }}
+        </v-alert>
 
-        </TACard>
+        <!-- Loading State -->
+        <div v-else-if="loading" class="d-flex justify-center align-center py-10">
+            <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
+        </div>
+
+        <!-- Artist List -->
+        <template v-else>
+            <v-row
+            :class="['px-3']">
+                <v-col
+                cols="1">
+                <span :class="['font-weight-medium', 'text-body-1']">{{ $t('Rank') }}</span>
+                </v-col>
+                <v-col
+                cols="6">
+                <span :class="['font-weight-medium', 'text-body-1']">{{ $t('Artist') }}</span>
+                </v-col>
+                <v-col
+                cols="2">
+                <span :class="['font-weight-medium', 'text-body-1']">{{ $t('Popularity') }}</span>
+                </v-col>
+                <v-col
+                cols="3">
+                <span :class="['font-weight-medium', 'text-body-1']">{{ $t('7-day Change') }}</span>
+                </v-col>
+            </v-row>
+            <TACard v-for="(artist, i) in artistPresentList" :value="artist" :key="i">
+            </TACard>
+        </template>
     </v-container>
 
     </v-container>

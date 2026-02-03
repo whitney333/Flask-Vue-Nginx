@@ -111,26 +111,54 @@ import { useRoute, useRouter } from 'vue-router';
             }
         }
 
+    // ==========================================================================
+    // TODO: Mini chart currently shows Instagram followers as a proxy for popularity.
+    // FUTURE: Fetch from artist_score_history collection once implemented.
+    // ==========================================================================
     const fetchChart = async () => {
-        loadingBar.value = true
-        const data = await axios.get(`/instagram/chart/follower`, {setTimeout: 10000})
-        follower.value = data.data['result']
-        index_number.value = follower.value[follower.value.length - 1]['follower_count']
+        // Skip if no instagramId available
+        if (!props.value.instagramId) {
+            loadingBar.value = false
+            series.value = []
+            return
+        }
 
-        let formattedData = follower.value.map((e, i) => {
-            return {
-                x: e['datetime'],
-                y: e['follower_count'],
-            };
-        });
-        // update the series with axios data
-        series.value = [
-            {
+        loadingBar.value = true
+        try {
+            const today = new Date().toISOString().slice(0, 10)
+            const response = await axios.get('/instagram/v1/follower', {
+                params: {
+                    artist_id: props.value.instagramId,
+                    date_end: today,
+                    filter: '28d'  // 30 days for mini chart
+                },
+                timeout: 10000
+            })
+
+            const result = response.data?.data || []
+            if (result.length === 0) {
+                series.value = []
+                loadingBar.value = false
+                return
+            }
+
+            follower.value = result
+            index_number.value = result[result.length - 1]?.follower || 0
+
+            const formattedData = result.map(e => ({
+                x: e.datetime,
+                y: e.follower,
+            }))
+
+            series.value = [{
                 name: 'Popularity',
                 data: formattedData,
-            }
-        ]
-        loadingBar.value = false
+            }]
+        } catch (err) {
+            series.value = []
+        } finally {
+            loadingBar.value = false
+        }
     }
     const handleToArtist = () => {
         router.push(`/artist/${props.value.artistId}/${props.value.artistName}`)
@@ -158,9 +186,15 @@ import { useRoute, useRouter } from 'vue-router';
             <v-col
             cols="1">
             <v-avatar color="info">
-                <v-icon icon="mdi-account-circle"></v-icon>
+                <v-img
+                    :src="props.value.icon"
+                    :alt="props.value.artistName"
+                >
+                    <template v-slot:placeholder>
+                        <v-icon icon="mdi-account-circle"></v-icon>
+                    </template>
+                </v-img>
             </v-avatar>
-
             </v-col>
             <v-col
             cols="2">
@@ -172,11 +206,16 @@ import { useRoute, useRouter } from 'vue-router';
             </v-col>
             <v-col
             cols="1">
-            <span>{{ props.value.popularity.toLocaleString('en-US') }}</span>
+            <span>{{ props.value.popularity ? props.value.popularity.toLocaleString('en-US') : '-' }}</span>
             </v-col>
             <v-col
             cols="3">
-            <AreaCharts width="90%" height="60%" :series="series" :chartOptions="chartOptions" ></AreaCharts>
+            <template v-if="series.length > 0 && series[0].data?.length > 0">
+                <AreaCharts width="90%" height="60%" :series="series" :chartOptions="chartOptions" />
+            </template>
+            <template v-else-if="!loadingBar">
+                <span class="text-grey text-caption">No trend data</span>
+            </template>
             </v-col>
             <v-col
             cols="1">

@@ -9,6 +9,7 @@ import { computed, onMounted, ref, watch } from 'vue';
     })
 
     const loadingBar = ref(false)
+    const fetchError = ref(null)
     const index_number =  ref("")
     const selection = ref('one_month')
     const series = ref([])
@@ -147,7 +148,7 @@ import { computed, onMounted, ref, watch } from 'vue';
                     }
                 },
             ],
-            colors: props.value.colors,
+            colors: props.value.colors || ['#008FFB'],  // Default blue if no color provided
             grid: {
               row: {
                 colors: ['#FFFFFF', 'transparent'], // takes an array which will be repeated on columns
@@ -184,7 +185,9 @@ import { computed, onMounted, ref, watch } from 'vue';
                 ]
             loadingBar.value = false
         } catch (e) {
-            console.error(e);
+            fetchError.value = 'Failed to load chart data'
+            series.value = []
+            loadingBar.value = false
         }
     }
 
@@ -227,7 +230,7 @@ import { computed, onMounted, ref, watch } from 'vue';
         fetchData()
     })
 
-    watch(selectDate, updateData(selectDate.value.title))
+    // Watch is handled by @update:modelValue in template, no need for explicit watch here
 </script>
 
 <template>

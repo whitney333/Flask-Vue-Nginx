@@ -1,9 +1,54 @@
 from controllers.trending_artist_controller import TrendingArtistController
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, reqparse, Api
+from datetime import datetime
 
 trending_artist_bp = Blueprint('trending_artist', __name__)
 trending_artist_api = Api(trending_artist_bp)
+
+# Country URL slug to internal format mapping
+COUNTRY_MAP = {
+    'global': 'GLOBAL',
+    'southkorea': 'KR',
+    'taiwan': 'TW',
+    'hongkong': 'HK',
+    'japan': 'JP',
+    'thailand': 'TH',
+    'vietnam': 'VN',
+    'philippines': 'PH',
+    'indonesia': 'ID',
+    'unitedstates': 'US',
+    'canada': 'CA',
+    'brazil': 'BR',
+    'mexico': 'MX',
+    'unitedkingdom': 'GB',
+    'germany': 'DE',
+    'france': 'FR',
+    'spain': 'ES',
+    'italy': 'IT',
+    'australia': 'AU'
+}
+
+### Trending Artist Rank Endpoint (for frontend) ###
+@trending_artist_bp.route('/rank/<country>', methods=['GET'])
+def get_trending_rank(country):
+    """Get trending artist rankings by country"""
+    year = request.args.get('year', default=str(datetime.now().year))
+    week = request.args.get('week', type=int, default=datetime.now().isocalendar()[1])
+    type_filter = request.args.get('type', default=None)
+
+    # Map URL format to internal format
+    internal_country = COUNTRY_MAP.get(country.lower(), country)
+    return TrendingArtistController.calculate_overall_popularity(internal_country, year, week, type_filter)
+
+
+@trending_artist_bp.route('/v1/artist/<artist_id>', methods=['GET'])
+def get_artist_detail(artist_id):
+    """Get detailed artist info with scores for a specific week"""
+    year = request.args.get('year', type=int, default=datetime.now().year)
+    week = request.args.get('week', type=int, default=datetime.now().isocalendar()[1])
+    return TrendingArtistController.get_artist_detail(artist_id, year, week)
+
 
 ### Music Score Section ###
 @trending_artist_bp.route('/spotify-chart-score', methods=['GET'])
@@ -119,12 +164,6 @@ def get_sns_score():
     all_sns_score = TrendingArtistController.merge_all_sns_scores(country, year, week)
 
     return all_sns_score
-
-@trending_artist_bp.route('/pre-sns-score', methods=['GET'])
-def _sns_score():
-    sns_score = TrendingArtistController.get_sns_score()
-
-    return sns_score
 
 @trending_artist_bp.route('/sns-score', methods=['GET'])
 def total_sns_score():
