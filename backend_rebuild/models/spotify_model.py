@@ -45,6 +45,7 @@ class WeeklyTopSongs(EmbeddedDocument):
     stream = StringField(required=True)
 
 class SpotifyOst(Document):
+    year = IntField(required=True)
     week = IntField(required=True)
     datetime = DateTimeField(default=datetime.now())
     country = StringField(required=True)

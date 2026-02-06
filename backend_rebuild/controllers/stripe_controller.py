@@ -3,6 +3,7 @@ from models.user_model import Users
 from services.stripe_service import StripeService
 import stripe
 import os
+from dotenv import load_dotenv
 
 
 class StripeController:
