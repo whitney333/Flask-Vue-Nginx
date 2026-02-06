@@ -1,6 +1,5 @@
 from models.artist_model import Artists
 from bson import ObjectId
-from flask import jsonify
 
 
 class ArtistService:
@@ -121,3 +120,23 @@ class ArtistService:
             raise ValueError("Missing melon_id")
 
         return artist.melon_id
+
+    @staticmethod
+    def get_db_artist():
+        """
+        Get all artists' necessary info for trending calculation
+        """
+        artists = Artists.objects(artist_id__ne=None)\
+            .only(
+                "artist_id",
+                "type",
+                "english_name",
+                "korean_name",
+                "instagram_id",
+                "instagram_user",
+                "youtube_id",
+                "tiktok_id",
+                "spotify_id",
+        ).as_pymongo()
+
+        return list(artists)
