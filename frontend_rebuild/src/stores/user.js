@@ -59,7 +59,6 @@ export const useUserStore = defineStore("user", {
       if (Array.isArray(user.followedArtists)) {
         this.followedArtists = user.followedArtists;
       }
-      this.firebaseToken = user.firebaseToken;
       this.admin = user.admin;
       this.created_at = user.created_at;
       this.last_login_at = user.last_login_at;
@@ -76,7 +75,6 @@ export const useUserStore = defineStore("user", {
       this.photo = null
       this.tenant = null
       this.followedArtists = []
-      this.firebaseToken = null
       this.admin = null
       this.created_at = null
       this.last_login_at = null

@@ -11,7 +11,6 @@
     const userStore = useUserStore()
     // const artistId = ref('1')
     const end = new Date().toISOString().slice(0, 10)
-    const filter = ref('7d')
     const spotifyUrl = `/spotify/v1`
 
     console.log("artistStore: ", artistStore.artistId)
@@ -27,31 +26,31 @@
 
     const spotifyFollowersValue = computed(() => {
       if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
 
       return {
         ...musicJSON.spotifyFollowersValue,
-        fetchURL: `/spotify/v1/follower`
+        fetchURL: `/spotify/v1/follower`,
+        range: userStore.isPremium ? "365d" : "28d"
       }
     })
 
     const spotifyMonthlyListenersValue = computed(() => {
       if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
 
       return {
         ...musicJSON.spotifyMonthlyListenersValue,
-        fetchURL: `/spotify/v1/monthly-listener`
+        fetchURL: `/spotify/v1/monthly-listener`,
+        range: userStore.isPremium ? "365d" : "28d"
       }
     })
 
     const spotifyFanConversionRateValue = computed(() => {
       if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
 
       return {
         ...musicJSON.spotifyFanConversionRateValue,
-        fetchURL: `/spotify/v1/conversion-rate`
+        fetchURL: `/spotify/v1/conversion-rate`,
+        range: userStore.isPremium ? "365d" : "28d"
       }
     })
 
@@ -63,23 +62,21 @@
 
     const spotifyPopularityIndexValue = computed(() => {
       if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
 
       return {
         ...musicJSON.spotifyPopularityIndexValue,
         fetchURL: `/spotify/v1/popularity`,
-        range: range
+        range: userStore.isPremium ? "365d" : "28d"
       }
     })
 
     const melonFollowerValue = computed(() => {
       if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
 
       return {
         ...musicJSON.melonFollowerValue,
         fetchURL: `/melon/v1/follower`,
-        range: range
+        range: userStore.isPremium ? "365d" : "28d"
       }
     })
 

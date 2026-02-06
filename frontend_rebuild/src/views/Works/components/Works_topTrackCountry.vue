@@ -180,65 +180,85 @@
     try {
       loadingCard.value = true
 
-      const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=${countriesFlag[selected.value]}`, {setTimeout: 10000})
-      const data = res.data.data[0]
+      if (!artistStore.artistId || !selected.value) {
+        series.value = []
+        loadingCard.value = false
+        return
+      }
 
-      lastUpdate.value = data.datetime
-      trackList.value = data.top_track.map((val) => val.track)
+      const res = await axios.get(
+          `/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=KR`,
+          {timeout: 10000}
+      )
 
+      const data = res.data?.data?.[0] // safe optional chaining
 
-      const formattedData = data.top_track.map((e, i) => {
-        return {
-          x: e.track,
-          y: e.popularity,
-        }
-      })
-      // // update the series with axios data
+      if (!data) {
+        series.value = []
+        loadingCard.value = false
+        return
+      }
+
+      lastUpdate.value = data.datetime || ""
+      trackList.value = data.top_track?.map((val) => val.track) || []
+
+      const formattedData = data.top_track?.map((e) => ({
+        x: e.track,
+        y: e.popularity ?? 0
+      })) || []
+
       series.value = [
         {
-          name: 'Popularity',
-          data: formattedData,
+          name: "Popularity",
+          data: formattedData
         }
       ]
 
-      loadingCard.value = false
     } catch (e) {
-      console.error(e);
+      console.error(e)
+      series.value = []
+    } finally {
+      loadingCard.value = false
     }
   }
 
   const getTopSong = async () => {
     try {
       loadingCard.value = true
-      const date = new Date()
-      end_date.value = date.toISOString().split('T')[0]
 
-      const res = await axios.get(`/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=${selected.value}`, {setTimeout: 5000})
-      selected.value = res.data.data["top_track"]
+      if (!artistStore.artistId) return
 
-      loadingCard.value = false
+      const res = await axios.get(
+          `/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=${countriesFlag[selected.value]}`,
+          {timeout: 5000}
+      )
+
+      // 這裡只更新 selected if data 正確
+      const firstData = res.data?.data?.[0]
+      if (firstData) {
+        selected.value = firstData.country || selected.value
+      }
 
     } catch (e) {
-      console.error(e);
+      console.error(e)
+    } finally {
+      loadingCard.value = false
     }
   }
 
-  const created = async () => {
-    loadingCard.value = true
-    await getTopTrackRegion()
-    loadingCard.value = false
-  }
 
   onMounted(() => {
-    created()
+    getTopTrackRegion()
   })
-  watch(selected, getTopTrackRegion)
+
+  watch(selected, (newVal) => {
+    if (newVal) getTopTrackRegion()
+  })
 
   watch(
       () => artistStore.artistId,
-      async (newMid) => {
-        if (newMid) {
-          // console.log("🎯 mid changed:", newMid)
+      async (newId) => {
+        if (newId) {
           await getTopSong()
           await getTopTrackRegion()
         }

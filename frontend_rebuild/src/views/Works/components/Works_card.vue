@@ -182,27 +182,40 @@
                 artist_id: artistStore.artistId
               }})
 
-            data.value = res.data[props.value.fetchFollowerType]
-            latest_date.value = data.value[data.value.length - 1][props.value.fetchDateType]
-            first_day.value = data.value[0][props.value.fetchDateType]
-            if (data.value.length > 30) {
-                one_month.value = data.value[data.value.length - 30][props.value.fetchDateType]
-            } else {
-                one_month.value = data.value[0][props.value.fetchDateType]
-            }
-            if (data.value.length > 90) {
-                three_months.value = data.value[data.value.length - 90][props.value.fetchDateType]
-            } else {
-                three_months.value = data.value[0][props.value.fetchDateType]
-            }
-            if (data.value.length > 180) {
-                six_months.value = data.value[data.value.length - 180][props.value.fetchDateType]
-            } else {
-                six_months.value = data.value[0][props.value.fetchDateType]
-            }
-            
-            index_number.value = data.value[data.value.length - 1][props.value.followerDataType]
-            last_month_data.value = data.value[data.value.length - 30][props.value.followerDataType]
+          // return data
+          data.value = res.data[props.value.fetchFollowerType] || []
+
+          // if no data
+          if (!Array.isArray(data.value) || data.value.length === 0) {
+            series.value = []
+            allowedRanges.value = res.data?.meta?.allowed_ranges || ["28d"]
+            return
+          }
+          // calculation
+          const lastIndex = data.value.length - 1
+          const monthIndex = data.value.length > 30 ? data.value.length - 30 : 0
+          const threeMonthIndex = data.value.length > 90 ? data.value.length - 90 : 0
+          const sixMonthIndex = data.value.length > 180 ? data.value.length - 180 : 0
+          const oneYearIndex = data.value.length > 365 ? data.value.length - 365 : 0
+
+
+          index_number.value =
+              data.value[lastIndex]?.[props.value.followerDataType] ?? 0
+          last_month_data.value =
+              data.value[monthIndex]?.[props.value.followerDataType] ?? 0
+          three_months.value =
+              data.value[threeMonthIndex]?.[props.value.fetchDateType] ??
+              data.value[0][props.value.fetchDateType]
+          six_months.value =
+              data.value[sixMonthIndex]?.[props.value.fetchDateType] ??
+              data.value[0][props.value.fetchDateType]
+          one_year.value =
+              data.value[oneYearIndex]?.[props.value.fetchDateType] ??
+              data.value[0][props.value.fetchDateType]
+
+          first_day.value = data.value[0][props.value.fetchDateType]
+          latest_date.value = data.value[lastIndex][props.value.fetchDateType]
+          one_month.value = data.value[monthIndex][props.value.fetchDateType]
 
             const formattedData = data.value.map((e, i) => {
                 return {
@@ -251,6 +264,9 @@
           } else if (allowedRanges.value.includes("180d")) {
             selection.value = "six_months"
             safeZoom(six_months.value)
+          } else if (allowedRanges.value.includes("90d")) {
+            selection.value = "one_year"
+            safeZoom(one_year.value)
           } else {
             selection.value = "one_month"
             safeZoom(one_month.value)
@@ -325,13 +341,13 @@
   }
 
 
-  watch(
-      () => props.value.fetchURL,
-      (newURL) => {
-        if (newURL) fetchData(newURL);
-      },
-      {immediate: true}
-  );
+    watch(
+        () => [props.value, artistStore.artistId, props.end], // 監聽必要的依賴
+        () => {
+          fetchData()
+        },
+        {immediate: true}
+    )
 
 </script>
 

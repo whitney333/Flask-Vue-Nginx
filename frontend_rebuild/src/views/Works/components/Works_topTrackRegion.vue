@@ -26,6 +26,7 @@
         return word.charAt(0).toUpperCase() + word.slice(1)
     }
 
+
     chartOptions.value = {
       chart: {
         height: 350,
@@ -119,7 +120,7 @@
 
     onMounted(() => {
         created()
-    }) 
+    })
 
     watch(selected, getTopTrackRegion)
 
