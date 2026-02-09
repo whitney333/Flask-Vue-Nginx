@@ -254,12 +254,13 @@ class AdminArtistController:
 
             # ==== Duplicate artist check ====
             existed = Artists.objects(
-                english_name__iexact=english_name
+                english_name__iexact=english_name,
+                birth=birth
             ).first()
 
             if existed:
                 return jsonify({
-                    "error": "Artist with this English name already exists"
+                    "error": "Artist with this English name and birth already exists"
                 }), 409
 
             check_last_artist_pipeline = [
