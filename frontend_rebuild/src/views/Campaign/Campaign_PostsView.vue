@@ -10,12 +10,14 @@ import campaignJSON from './json/campaignViewDetails.json'
 import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vue";
 import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
 import * as XLSX from 'xlsx'
+import {useAuthStore} from "@/stores/auth.js";
 
 
 const infoOpen = ref(false)
 const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const campaigns = ref([])
 const showCancelDialog = ref(false)
 const showPerformanceDialog = ref(false)
@@ -64,7 +66,7 @@ const confirmCancel = async () => {
         `/campaign/v1/cancel/${targetCampaignId.value}`,
         {status: "cancelled"},
         {headers: {
-            Authorization:  `Bearer ${userStore.firebaseToken}`,
+            Authorization:  `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           }}
     )
@@ -88,7 +90,7 @@ const getAllCampaign = async () => {
     const res = await axios.get(
         "/campaign/v1/read",
         {headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
         }}
     )
