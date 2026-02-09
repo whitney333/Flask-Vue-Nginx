@@ -66,6 +66,7 @@ class UserService:
             user.update(
                 set__is_premium=False,
                 set__plan="free",
+                set__billing_interval=None,
                 set__stripe_subscription_id=None,
                 set__premium_expired_at=None
             )

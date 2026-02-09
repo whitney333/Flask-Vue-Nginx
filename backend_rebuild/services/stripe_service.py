@@ -7,14 +7,18 @@ from datetime import datetime, timezone
 class StripeService:
 
     @staticmethod
-    def create_checkout_session(user, plan):
+    def create_checkout_session(user, plan, billing_interval):
         price_map = {
-            "monthly": os.getenv("STRIPE_PRICE_MONTHLY"),
-            "yearly": os.getenv("STRIPE_PRICE_YEARLY")
+            ("starter", "monthly"): os.getenv("STRIPE_PRICE_STARTER_MONTHLY"),
+            ("starter", "yearly"): os.getenv("STRIPE_PRICE_STARTER_YEARLY"),
+            ("standard", "monthly"): os.getenv("STRIPE_PRICE_STANDARD_MONTHLY"),
+            ("standard", "yearly"): os.getenv("STRIPE_PRICE_STANDARD_YEARLY"),
         }
+        key = (plan, billing_interval)
+        if key not in price_map:
+            raise ValueError("Invalid plan or billing interval")
 
-        if plan not in price_map:
-            raise ValueError("Invalid plan")
+        price_id = price_map[key]
 
         session = stripe.checkout.Session.create(
             mode="subscription",
@@ -22,7 +26,7 @@ class StripeService:
             client_reference_id=user.firebase_id,
             payment_method_types=["card"],
             line_items=[{
-                "price": price_map[plan],
+                "price": price_id,
                 "quantity": 1
             }],
             success_url=os.getenv("FRONTEND_URL") + "/payment/success",
@@ -30,6 +34,7 @@ class StripeService:
             subscription_data={
                 "metadata": {
                     "plan": plan,
+                    "billing_interval": billing_interval,
                     "firebase_id": user.firebase_id
                 }
             }
@@ -47,10 +52,12 @@ class StripeService:
         subscription = stripe.Subscription.retrieve(subscription_id)
 
         plan = subscription.metadata.get("plan")
+        billing_interval = subscription.metadata.get("billing_interval")
 
-        if not plan:
+        if not plan or not billing_interval:
             print("[Stripe] subscription metadata missing plan")
             print("subscription.metadata =", subscription.metadata)
+            return
 
         user = Users.objects(firebase_id=firebase_id).first()
         if not user:
@@ -61,11 +68,12 @@ class StripeService:
         user.update(
             set__is_premium=True,
             set__plan=plan,
+            set__billing_interval=billing_interval,
             set__stripe_customer_id=customer_id,
             set__stripe_subscription_id=subscription_id
         )
 
-        print(f"[Stripe] User {firebase_id} upgraded to premium ({plan})")
+        print(f"[Stripe] User {firebase_id} upgraded to {plan} ({billing_interval})")
 
     @staticmethod
     def handle_subscription_created(subscription):
@@ -173,10 +181,7 @@ class StripeService:
 
         # ---- downgrade user ----
         user.update(
-            set__is_premium=False,
-            set__plan=None,
             set__stripe_subscription_id=None,
-            set__premium_expired_at=None
         )
 
         print(f"[Stripe] Subscription canceled for user {user.firebase_id}")
@@ -224,10 +229,6 @@ class StripeService:
         user = Users.objects(stripe_customer_id=customer_id).first()
         if not user:
             return
-
-        user.update(
-            set__is_premium=False
-        )
 
         print(f"[Stripe] Payment failed, premium suspended: {customer_id}")
 
