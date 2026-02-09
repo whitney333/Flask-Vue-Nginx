@@ -433,6 +433,8 @@ const getTenantDropDownList = async () => {
 
 // open inactive dialog
 const openChangeStatusDialog = (artist) => {
+  if (artist.is_active === null) return
+
   selectedArtistId.value = artist.id;
   selectedArtistName.value = artist.artist_en_name;
   deleteDialog.value = true;
@@ -998,7 +1000,7 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
             </div>
             <span v-else>-</span>
           </td>
-          <td class="px-4 py-2">{{ a.status || '-' }}</td>
+          <td class="px-4 py-2">{{ a.is_active === null ? '-' : (a.is_active ? 'Active' : 'Inactive') }}</td>
           <td class="px-4 py-2 flex gap-2">
             <button
                 @click.stop="viewArtistDetail(a.id)"
@@ -1007,13 +1009,14 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
               Update
             </button>
             <button
+                v-if="a.is_active !== null"
                 @click.stop="openChangeStatusDialog(a)"
                 class="px-2 py-1 rounded text-xs font-medium cursor-pointer border border-red-600 text-red-600 hover:bg-red-50 transition"
-                :class="a.status === 'active'
+                :class="a.is_active
                   ? 'border border-red-600 text-red-600 hover:bg-red-50'
                   : 'border border-blue-600 text-blue-600 hover:bg-blue-50'"
             >
-              {{ a.status === 'active' ? 'Inactive' : 'Active' }}
+              {{ a.is_active ? 'Inactive' : 'Active' }}
             </button>
           </td>
         </tr>
