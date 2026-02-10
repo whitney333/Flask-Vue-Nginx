@@ -84,7 +84,7 @@ class AdminArtistController:
                     "birth": 1,
                     "type": 1,
                     "pronouns": 1,
-                    "status": 1,
+                    "is_active": 1,
                     "image_url": 1,
                     "tenant_id": {"$toString": "$tenant_id"}
                 }
@@ -108,7 +108,7 @@ class AdminArtistController:
                     "belong_tenant": tenant.tenant_name.lower() if tenant else None,
                     "pronouns": a.get("pronouns"),
                     "type": a.get("type"),
-                    "status": a.get("status"),
+                    "is_active": a.get("is_active"),
                     "image": a.get("image_url")
                 })
 
@@ -151,7 +151,7 @@ class AdminArtistController:
                 "nation": artist.nation,
                 "pronouns": artist.pronouns,
                 "type": artist.type,
-                # "status": artist.status,
+                "is_active": artist.is_active,
                 "fandom": artist.fandom,
                 "image": artist.image_url,
                 # TODO BELONG GROUP > REFERENCE FIELD
@@ -254,7 +254,8 @@ class AdminArtistController:
 
             # ==== Duplicate artist check ====
             existed = Artists.objects(
-                english_name__iexact=english_name
+                english_name__iexact=english_name,
+                birth=birth_date
             ).first()
 
             if existed:
@@ -335,7 +336,7 @@ class AdminArtistController:
         """
         try:
             data = request.get_json()
-            print(data)
+            # print(data)
 
             artist = Artists.objects(id=artist_id).first()
             if not artist:
@@ -464,12 +465,16 @@ class AdminArtistController:
             if not artist:
                 return jsonify({"error": "Artist not found"}), 404
 
-            artist.status = "inactive" if artist.status == "active" else "active"
-            artist.save()
+            next_status = not bool(artist.is_active)
+
+            Artists.objects(pk=artist_id).update_one(
+                set__is_active=next_status
+            )
 
             return jsonify({
                 "message": "Artist status updated",
-                "artist_id": str(artist.id)
+                "artist_id": str(artist.id),
+                "is_active": next_status
             }), 200
 
         except Exception as e:

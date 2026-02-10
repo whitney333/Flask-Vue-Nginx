@@ -7,6 +7,7 @@ import datetime
 import uuid
 from bson import ObjectId, Decimal128
 from services.campaign_service import CampaignService
+from libs.utils import get_current_user
 
 
 def convert_value(v):
@@ -175,11 +176,15 @@ class CampaignController:
     def get_all_campaign_by_user_id(cls):
         try:
             # get token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            auth_header = request.headers.get("Authorization", "")
 
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
+            if not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Missing or malformed Authorization header"}), 401
 
+            id_token = auth_header.split(" ")[1]
+
+            if id_token == "null" or id_token == "undefined" or not id_token:
+                return jsonify({"error": "Token is null or empty"}), 401
             try:
                 # verify token, get user firebase_id
                 decoded_token = auth.verify_id_token(id_token)
@@ -262,16 +267,20 @@ class CampaignController:
                 "err": "Missing required parameters"
             }), 400
 
+        # get user
+        user = get_current_user(optional=True)
+
         try:
             campaign = Campaign.objects.get(campaign_id=campaign_id)
-            result = CampaignService.get_campaign_follower_growth(campaign)
+            result = CampaignService.get_campaign_follower_growth(campaign, user)
 
-            if not result:
+            if result is None:
+            # free user or insufficient data
                 return jsonify({
-                    "status": "success",
+                    "status": "error",
                     "data": None,
-                    "message": "Insufficient data"
-                }), 200
+                    "message": "This feature is only available for premium users."
+                }), 403
             return jsonify({
                 "status": "success",
                 "data": result

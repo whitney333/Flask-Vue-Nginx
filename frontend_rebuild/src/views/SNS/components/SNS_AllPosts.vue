@@ -15,7 +15,6 @@
     const posts = ref([])
 
     const artistStore = useArtistStore()
-    // const artistId = ref("1")
 
     const displayPosts = computed(() => {
             return posts.value.slice((first.value - 1) * 6, ((first.value - 1) * 6) + 6)
@@ -25,7 +24,7 @@
     
     const fetchPosts = async () => {
         try {
-            const res = await axios.get(`/${props.platform}/v1/posts?artist_id=${artistStore.mid}`)
+            const res = await axios.get(`/${props.platform}/v1/posts?artist_id=${artistStore.artistId}`)
             // console.log(res.data.data);
             
             posts.value = res.data?.data
@@ -41,7 +40,7 @@
     })
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
             fetchPosts()

@@ -4,6 +4,7 @@ import { getAuth, getIdToken } from "firebase/auth"
 import axios from '@/axios'
 import { useArtistStore } from "@/stores/artist.js";
 import { useUserStore } from "@/stores/user.js";
+import { useAuthStore } from "@/stores/auth.js";
 import CampaignLineChart from "@/views/Campaign/components/Campaign_LineChart.vue";
 import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
@@ -14,6 +15,7 @@ import * as XLSX from "xlsx"
 const auth = getAuth()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const data = ref(null)
 const miniKpiData = ref({
   fastest_growing_city: {},
@@ -102,9 +104,17 @@ watch(selectedCampaign, async (campaignId) => {
     }
 
   } catch (err) {
+    if (err.response && err.res.status === 403) {
+      // free user
+      data.value = null
+    } else {
+      console.error(err)
+    }
     console.error("Fetch follower growth failed:", err)
   }
 })
+
+const showUpgradeMessage = computed(() => !userStore.isPremium)
 
 // default: display the first artist
 watch(artistOptions, (list) => {
@@ -119,7 +129,7 @@ const getMiniKpi = async (artist_id, start) => {
         `/spotify/v1/top-city/growth`,
         {
           headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           },
           params: {
@@ -349,45 +359,67 @@ const exportData = () => {
       </div>
     </div>
 
+    <!-- FREE USER -->
+    <div
+        v-if="showUpgradeMessage"
+        class="text-center py-16 bg-gray-100 border border-gray-200 rounded-md text-gray-600"
+    >
+      <p class="mb-4 text-lg font-medium">
+        Upgrade to Premium to access full campaign follower growth reports.
+      </p>
+      <button
+          @click="goToUpgradePage"
+          class="bg-indigo-500 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+      >
+        Upgrade Now
+      </button>
+    </div>
 
-    <!-- KPI -->
-    <CampaignKpiCard
-        v-if="data"
-        :data="data"
-    />
-
-    <!-- Chart -->
-    <div class="bg-white rounded-md shadow p-4 mb-6">
-      <h3 class="text-base font-semibold text-gray-800 mb-3">
-        {{ $t('campaign.follower_growth_trend_before_after_campaign') }}
-      </h3>
-      <CampaignLineChart
-        v-if="data"
-        :data="data"
+    <!-- PREMIUM USER -->
+    <div v-else>
+      <!-- KPI -->
+      <CampaignKpiCard
+          v-if="data"
+          :data="data"
       />
-      <div
-        v-else-if="selectedCampaign"
-        class="text-gray-400 text-sm text-center py-16"
-      >
-        {{ $t('campaign.loading_campaign')}}...
-      </div>
-      <div
-        v-else
-        class="text-gray-400 text-sm text-center py-16"
-      >
-        {{ $t('campaign.please_select') }}
-      </div>
-    </div>
 
-    <!-- Platform Cards -->
-    <div class="mb-6">
-      <CampaignPlatformGrowthCard v-if="data" :data="data" />
-    </div>
-    <!-- TODO ADD AUDIENCE CHANGE -->
-    <!-- Audience change  -->
+      <!-- Chart -->
+      <div class="bg-white rounded-md shadow p-4 mb-6">
+        <h3 class="text-base font-semibold text-gray-800 mb-3">
+          {{ $t('campaign.follower_growth_trend_before_after_campaign') }}
+        </h3>
 
-    <!-- mini kpi cards of spotify top city/region -->
-    <MiniKpiCard :kpi="miniKpiData" />
+        <CampaignLineChart
+            v-if="data"
+            :data="data"
+        />
+
+        <div
+            v-else-if="selectedCampaign"
+            class="text-gray-400 text-sm text-center py-16"
+        >
+          {{ $t('campaign.loading_campaign') }}...
+        </div>
+
+        <div
+            v-else
+            class="text-gray-400 text-sm text-center py-16"
+        >
+          {{ $t('campaign.please_select') }}
+        </div>
+      </div>
+
+      <!-- Platform Cards -->
+      <div class="mb-6">
+        <CampaignPlatformGrowthCard
+            v-if="data"
+            :data="data"
+        />
+      </div>
+
+      <!-- mini kpi cards -->
+      <MiniKpiCard :kpi="miniKpiData"/>
+  </div>
   </div>
 </template>
 

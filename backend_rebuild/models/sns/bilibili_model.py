@@ -6,6 +6,7 @@ class PostDetails(EmbeddedDocument):
     aid = IntField(required=True)
     title = StringField(required=True)
     image = URLField(required=True)
+    image_hash = StringField()
     upload_date = StringField(required=True)
     view = IntField()
     danmu = IntField()

@@ -8,35 +8,47 @@ tiktok_api = Api(tiktok_bp)
 # get tiktok followers
 @tiktok_bp.route('/v1/follower', methods=['GET'])
 def get_tiktok_follower():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    followers = TiktokController.get_follower(artist_id, date_end, filter)
+    result = TiktokController.get_tiktok_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return followers
+    return result
 
 # get tiktok likes
 @tiktok_bp.route('/v1/like', methods=['GET'])
 def get_tiktok_like():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    likes = TiktokController.get_like(artist_id, date_end, filter)
+    result = TiktokController.get_tiktok_likes(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return likes
+    return result
 
 # get tiktok hashtags
 @tiktok_bp.route('/v1/hashtag', methods=['GET'])
 def get_tiktok_hashtag():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    hashtags = TiktokController.get_hashtag(artist_id, date_end, filter)
+    result = TiktokController.get_tiktok_hashtags(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return hashtags
+    return result
 
 @tiktok_bp.route("/v1/follower/growth", methods=["GET"])
 def get_tiktok_follower_growth():

@@ -4,6 +4,7 @@ from .tiktok_service import TiktokService
 from .spotify_service import SpotifyService
 from .bilibili_service import BilibiliService
 from .weibo_service import WeiboService
+from .user_service import UserService
 from models.artist_model import Artists
 from models.campaign_model import Campaign
 from datetime import timedelta
@@ -41,12 +42,18 @@ class CampaignService:
         return result
 
     @staticmethod
-    def get_campaign_follower_growth(campaign):
+    def get_campaign_follower_growth(campaign, user):
         """
-
         :param campaign:
         :return:
         """
+        # check if user is premium
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+        if not is_premium:
+            # free user, return None to lock page
+            return None
+
         if not campaign.approved_at:
             return None
 

@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import { useArtistStore } from "@/stores/artist.js";
 import { useUserStore } from "@/stores/user.js";
+import { useAuthStore } from "@/stores/auth.js";
 import axios from '@/axios';
 import { useRouter } from 'vue-router';
 import { DollarSign, Globe, Share2, Box, Blocks } from 'lucide-vue-next';
@@ -16,6 +17,7 @@ const infoOpen = ref(false)
 const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const campaigns = ref([])
 const showCancelDialog = ref(false)
 const showPerformanceDialog = ref(false)
@@ -64,7 +66,7 @@ const confirmCancel = async () => {
         `/campaign/v1/cancel/${targetCampaignId.value}`,
         {status: "cancelled"},
         {headers: {
-            Authorization:  `Bearer ${userStore.firebaseToken}`,
+            Authorization:  `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           }}
     )
@@ -84,15 +86,20 @@ const confirmCancel = async () => {
 
 // get user's all campaign
 const getAllCampaign = async () => {
+  if (!authStore.idToken) {
+    console.warn("idToken not ready")
+    return
+  }
+
   try {
     const res = await axios.get(
         "/campaign/v1/read",
         {headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
         }}
     )
-
+    console.log("idToken:", authStore.idToken)
     campaigns.value = res.data.data
     // console.log("all cp: ", campaigns.value)
   } catch (err) {
@@ -106,7 +113,7 @@ const getSingleCampaignPerformance = async () => {
     const res = await axios.get(
         `/campaign/v1/${selectedCampaign?.campaign_id}`,
         {headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           }}
     )
@@ -165,7 +172,7 @@ watch(showPerformanceDialog, async (newVal) => {
           `/campaign/v1/detail/${selectedCampaign.value.campaign_id}`,
           {
           headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           }
         }

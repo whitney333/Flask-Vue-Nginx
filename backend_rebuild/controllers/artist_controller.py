@@ -3,11 +3,10 @@ from models.tenant_model import Tenant
 from flask import jsonify, request
 import datetime
 import json
+from services.artist_service import ArtistService
 
 
 class ArtistsController:
-    def create_artist(self):
-        pass
 
     def get_artist_by_id(artist_id):
         # Validate required parameters
@@ -122,4 +121,28 @@ class ArtistsController:
             return jsonify({
                 "status": "error",
                 "err": str(e)
+            }), 500
+
+    @staticmethod
+    def new_get_artist_info(artist_id):
+        try:
+            data = ArtistService.get_artist_info(artist_id)
+
+            return jsonify({
+                "status": "success",
+                "data": data,
+                "count": len(data)
+            }), 200
+
+        except ValueError as e:
+            return jsonify({
+                "status": "error",
+                "error_code": "INVALID_PARAMETER",
+                "message": str(e)
+            }), 400
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "error_code": "INTERNAL_SERVER_ERROR",
+                "message": str(e)
             }), 500

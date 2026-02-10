@@ -95,10 +95,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "youtube",
         "usedCol": {
-            "tooltipText": "Daily trend of Instagram Hashtags"
+            "tooltipText": "Daily trend of YouTube Hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Daily trend of Instagram Hashtags"
+            "tooltipText": "Daily trend of YouTube Hashtags"
         }
         
     }

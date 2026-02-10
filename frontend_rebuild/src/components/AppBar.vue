@@ -56,8 +56,8 @@ const languages = [
     }
     function selectArtist(artistId) {
       // update artist id
-      artistStore.setMid(artistId)
-      // console.log("cur: ", artistId)
+      artistStore.setArtist(artistId)
+      console.log("cur: ", artistId)
     }
     const followedArtists = computed(() => userStore.followedArtists);
     // console.log(userStore.followedArtists)
@@ -103,9 +103,9 @@ const languages = [
               <v-list v-if="followedArtists.length > 0">
                 <v-list-item
                     v-for="artist in followedArtists"
-                    :key="artist.artist_id"
+                    :key="artist.id"
                     :prepend-avatar="artist.image"
-                    @click="selectArtist(artist.artist_id)"
+                    @click="selectArtist(artist.id)"
                 >
                 <v-list-item-title class="text-body-1 font-weight-medium">
                   {{ artist.english_name }}

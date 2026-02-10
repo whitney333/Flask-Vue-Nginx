@@ -8,13 +8,17 @@ melon_api = Api(melon_bp)
 
 @melon_bp.route('/v1/follower', methods=['GET'])
 def get_melon_follower():
-    artist_id = request.args.get('artist_id', type=str)
-    date_end = request.args.get('date_end', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    follower = MelonController.get_follower(artist_id, date_end, filter)
+    result = MelonController.get_melon_follower(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return follower
+    return result
 
 @melon_bp.route("/v2/follower/<string:artist_id>", methods=["GET"])
 @auth_required

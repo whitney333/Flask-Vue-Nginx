@@ -1,7 +1,8 @@
 <script setup>
     import axios from '@/axios';
     import {computed, onMounted, ref, watch} from 'vue';
-     import { useArtistStore } from '@/stores/artist'
+    import { useArtistStore } from '@/stores/artist'
+    import { useUserStore } from "@/stores/user.js";
 
     const props = defineProps({
         iconSrc: String,
@@ -9,9 +10,8 @@
         value: Object
     })
 
-    // const artistId = ref("1z4g3DjTBBZKhvAroFlhOM")
     const artistStore = useArtistStore()
-
+    const userStore = useUserStore()
     const citiesData = ref([])
     const cities = ref([])
     const lastUpdate = ref("")
@@ -20,11 +20,38 @@
     const chartOptions = ref({})
     const monthlyListeners = ref(0)
 
+    const formatNumber = computed(() => {
+          return formatNumFunc(index_number.value)
+        }
+    )
+    const formatNumFunc = (value) => {
+      const absValue = Math.abs(Number(value)) // 確保是數字
+      if (absValue < 1000) {
+        return props.value.percentageData ? absValue.toLocaleString() + "%" : absValue.toLocaleString();
+      } else if (absValue < 1_000_000) {
+        const res = (absValue / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+        return props.value.percentageData ? res + "%" : res;
+      } else if (absValue < 1_000_000_000) {
+        const res = (absValue / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+        return props.value.percentageData ? res + "%" : res;
+      } else {
+        const res = (absValue / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
+        return props.value.percentageData ? res + "%" : res;
+      }
+    }
+
     const getData = async () => {
         try{
             loadingCard.value = true
 
-            const res = await axios.get(`/spotify/v1/top-city?artist_id=${artistStore.mid}`, {setTimeout: 10000})
+            const res = await axios.get(`/spotify/v1/top-city`,
+                {headers: {
+                  Authorization: `Bearer ${userStore.firebaseToken}`
+                },
+                params: {
+                  artist_id: artistStore.artistId
+                }}
+            )
             
             citiesData.value = res.data.data[0].top_city
             // console.log("city: ", citiesData.value)
@@ -47,9 +74,11 @@
                     data: formattedData,
                 }
             ]
-            loadingCard.value = false
+
         }catch(e) {
             console.error(e);
+        } finally {
+          loadingCard.value = false
         }
     }
         
@@ -65,18 +94,9 @@
                     horizontal: true,
                 }
             },
-            // dataLabels: {
-            //     enabled: true,
-            //     offsetX: -6,
-            //     style: {
-            //         fontSize: '12px',
-            //         colors: ['#fff']
-            //     }
-            // },
             dataLabels: {
                 enabled: false
             },
-
             colors: [
                 function ({ value, seriesIndex, dataPointIndex, w }) {
                     
@@ -87,9 +107,12 @@
                     }
                 }
             ],
-            xaxis: {
-                categories: cities.value
+          xaxis: {
+            categories: cities.value,
+            labels: {
+              formatter: formatNumFunc
             }
+          }
         }
     
     onMounted(() => {
@@ -97,7 +120,7 @@
     })
 
     watch(
-        () => artistStore.mid,
+        () => artistStore.artistId,
         async (newMid, oldMid) => {
           if (!newMid) return
           // console.log("artist changed:", newMid)

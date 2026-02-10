@@ -165,8 +165,9 @@
             );
             // const token = response.data;
             // if data exists then return
-            const { exists, admin } = response.data
+            const { exists, admin, is_premium } = response.data
             userStore.admin = admin || false;
+            userStore.isPremium = is_premium || false;
 
             // get followed artists list
             if (exists === true) {
