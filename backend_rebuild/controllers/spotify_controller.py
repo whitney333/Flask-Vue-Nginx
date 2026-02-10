@@ -5,6 +5,7 @@ from services.spotify_service import SpotifyService
 import datetime
 from flask import request, jsonify, g
 from libs.utils import get_current_user
+import traceback
 
 
 class SpotifyController:
@@ -613,7 +614,6 @@ class SpotifyController:
         except ValueError as e:
             return jsonify({"err": str(e)}), 404
         except Exception as e:
-            import traceback
             traceback.print_exc()
             return jsonify({"err": str(e)}), 500
 
@@ -623,9 +623,7 @@ class SpotifyController:
                 "status": "locked",
                 "data": [],
                 "tracks": [],
-                "meta": {
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({
@@ -666,9 +664,7 @@ class SpotifyController:
             return jsonify({
                 "status": "locked",
                 "data": [],
-                "meta": {
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({

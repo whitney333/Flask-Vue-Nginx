@@ -4,6 +4,7 @@ from .tiktok_service import TiktokService
 from .spotify_service import SpotifyService
 from .bilibili_service import BilibiliService
 from .weibo_service import WeiboService
+from .user_service import UserService
 from models.artist_model import Artists
 from models.campaign_model import Campaign
 from datetime import timedelta
@@ -48,7 +49,7 @@ class CampaignService:
         """
         # check if user is premium
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
         if not is_premium:
             # free user, return None to lock page
             return None

@@ -763,7 +763,7 @@ class YoutubeController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -808,7 +808,7 @@ class YoutubeController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -853,7 +853,7 @@ class YoutubeController:
                 "data": [],
                 "meta": {
                     "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
+                    "is_premium": result["meta"]["is_premium"]
                 }
             }), 200
 
@@ -872,21 +872,28 @@ class YoutubeController:
         range_key = str(range_key) if range_key else "5"
 
         try:
-            data = YoutubeService.get_chart_most_used_hashtag(
+            result = YoutubeService.get_chart_most_used_hashtag(
                 user=user,
                 artist_id=artist_id,
                 range_key=range_key
             )
 
+            # locked response
+            if result.get("locked"):
+                return jsonify({
+                    "status": "locked",
+                    "data": [],
+                    "meta": {
+                        "allowed_ranges": result["meta"]["allowed_ranges"],
+                        "is_premium": result["meta"]["is_premium"]
+                    }
+                }), 200
+
             return jsonify({
                 "status": "success",
-                "data": data
+                "data": result["data"],
+                "meta": result["meta"]
             }), 200
-
-        except PermissionError as e:
-            return jsonify({
-                "error": str(e)
-            }), 403
 
         except Exception as e:
             return jsonify({
@@ -902,21 +909,28 @@ class YoutubeController:
         range_key = str(range_key) if range_key else "5"
 
         try:
-            data = YoutubeService.get_chart_most_engaged_hashtag(
+            result = YoutubeService.get_chart_most_engaged_hashtag(
                 user=user,
                 artist_id=artist_id,
                 range_key=range_key
             )
 
+            # locked response
+            if result.get("locked"):
+                return jsonify({
+                    "status": "locked",
+                    "data": [],
+                    "meta": {
+                        "allowed_ranges": result["meta"]["allowed_ranges"],
+                        "is_premium": result["meta"]["is_premium"]
+                    }
+                }), 200
+
             return jsonify({
                 "status": "success",
-                "data": data
+                "data": result["data"],
+                "meta": result["meta"]
             }), 200
-
-        except PermissionError as e:
-            return jsonify({
-                "error": str(e)
-            }), 403
 
         except Exception as e:
             return jsonify({
@@ -929,19 +943,27 @@ class YoutubeController:
         user = get_current_user(optional=True)
 
         try:
-            data = YoutubeService.get_posts(
+            result = YoutubeService.get_posts(
+                user=user,
                 artist_id=artist_id
             )
 
+            # locked response
+            if result.get("locked"):
+                return jsonify({
+                    "status": "locked",
+                    "data": [],
+                    "meta": {
+                        "allowed_ranges": result["meta"]["allowed_ranges"],
+                        "is_premium": result["meta"]["is_premium"]
+                    }
+                }), 200
+
             return jsonify({
                 "status": "success",
-                "data": data
+                "data": result["data"],
+                "meta": result["meta"]
             }), 200
-
-        except PermissionError as e:
-            return jsonify({
-                "error": str(e)
-            }), 403
 
         except Exception as e:
             return jsonify({

@@ -176,11 +176,15 @@ class CampaignController:
     def get_all_campaign_by_user_id(cls):
         try:
             # get token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            auth_header = request.headers.get("Authorization", "")
 
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
+            if not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Missing or malformed Authorization header"}), 401
 
+            id_token = auth_header.split(" ")[1]
+
+            if id_token == "null" or id_token == "undefined" or not id_token:
+                return jsonify({"error": "Token is null or empty"}), 401
             try:
                 # verify token, get user firebase_id
                 decoded_token = auth.verify_id_token(id_token)
