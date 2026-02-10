@@ -86,6 +86,11 @@ const confirmCancel = async () => {
 
 // get user's all campaign
 const getAllCampaign = async () => {
+  if (!authStore.idToken) {
+    console.warn("idToken not ready")
+    return
+  }
+
   try {
     const res = await axios.get(
         "/campaign/v1/read",
@@ -94,7 +99,7 @@ const getAllCampaign = async () => {
             "Content-Type": "application/json"
         }}
     )
-
+    console.log("idToken:", authStore.idToken)
     campaigns.value = res.data.data
     // console.log("all cp: ", campaigns.value)
   } catch (err) {

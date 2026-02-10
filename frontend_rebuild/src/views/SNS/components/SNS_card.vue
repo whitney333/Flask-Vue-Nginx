@@ -177,8 +177,8 @@
     }
 
     const fetchData = async () => {
+      loadingBar.value = true
       try {
-        loadingBar.value = true
         const res = await axios.get(props.value.fetchURL,
             {headers: {
               Authorization: `Bearer ${authStore.idToken}`
@@ -201,7 +201,15 @@
         }
 
         data.value = res.data.data || []
-        if (!data.value.length) return
+        if (!data.value.length) {
+          loadingBar.value = false
+          series.value = []
+
+          emptyReason.value = res.data?.meta?.reason || null
+          latest_date.value = null
+
+          return
+        }
 
         if (data.value.length === 0) {
           console.warn("No data found for the given type")
