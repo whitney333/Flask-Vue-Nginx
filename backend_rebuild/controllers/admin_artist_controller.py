@@ -336,7 +336,7 @@ class AdminArtistController:
         """
         try:
             data = request.get_json()
-            print(data)
+            # print(data)
 
             artist = Artists.objects(id=artist_id).first()
             if not artist:

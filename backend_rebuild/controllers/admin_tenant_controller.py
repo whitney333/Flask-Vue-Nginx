@@ -182,6 +182,7 @@ class AdminTenantController:
         try:
             data = request.get_json()
             # print(data)
+
             tenant_name = cls.normalize(data.get("tenant_name"))
             website = cls.normalize(data.get("website"))
             email = cls.normalize(data.get("email"))
@@ -195,9 +196,9 @@ class AdminTenantController:
                 return jsonify({
                     "error": "Invalid email format"
                 }), 400
-            print("tenant_name:", repr(tenant_name))
-            print("website:", repr(website))
-            print("email:", repr(email))
+            # print("tenant_name:", repr(tenant_name))
+            # print("website:", repr(website))
+            # print("email:", repr(email))
 
             # check duplication
             duplicate_fields = {}
@@ -219,11 +220,7 @@ class AdminTenantController:
 
             # find the latest tenant number
             last_tenant = Tenant.objects().order_by("-tenant_id").first()
-
-            if last_tenant and last_tenant.tenant_id:
-                new_number = int(last_tenant.tenant_id) + 1
-            else:
-                new_number = 1  # first data
+            new_number = (last_tenant.tenant_id + 1) if last_tenant else 1
 
             new_tenant = Tenant(
                 tenant_name = tenant_name,
@@ -236,6 +233,7 @@ class AdminTenantController:
             return jsonify({
                 "message": "Tenant created successfully",
                 "tenant": {
+                    "id": str(new_tenant.id),
                     "tenant_id": new_tenant.tenant_id,
                     "tenant_name": new_tenant.tenant_name,
                     "created_at": new_tenant.created_at,

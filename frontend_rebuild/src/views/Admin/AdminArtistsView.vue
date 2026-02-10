@@ -2,6 +2,7 @@
 import {ref, onMounted, watch, computed} from "vue";
 import axios from "axios";
 import {useUserStore} from "@/stores/user.js";
+import {useAuthStore} from "@/stores/auth.js";
 import StatusChip from "@/components/StatusChip.vue"
 
 // dropdown list options
@@ -17,6 +18,7 @@ const profileImageFile = ref(null);
 const artists = ref([]);
 const loading = ref(false);
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const showDialog = ref(false);
 const datePickerMenu = ref(false);
 // pagination
@@ -124,7 +126,7 @@ const submitTenant = async () => {
     submitting.value = true;
     loading.value = true;
     try {
-      const token = userStore.firebaseToken
+      const token = authStore.idToken
       const res = await axios.post(
           `/api/admin/v1/tenants`,
           {
@@ -140,8 +142,23 @@ const submitTenant = async () => {
           }
       )
 
+      const createdTenant = res.data.tenant
+      // ✅ 1. 立刻更新 dropdown
+      tenantOptions.value.push(createdTenant)
+
+      // ✅ 2. 維持字母排序（如果你原本有排序）
+      tenantOptions.value.sort((a, b) =>
+        a.tenant_name.localeCompare(b.tenant_name, "en", {
+          sensitivity: "base"
+        })
+      )
+
+      // ✅ 3.（加分）自動選中新 tenant
+      selectedTenant.value = createdTenant.tenant_id
+
       // clean out the form
       resetForm()
+
       // hide fields after inserting new tenant
       showAddTenantDialog.value = false
     } catch (err) {
@@ -211,7 +228,7 @@ const typeClass = (t) => {
 const addArtist = async () => {
   loading.value = true;
   try {
-    const token = userStore.firebaseToken
+    const token = authStore.idToken
     const res = await axios.post(
         `/api/admin/v1/artists`,
         newArtist.value, {
@@ -385,7 +402,7 @@ const uploadImage = async () => {
   // console.log("artist_name", selectedArtist.value.artist_en_name)
 
   try {
-    const token = userStore.firebaseToken
+    const token = authStore.idToken
     const res = await axios.post(
       "/api/admin/v1/artists/upload/image",
       formData,
@@ -414,7 +431,7 @@ const getTenantName = (tenantId) => {
 const getTenantDropDownList = async () => {
   loading.value = true;
   try {
-    const token = userStore.firebaseToken
+    const token = authStore.idToken
     const res = await axios.get(
         `/api/admin/v1/tenants/list`, {
           headers: {
