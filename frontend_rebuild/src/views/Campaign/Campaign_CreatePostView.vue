@@ -17,12 +17,13 @@
     import { Book, Captions, Clipboard, DollarSign, File, FileTextIcon, Globe, Box, Link, RadioTower, Share2 } from 'lucide-vue-next';
     import { useArtistStore } from "@/stores/artist.js";
     import { useUserStore } from "@/stores/user.js";
+    import { useAuthStore } from "@/stores/auth.js";
     import axios from '@/axios';
     import { useRouter } from 'vue-router';
 
     const router = useRouter()
     const artistStore = useArtistStore()
-
+    const authStore = useAuthStore()
     const userStore = useUserStore()
     const followedArtists = userStore.followedArtists
     const selectedArtist = ref(null)
@@ -142,7 +143,7 @@
             data,
             {
               headers: {
-                "Authorization": `Bearer ${userStore.firebaseToken}`,
+                "Authorization": `Bearer ${authStore.idToken}`,
                 "Content-Type": "application/json"
               }
             }

@@ -3,6 +3,7 @@
     import {onMounted, reactive, ref, watch} from 'vue';
     import { useArtistStore } from '@/stores/artist'
     import { useUserStore } from '@/stores/user'
+    import { useAuthStore } from "@/stores/auth.js";
 
     const props = defineProps({
         value: Object,
@@ -14,6 +15,7 @@
 
     const userStore = useUserStore()
     const artistStore = useArtistStore()
+    const authStore = useAuthStore()
     const range = ref(5)
     const chartOptions = ref({})
     const recent10Series = ref(null)
@@ -32,7 +34,7 @@
                 `/${props.value.apiType}/v1/hashtag/most-engaged`,
                 {
                   headers: {
-                    Authorization: `Bearer ${userStore.firebaseToken}`
+                    Authorization: `Bearer ${authStore.IdToken}`
                   },
                   params: {
                     artist_id: artistStore.artistId,

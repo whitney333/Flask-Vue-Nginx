@@ -17,6 +17,7 @@ import './assets/tailwind.css'; // Import Tailwind
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import "/node_modules/ag-grid-community/styles/ag-theme-quartz.css";
 // window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
+import { useAuthStore } from "@/stores/auth"
 
 const vuetify = createVuetify({
     components,
@@ -37,5 +38,8 @@ app.use(vuetify);
 app.use(VueApexCharts);
 app.use(i18n);
 app.use(pinia);
+
+const authStore = useAuthStore()
+authStore.init()
 
 app.mount('#app');

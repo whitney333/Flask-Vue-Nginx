@@ -4,6 +4,7 @@ import { getAuth, getIdToken } from "firebase/auth"
 import axios from '@/axios'
 import { useArtistStore } from "@/stores/artist.js";
 import { useUserStore } from "@/stores/user.js";
+import { useAuthStore } from "@/stores/auth.js";
 import CampaignLineChart from "@/views/Campaign/components/Campaign_LineChart.vue";
 import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
@@ -14,6 +15,7 @@ import * as XLSX from "xlsx"
 const auth = getAuth()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const data = ref(null)
 const miniKpiData = ref({
   fastest_growing_city: {},
@@ -127,7 +129,7 @@ const getMiniKpi = async (artist_id, start) => {
         `/spotify/v1/top-city/growth`,
         {
           headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
+            "Authorization": `Bearer ${authStore.idToken}`,
             "Content-Type": "application/json"
           },
           params: {
