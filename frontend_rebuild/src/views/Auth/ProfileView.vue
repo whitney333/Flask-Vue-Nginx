@@ -9,12 +9,46 @@ const authStore = useAuthStore()
 const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
 const isPremium = computed(() => userStore.isPremium)
-const selectedPlan = ref("monthly")
+const plan = ref("starter") //plan
+const billingInterval = ref("monthly") // monthly/yearly
+
+// plan config
+const PLANS = [
+  {
+    key: "starter",
+    name: "Starter",
+    monthlyPrice: 10,
+    yearlyPrice: 110,
+    features: [
+      "Artist online presence data aggregation",
+      "Campaign performance tracking",
+      "Campaign analytics",
+      "1 artist",
+    ]
+  },
+  {
+    key: "standard",
+    name: "Standard",
+    monthlyPrice: 70,
+    yearlyPrice: 770,
+    features: [
+      "Artist online presence data aggregation",
+      "Campaign performance tracking",
+      "Campaign analytics",
+      "up to 10 artists",
+    ]
+  }
+]
+
+const currentPlanConfig = computed(() =>
+  PLANS.find(p => p.key === plan.value)
+)
+
 const planLabel = computed(() => {
-  if (userStore.plan === "free") return "Free Plan"
-  if (userStore.plan === "monthly") return "Premium Monthly"
-  if (userStore.plan === "yearly") return "Premium Yearly"
-  return "Premium"
+  if (!isPremium.value) return "Free Plan"
+  return `${currentPlanConfig.value?.name} ${
+    billingInterval.value === "yearly" ? "Yearly" : "Monthly"
+  }`
 })
 
 const expiredDate = computed(() => {
@@ -42,7 +76,10 @@ const upgrade = async () => {
       Authorization: `Bearer ${idToken}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({plan: selectedPlan.value})
+    body: JSON.stringify({
+      plan: plan.value,
+      billing_interval: billingInterval.value
+    })
   })
   const data = await res.json()
   if (data.checkout_url) {
@@ -83,12 +120,12 @@ onMounted(async () => {
     <!-- ===== User Info ===== -->
     <div class="bg-white border border-gray-200 rounded-lg p-6 flex items-center gap-4">
       <div
-          class="w-16 h-16 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-semibold"
+        class="w-16 h-16 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-semibold"
       >
         <img
-            v-if="userStore.photo"
-            :src="userStore.photo"
-            class="w-full h-full rounded-full object-cover"
+          v-if="userStore.photo"
+          :src="userStore.photo"
+          class="w-full h-full rounded-full object-cover"
         />
         <span v-else>
           {{ userStore.name?.charAt(0).toUpperCase() || "U" }}
@@ -104,78 +141,100 @@ onMounted(async () => {
         </p>
 
         <span
-            class="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full"
-            :class="isPremium
+          class="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full"
+          :class="isPremium
             ? 'bg-indigo-100 text-indigo-700'
             : 'bg-gray-100 text-gray-600'"
         >
           {{ planLabel }}
         </span>
-        <span
-            v-if="isPremium && expiredDate"
-            class="text-sm text-gray-500"
-        >
-            Expires: {{ expiredDate }}
+
+        <span v-if="isPremium && expiredDate" class="ml-2 text-sm text-gray-500">
+          Expires: {{ expiredDate }}
         </span>
       </div>
     </div>
 
     <!-- ===== Plan / Upgrade ===== -->
     <div
-        class="border rounded-lg p-6"
-        :class="isPremium ? 'bg-white border-gray-200' : 'bg-indigo-50 border-indigo-200'"
+      class="border rounded-lg p-6"
+      :class="isPremium ? 'bg-white border-gray-200' : 'bg-indigo-50 border-indigo-200'"
     >
+
       <!-- ===== FREE USER ===== -->
       <template v-if="!isPremium">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">
           Upgrade to Premium
         </h3>
 
-        <!-- Plan selector -->
+        <!-- ===== Plan Tier Selector ===== -->
         <div class="grid grid-cols-2 gap-4 mb-6">
-          <!-- Monthly -->
           <button
-              @click="selectedPlan = 'monthly'"
-              :class="selectedPlan === 'monthly'
-          ? 'border-indigo-600 bg-white ring-2 ring-indigo-600'
-          : 'border-gray-300 bg-white hover:border-gray-400'"
-              class="border rounded-lg p-4 text-left transition"
+            v-for="p in PLANS"
+            :key="p.key"
+            @click="plan = p.key"
+            :class="plan === p.key
+              ? 'border-indigo-600 ring-2 ring-indigo-600'
+              : 'border-gray-300 hover:border-gray-400'"
+            class="border rounded-lg p-4 bg-white text-left transition"
           >
-            <p class="text-sm font-medium text-gray-900">Monthly</p>
-            <p class="mt-1 text-2xl font-semibold text-gray-900">$10</p>
+            <h4 class="text-lg font-semibold text-gray-900">
+              {{ p.name }}
+            </h4>
+            <p class="mt-1 text-sm text-gray-500">
+              {{ p.description }}
+            </p>
+
+            <p class="mt-3 text-xl font-semibold text-gray-900">
+              {{ billingInterval === 'monthly'
+                ? `$${p.monthlyPrice} / month`
+                : `$${p.yearlyPrice} / year`
+              }}
+            </p>
+          </button>
+        </div>
+
+        <!-- ===== Billing Interval Selector ===== -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <button
+            @click="billingInterval = 'monthly'"
+            :class="billingInterval === 'monthly'
+              ? 'border-indigo-600 ring-2 ring-indigo-600'
+              : 'border-gray-300 hover:border-gray-400'"
+            class="border rounded-lg p-4 bg-white transition"
+          >
+            <p class="font-medium text-gray-900">Monthly</p>
             <p class="text-xs text-gray-500 mt-1">Billed monthly</p>
           </button>
 
-          <!-- Yearly -->
           <button
-              @click="selectedPlan = 'yearly'"
-              :class="selectedPlan === 'yearly'
-          ? 'border-indigo-600 bg-white ring-2 ring-indigo-600'
-          : 'border-gray-300 bg-white hover:border-gray-400'"
-              class="border rounded-lg p-4 text-left relative transition"
+            @click="billingInterval = 'yearly'"
+            :class="billingInterval === 'yearly'
+              ? 'border-indigo-600 ring-2 ring-indigo-600'
+              : 'border-gray-300 hover:border-gray-400'"
+            class="border rounded-lg p-4 bg-white relative transition"
           >
-        <span
-            class="absolute top-2 right-2 text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full"
-        >
-          Save 8%
-        </span>
-            <p class="text-sm font-medium text-gray-900">Yearly</p>
-            <p class="mt-1 text-2xl font-semibold text-gray-900">$110</p>
+            <span
+              class="absolute top-2 right-2 text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full"
+            >
+              Save more
+            </span>
+            <p class="font-medium text-gray-900">Yearly</p>
             <p class="text-xs text-gray-500 mt-1">Billed yearly</p>
           </button>
         </div>
 
-        <!-- Features -->
+        <!-- ===== Features ===== -->
         <ul class="text-sm text-gray-600 space-y-1 mb-6">
-          <li>• Full campaign analytics</li>
-          <li>• Historical data access</li>
-          <li>• Unlimited artist tracking</li>
+          <li v-for="f in currentPlanConfig.features" :key="f">
+            • {{ f }}
+          </li>
         </ul>
 
-        <!-- CTA -->
+        <!-- ===== CTA ===== -->
         <button
-            @click="upgrade"
-            class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium"
+          @click="upgrade"
+          class="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium"
         >
           Upgrade Now
         </button>
@@ -190,8 +249,8 @@ onMounted(async () => {
           {{ planLabel }} · Active
         </p>
         <button
-            @click="manageSubscription"
-            class="px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium"
+          @click="manageSubscription"
+          class="px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium"
         >
           Manage Subscription
         </button>
@@ -208,19 +267,18 @@ onMounted(async () => {
 
       <ul class="divide-y">
         <li
-            v-for="artist in (
+          v-for="artist in (
             isPremium
               ? userStore.followedArtists
               : userStore.followedArtists.slice(0, 3)
           )"
-            :key="artist.id"
-            class="px-6 py-4 flex items-center gap-4"
+          :key="artist.id"
+          class="px-6 py-4 flex items-center gap-4"
         >
           <img
-              :src="artist.image"
-              class="w-10 h-10 rounded-full object-cover"
+            :src="artist.image"
+            class="w-10 h-10 rounded-full object-cover"
           />
-
           <div>
             <p class="font-medium text-gray-900">
               {{ artist.english_name }}
@@ -232,8 +290,8 @@ onMounted(async () => {
         </li>
 
         <li
-            v-if="!userStore.followedArtists || userStore.followedArtists.length === 0"
-            class="px-6 py-4 text-sm text-gray-500"
+          v-if="!userStore.followedArtists || userStore.followedArtists.length === 0"
+          class="px-6 py-4 text-sm text-gray-500"
         >
           No followed artists
         </li>
@@ -242,6 +300,7 @@ onMounted(async () => {
 
   </div>
 </template>
+
 
 <style scoped>
 

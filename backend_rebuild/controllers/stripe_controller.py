@@ -17,16 +17,18 @@ class StripeController:
 
         data = request.get_json() or {}
         plan = data.get("plan")
+        billing_interval = data.get("billing_interval")
 
-        if not plan:
+        if not plan or not billing_interval:
             return jsonify({
-                "error": "Missing plan"
+                "error": "Missing plan or billing_interval"
             }), 400
 
         try:
             session = StripeService.create_checkout_session(
                 user=user,
-                plan=plan
+                plan=plan,
+                billing_interval=billing_interval
             )
         except ValueError as e:
             return jsonify({

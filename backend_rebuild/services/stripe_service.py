@@ -4,6 +4,25 @@ from models.user_model import Users
 from datetime import datetime, timezone
 
 
+PRICE_MAPPING = {
+    os.getenv("STRIPE_PRICE_STARTER_MONTHLY"): {
+        "plan": "starter",
+        "billing_interval": "monthly"
+    },
+    os.getenv("STRIPE_PRICE_STARTER_YEARLY"): {
+        "plan": "starter",
+        "billing_interval": "yearly"
+    },
+    os.getenv("STRIPE_PRICE_STANDARD_MONTHLY"): {
+        "plan": "standard",
+        "billing_interval": "monthly"
+    },
+    os.getenv("STRIPE_PRICE_STANDARD_YEARLY"): {
+        "plan": "standard",
+        "billing_interval": "yearly"
+    },
+}
+
 class StripeService:
 
     @staticmethod
@@ -39,7 +58,7 @@ class StripeService:
                 }
             }
         )
-        print("Price ID for plan:", price_map[plan])
+        print("Price ID for plan:", price_id)
         print("STRIPE KEY:", stripe.api_key[:10], flush=True)
         return session
 
@@ -141,20 +160,34 @@ class StripeService:
 
         price_id = items[0]["price"]["id"]
 
-        plan = (
-            "monthly" if price_id == os.getenv("STRIPE_PRICE_MONTHLY")
-            else "yearly"
-        )
+        mapping = PRICE_MAPPING.get(price_id)
+        if not mapping:
+            print(f"[Stripe] Unknown price_id: {price_id}")
+            return
 
         user = Users.objects(stripe_customer_id=customer_id).first()
         if not user:
             return
 
+        status = subscription.get("status")
+        current_period_end = subscription.get("current_period_end")
+
         user.update(
-            set__plan=plan
+            set__plan=mapping["plan"],
+            set__billing_interval=mapping["billing_interval"],
+            set__stripe_subscription_id=subscription.get("id"),
+            set__stripe_price_id=price_id,
+            set__premium_expired_at=(
+                datetime.fromtimestamp(current_period_end)
+                if current_period_end else None
+            )
         )
 
-        print(f"[Stripe] Plan updated: {plan}")
+        print(
+            f"[Stripe] Subscription synced → "
+            f"{mapping['plan']} ({mapping['billing_interval']}), "
+            f"status={status}"
+        )
 
     @staticmethod
     def handle_subscription_canceled(subscription):
@@ -181,7 +214,13 @@ class StripeService:
 
         # ---- downgrade user ----
         user.update(
-            set__stripe_subscription_id=None,
+            set__is_premium=False,
+            set__plan="free",
+            set__billing_interval=None,
+            unset__stripe_subscription_id=1,
+            unset__stripe_price_id=1,
+            unset__premium_expired_at=1,
+            set__stripe_subscription_id=None
         )
 
         print(f"[Stripe] Subscription canceled for user {user.firebase_id}")
