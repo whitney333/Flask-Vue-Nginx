@@ -87,10 +87,20 @@ watch(selectedCampaign, async (campaignId) => {
   data.value = null
   miniKpiData.value = null
 
+  const user = auth.currentUser
+  if (!user) {
+    console.error("Firebase user not logged in")
+    return
+  }
+
   if (!campaignId) return
   try {
+    const token = await getIdToken(user)
     const res = await axios.get(
-        `/campaign/v1/${campaignId}/follower-growth`
+        `/campaign/v1/${campaignId}/follower-growth`,
+        {headers: {
+            Authorization: `Bearer ${token}`
+          }}
     )
 
     data.value = res.data.data
