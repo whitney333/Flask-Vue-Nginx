@@ -6,7 +6,7 @@ PyJWT==2.5.0
 pymongo==4.1.1
 Werkzeug==2.2.2
 pytrends==4.9.2
-numpy==1.21.4
+numpy==2.0.0
 firebase_admin==6.5.0
 mongoengine==0.29.1
 python-dotenv==1.1.0
