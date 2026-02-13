@@ -10,6 +10,7 @@ from firebase_admin import auth
 from bson import json_util
 import json
 from services.user_service import UserService
+from services.artist_service import ArtistService
 
 
 class UserController:
@@ -226,34 +227,6 @@ class UserController:
             }), 401
 
     @classmethod
-    def get_user_followed_artist_by_id(cls):
-        user = Users.objects(firebase_id=g.firebase_id).first()
-
-        if not user or not user.followed_artist:
-            return jsonify({
-                "status": "error",
-                "message": "No followed artists"
-            }), 404
-        # find all followed artist. return Artist object
-        followed = user.followed_artist
-
-        artist_data = list()
-        # get user followed artist
-        for artist in followed:
-            artist_data.append({
-                "id": str(artist.id) if artist.id else None,
-                "artist_id": artist.artist_id,
-                "english_name": artist.english_name,
-                "korean_name": artist.korean_name,
-                "image": artist.image_url
-            })
-
-        return jsonify({
-            "status": "success",
-            "data": artist_data
-        }), 200
-
-    @classmethod
     def check_user_exists(cls):
         data = request.get_json()
         print("here", data)
@@ -283,28 +256,31 @@ class UserController:
         """
         tenants = Tenant.objects().order_by("tenant_name")
         company = [
-            {"tenant_name": t.tenant_name,
+            {"tenant_name": t.tenant_name.lower(),
              "tenant_id": str(t.id) } for t in tenants]
+
+        company.sort(key=lambda x: x["tenant_name"])
 
         return jsonify({
             "status": "success",
             "data": company
         }), 200
 
+    @staticmethod
     def get_all_artist_by_tenant(tenant_id):
-        artists = Artists.objects(tenant_id=tenant_id).order_by("english_name")
-        artist_names = [
-            {"artist_name": a.english_name,
-             "korean_name": a.korean_name,
-             "artist_id": a.artist_id,
-             "artist_objId": str(a.id),
-             "imageURL": a.image_url} for a in artists
-        ]
+        try:
+            artist_data = ArtistService.get_all_artists_by_tenant(tenant_id)
 
-        return jsonify({
-            "status": "success",
-            "data": artist_names
-        }), 200
+            return jsonify({
+                "status": "success",
+                "data": artist_data
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
 
     @staticmethod
     def get_me():
@@ -321,3 +297,61 @@ class UserController:
             }), 404
 
         return jsonify(user_data), 200
+
+    @staticmethod
+    def get_user_followed_artist():
+        try:
+            artist_data = UserService.get_followed_artist(g.firebase_id)
+
+            return jsonify({
+                "status": "success",
+                "data": artist_data
+            }), 200
+
+        except ValueError as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 404
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
+
+    @staticmethod
+    def update_followed_artists():
+        # ===== Verify Firebase token =====
+        try:
+            # get firebase token from header
+            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            # print(id_token)
+            if not id_token:
+                return jsonify({"error": "Missing token"}), 401
+
+            decoded_token = auth.verify_id_token(id_token)
+            firebase_id = decoded_token["uid"]
+        except Exception:
+            return jsonify({"error": "Invalid or expired token"}), 401
+
+        # ===== Parse body =====
+        data = request.get_json(silent=True) or {}
+        artist_ids = data.get("artist_ids")
+
+        if artist_ids is None:
+            return jsonify({"error": "artist_ids is required"}), 400
+
+        if not isinstance(artist_ids, list):
+            return jsonify({"error": "artist_ids must be a list"}), 400
+
+        # ===== Call service =====
+        result, error = UserService.update_followed_artists(
+            firebase_id=firebase_id,
+            artist_ids=artist_ids
+        )
+
+        if error:
+            return jsonify({"error": error}), 400
+
+        return jsonify({"data": result}), 200

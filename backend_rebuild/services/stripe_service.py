@@ -150,6 +150,11 @@ class StripeService:
 
     @staticmethod
     def handle_subscription_updated(subscription):
+        """
+        upgrade from starter plan to standard plan
+        :param subscription:
+        :return:
+        """
         customer_id = subscription.get("customer")
         if not customer_id:
             return
@@ -235,14 +240,21 @@ class StripeService:
         customer_id = invoice.get("customer")
         subscription_id = invoice.get("subscription")
 
-        if not customer_id or not subscription_id:
+        if not customer_id:
             return
 
         user = Users.objects(stripe_customer_id=customer_id).first()
         if not user:
             return
+        # if no subscription id
+        if not subscription_id:
+            print("[Stripe] invoice.payment_succeeded without subscription")
+            return
 
         sub = stripe.Subscription.retrieve(subscription_id)
+
+        if sub.get("status") != "active":
+            return
 
         user.update(
             set__is_premium=True,

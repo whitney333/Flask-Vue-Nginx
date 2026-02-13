@@ -140,3 +140,22 @@ class ArtistService:
         ).as_pymongo()
 
         return list(artists)
+
+    @staticmethod
+    def get_all_artists_by_tenant(tenant_id):
+        """
+        return list of artists under tenant
+        """
+        artists = Artists.objects(tenant_id=tenant_id).order_by("english_name")
+
+        artist_data = []
+        for a in artists:
+            artist_data.append({
+                "artist_name": a.english_name,
+                "korean_name": a.korean_name,
+                "artist_id": a.artist_id,
+                "artist_objId": str(a.id),
+                "imageURL": a.image_url
+            })
+
+        return artist_data

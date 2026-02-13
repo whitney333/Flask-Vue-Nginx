@@ -26,12 +26,6 @@ def get_user_by_firebase_id(firebase_id):
 
     return result
 
-@user_bp.route("/v1/followed_artists", methods=['GET'])
-@auth_required
-def get_user_followed_artist_by_id():
-    result = UserController.get_user_followed_artist_by_id()
-    return result
-
 @user_bp.route("/v1/auth/check", methods=["POST"])
 def check_user_exists():
     return UserController.check_user_exists()
@@ -56,3 +50,16 @@ def get_all_artists_of_per_tenant(tenant_id):
 @auth_required
 def get_me():
     return UserController.get_me()
+
+@user_bp.route("/v1/followed_artists", methods=["PUT"])
+def update_followed_artists():
+    result = UserController.update_followed_artists()
+
+    return result
+
+@user_bp.route("/v1/followed_artists", methods=['GET'])
+@auth_required
+def get_user_followed_artists():
+    result = UserController.get_user_followed_artist()
+
+    return result
