@@ -16,7 +16,8 @@ export const useUserStore = defineStore("user", {
     last_login_at: null,
     isPremium: null,
     plan: null,
-    expiredAt: null
+    expiredAt: null,
+    billingInterval: null,
   }),
   actions: {
     // get user state in backend
@@ -44,7 +45,9 @@ export const useUserStore = defineStore("user", {
         }
 
         const user = await res.json()
+        console.log("print user: ", user)
         this.setUser(user)
+        this.followedArtists = user.followed_artists || []
       } catch (err) {
         console.error("[userStore] fetchMe error:", err)
       }
@@ -65,7 +68,7 @@ export const useUserStore = defineStore("user", {
       this.isPremium = !!user.is_premium;
       this.plan = user.plan;
       if (user.expired_at !== undefined) {
-        this.expiredAt = user.expired_at;
+        this.expiredAt = user.premium_expired_at;
       }
     },
     reset() {

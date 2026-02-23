@@ -30,7 +30,7 @@ class UserService:
             "is_premium": user.is_premium,
             "plan": user.plan,
             "premium_expired_at": user.premium_expired_at,
-
+            "billing_interval": user.billing_interval,
             # ===== artist limit =====
             "artist_limit": UserService.PLAN_ARTIST_LIMIT.get(user.plan, 1),
 
@@ -136,7 +136,7 @@ class UserService:
                            "artist_id": str(a.id),
                            "english_name": a.english_name,
                            "korean_name": a.korean_name,
-                           "image": a.imageURL
+                           "image": a.image_url
                        }
                        for a in artists
                    ]

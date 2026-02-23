@@ -9,8 +9,15 @@ const authStore = useAuthStore()
 const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
 const isPremium = computed(() => userStore.isPremium)
-const plan = ref("starter") //plan
+const plan = ref("standard") //plan
 const billingInterval = ref("monthly") // monthly/yearly
+
+// Modal state
+const showManageArtists = ref(false)
+const artists = ref([])                // 所有 tenant 的 artist
+const editingArtists = ref([])         // modal 中選中的 artist ids
+const isSaving = ref(false)
+const isLoadingArtists = ref(false)
 
 // plan config
 const PLANS = [
@@ -39,6 +46,7 @@ const PLANS = [
     ]
   }
 ]
+
 
 const currentPlanConfig = computed(() =>
   PLANS.find(p => p.key === plan.value)
@@ -89,6 +97,7 @@ const upgrade = async () => {
   }
 }
 
+//subscription status
 const manageSubscription = async () => {
   const res = await fetch("/api/stripe/customer-portal", {
     method: "POST",
@@ -111,6 +120,108 @@ const manageSubscription = async () => {
 onMounted(async () => {
   await userStore.fetchMe()
 })
+
+const goUpgrade = () => {
+  router.push("/billing") // or stripe checkout
+}
+
+
+// 打開 modal
+const openManageArtists = async () => {
+  showManageArtists.value = true
+  isLoadingArtists.value = true
+
+  // 初始化已選 artist
+  editingArtists.value = userStore.followedArtists.map(a => a.artist_id)
+
+  try {
+    const res = await fetch(`/api/user/v1/artists/${userStore.tenant}`, {
+      headers: {
+        Authorization: `Bearer ${authStore.idToken}`
+      }
+    })
+    const data = await res.json()
+    artists.value = data.data || []
+  } catch (err) {
+    console.error(err)
+    alert("Failed to load artists")
+  } finally {
+    isLoadingArtists.value = false
+  }
+}
+
+const closeManageArtists = () => {
+  showManageArtists.value = false
+}
+
+// 方案上限
+const artistLimit = computed(() => {
+  if (!userStore.isPremium) return 1
+  if (userStore.plan === "standard") return 10
+  return 1 // starter
+})
+
+// 判斷 modal 是否鎖住（free / starter 限制）
+const isPlanLocked = computed(() => {
+  return !userStore.isPremium || userStore.plan === "starter"
+})
+
+const isSelected = (artistId) => {
+  return editingArtists.value.includes(artistId)
+}
+
+// 判斷 Add 按鈕是否 disable
+const isAddDisabled = (artistId) => {
+  // 如果是已 follow，永遠可 Remove
+  if (isSelected(artistId)) return false
+
+  // Free / Starter：不能新增
+  if (isPlanLocked.value) return true
+
+  // Standard：超過上限
+  if (editingArtists.value.length >= artistLimit.value) return true
+
+  return false
+}
+
+const toggleArtist = (artistId) => {
+  if (isSelected(artistId)) {
+    editingArtists.value = editingArtists.value.filter(id => id !== artistId)
+  } else {
+    if (editingArtists.value.length >= artistLimit.value) return
+    editingArtists.value.push(artistId)
+  }
+}
+
+// 儲存
+const saveArtists = async () => {
+  isSaving.value = true
+  try {
+    const res = await fetch("/api/user/v1/followed_artists", {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${authStore.idToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        artist_ids: editingArtists.value
+      })
+    })
+
+    if (!res.ok) throw new Error(await res.text())
+
+    await userStore.fetchMe()
+    showManageArtists.value = false
+
+  } catch (err) {
+    console.error(err)
+    alert("Failed to update artists")
+  } finally {
+    isSaving.value = false
+  }
+}
+
+
 </script>
 
 
@@ -258,46 +369,148 @@ onMounted(async () => {
     </div>
 
     <!-- ===== Followed Artists ===== -->
-    <div class="bg-white border border-gray-200 rounded-lg">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-900">
-          Followed Artists
-        </h3>
-      </div>
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-900">
+        Followed Artists
+        <span class="ml-2 text-sm text-gray-500">
+          ({{ followedCount }} / {{ artistLimit }})
+        </span>
+      </h3>
 
-      <ul class="divide-y">
-        <li
-          v-for="artist in (
-            isPremium
-              ? userStore.followedArtists
-              : userStore.followedArtists.slice(0, 3)
-          )"
-          :key="artist.id"
-          class="px-6 py-4 flex items-center gap-4"
-        >
-          <img
-            :src="artist.image"
-            class="w-10 h-10 rounded-full object-cover"
-          />
-          <div>
-            <p class="font-medium text-gray-900">
-              {{ artist.english_name }}
-            </p>
-            <p class="text-sm text-gray-500">
-              {{ artist.korean_name }}
-            </p>
-          </div>
-        </li>
-
-        <li
-          v-if="!userStore.followedArtists || userStore.followedArtists.length === 0"
-          class="px-6 py-4 text-sm text-gray-500"
-        >
-          No followed artists
-        </li>
-      </ul>
+      <button
+          @click="openManageArtists"
+          class="px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium"
+      >
+        Manage
+      </button>
     </div>
 
+    <ul class="divide-y">
+      <li
+          v-for="artist in userStore.followedArtists"
+          :key="artist.id"
+          class="px-6 py-4 flex items-center gap-4"
+      >
+        <img
+            :src="artist.image"
+            class="w-10 h-10 rounded-full object-cover"
+        />
+        <div class="flex-1">
+          <p class="font-medium text-gray-900">
+            {{ artist.english_name }}
+          </p>
+          <p class="text-sm text-gray-500">
+            {{ artist.korean_name }}
+          </p>
+        </div>
+
+      </li>
+
+      <li
+          v-if="!userStore.followedArtists?.length"
+          class="px-6 py-4 text-sm text-gray-500"
+      >
+        No followed artists
+      </li>
+    </ul>
+    <!-- ===== Manage Artists Modal ===== -->
+    <div
+        v-if="showManageArtists"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    >
+      <div class="w-full max-w-lg bg-white rounded-xl shadow-xl">
+
+        <!-- Header -->
+        <div class="px-6 py-4 border-b flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Manage Artists
+            <span class="ml-2 text-sm text-gray-500">
+          ({{ editingArtists.length }} / {{ artistLimit }})
+        </span>
+          </h3>
+
+          <button
+              @click="closeManageArtists"
+              class="text-gray-400 hover:text-gray-600"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="px-6 py-4 space-y-4">
+
+          <!-- Artist List -->
+          <div class="space-y-2 max-h-72 overflow-y-auto">
+            <div
+                v-for="artist in artists"
+                :key="artist.artist_objId"
+                class="flex items-center justify-between p-3 border rounded-lg"
+                :class="isSelected(artist.artist_objId)
+            ? 'border-indigo-600 bg-indigo-50'
+            : 'border-gray-200'"
+            >
+              <div class="flex items-center gap-3">
+                <img
+                    :src="artist.imageURL"
+                    class="w-10 h-10 rounded-full object-cover"
+                />
+                <div>
+                  <p class="font-medium text-gray-900">
+                    {{ artist.artist_name }}
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    {{ artist.korean_name }}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                  @click="toggleArtist(artist.artist_objId)"
+                  :disabled="isAddDisabled(artist.artist_objId)"
+                  class="text-sm font-medium px-3 py-1.5 rounded-md"
+                  :class="isSelected(artist.artist_objId)
+              ? 'bg-red-100 text-red-600 hover:bg-red-200'
+              : 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300'"
+              >
+                {{ isSelected(artist.artist_objId) ? "Remove" : "Add" }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Limit Warning -->
+          <div
+              v-if="editingArtists.length >= artistLimit"
+              class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+          >
+            Your current plan allows up to {{ artistLimit }} artist<span v-if="artistLimit > 1">s</span>.
+            <span v-if="artistLimit === 1">
+          Upgrade to Standard to follow more.
+        </span>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t flex justify-end gap-3">
+          <button
+              @click="closeManageArtists"
+              class="px-4 py-2 text-sm rounded-md border border-gray-300 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+
+          <button
+              @click="saveArtists"
+              :disabled="isSaving"
+              class="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {{ isSaving ? "Saving..." : "Save" }}
+          </button>
+        </div>
+
+    </div>
+  </div>
   </div>
 </template>
 
