@@ -28,7 +28,7 @@
 
     const cardValueLists = computed(() => {
       // if mid not exists, do not render the chart
-      if (!artistStore.artistId) return []
+      if (!artistStore.artist?.youtube_id) return []
       if (userStore.isPremium === undefined) return []
 
       const range = userStore.isPremium ? "365d" : "28d"

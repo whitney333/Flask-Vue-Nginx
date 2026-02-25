@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+    import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
     import axios from '@/axios';
     import { useUserStore } from "@/stores/user.js";
     import { useArtistStore } from "@/stores/artist.js";
@@ -332,10 +332,11 @@ import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
       }
     }
 
-    onMounted( async() => {
+    onMounted(async () => {
       await nextTick()
+      if (props.value.fetchURL) {
         fetchData()
-        // console.log("📊 Chart mounted")
+      }
     })
 
     const indexDifference = () => {
@@ -352,13 +353,14 @@ import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
     watch(
         () => props.value.fetchURL,
         (newURL) => {
-          // clean old data
           series.value = []
-          if (newURL) {
-            fetchData(newURL);
-          }
-        }
-    );
+          if (!newURL) return
+          if (newURL.includes("id=null")) return
+
+          fetchData()
+        },
+        {immediate: true}
+    )
 </script>
 
 <template>

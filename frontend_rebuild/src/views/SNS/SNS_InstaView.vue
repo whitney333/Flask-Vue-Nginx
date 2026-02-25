@@ -25,7 +25,7 @@
     const today = new Date().toISOString().slice(0, 10)
     const cardValueLists = computed(() => {
       // if mid not exists, do not render the chart
-      if (!artistStore.artistId) return []
+      if (!artistStore.artist?.instagram_id) return []
       if (userStore.isPremium === undefined) return []
 
       const range = userStore.isPremium ? "365d" : "28d"

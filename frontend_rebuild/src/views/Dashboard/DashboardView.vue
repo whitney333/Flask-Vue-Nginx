@@ -18,7 +18,6 @@
   const artistStore = useArtistStore()
   // const mid = ref(null)
   const page = ref(1)
-  const q = ref("t024")
   const limit = ref(10)
   const end = new Date().toISOString().slice(0, 10);
 
@@ -58,7 +57,7 @@
       if (followedArtists.value.length > 0) {
         // fetch first artist_id
         const firstArtistId = followedArtists.value[0]["id"]
-        artistStore.setArtist(firstArtistId)
+        artistStore.setArtistId(firstArtistId)
         // mid.value = firstArtistId
         cardLoading.artist = true
 
@@ -94,9 +93,6 @@
         const user = auth.currentUser;
         token = await user.getIdToken();
       }
-      // update mid.value with the selected artistId
-      // mid.value = artistId
-      artistStore.setArtist(artistId)
 
       const resp = await axios.get(`/artist/info?artist_id=${artistId}`, {
         headers: {
@@ -104,9 +100,23 @@
         }, timeout: 10000})
 
       if (resp.data.data && resp.data.data.length > 0) {
-        artistInfo.value = resp.data.data[0]
+        const artistData = resp.data.data[0]
+        artistStore.setArtist({
+          id: artistData._id || null,
+          threads: artistData.threads || null,
+          instagram_id: artistData.instagram_id || null,
+          youtube_id: artistData.youtube_id || null,
+          tiktok_id: artistData.tiktok_id || null,
+          bilibili_id: artistData.bilibili_id || null,
+          spotify_id: artistData.spotify_id || null,
+          melon_id: artistData.melon_id || null,
+          genie_id: artistData.genie_id || null,
+          apple_id: artistData.apple_id || null,
+        })
+        artistInfo.value = artistData
       } else {
         artistInfo.value = null
+        artistStore.reset()
       }
     } catch (e) {
       console.error(e);
@@ -127,23 +137,51 @@
   } 
 
 
-  // previous fetch news trending
-  const fetchTheQoo = async () => {
-    try {
-      cardLoading.trending = true
-      const res = await axios.get(`/theqoo/hot?page=${page.value}&limit=${limit.value}&q=${q.value}`, {setTimeout: 10000})
-      hotData.value = res.data["posts"]
-      cardLoading.trending = false
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-
   const fetchAll = () => {
     fetchFollowedArtist();
     // fetchMemberInfo()
     // fetchTheQoo()
+  }
+
+  const normalizeArtist = (raw) => {
+    return {
+      artistId: raw._id,
+      mid: raw.artist_id,
+      name: raw.artist,
+      image: raw.image,
+
+      platforms: {
+        bilibili: raw.bilibili_id
+            ? {id: raw.bilibili_id}
+            : null,
+
+        youtube: raw.youtube_id
+            ? {id: raw.youtube_id}
+            : null,
+
+        instagram: raw.instagram_id
+            ? {
+              id: raw.instagram_id,
+              username: raw.instagram_user
+            }
+            : null,
+
+        tiktok: raw.tiktok_id
+            ? {id: raw.tiktok_id}
+            : null,
+
+        spotify: raw.spotify_id
+            ? {id: raw.spotify_id}
+            : null,
+
+        melon: raw.melon_id
+            ? {id: raw.melon_id}
+            : null,
+      },
+
+      // 保留原始資料（debug / 其他頁可用）
+      raw,
+    }
   }
 
   // const profile = await currentProfile()
@@ -173,7 +211,7 @@
     }
   }, { immediate: true })
 
-  // watch mid & artistInfo, in order to update graphItems
+// watch mid & artistInfo, to update graphItems
   watch([artistStore.artistId, artistInfo], ([newMid, newInfo]) => {
     // if (!newMid || !newInfo) {
     //   graphItems.value = []
@@ -507,7 +545,7 @@
     fluid
     style="background-color: #f8f7f2;">
 
-    <v-card 
+    <v-card
     style="background-color: #f8f7f2;"
     flat>
       <template v-slot:title>
