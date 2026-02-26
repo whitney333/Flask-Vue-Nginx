@@ -1,323 +1,193 @@
 <script setup>
-  import axios from '@/axios';
-  import { onMounted, ref, watch } from 'vue';
-  import getUnicodeFlagIcon from 'country-flag-icons/unicode'
-  import { useArtistStore } from "@/stores/artist.js";
-  import {useAuthStore} from "@/stores/auth.js";
+import axios from '@/axios';
+import {onMounted, ref, watch, computed} from 'vue';
+import getUnicodeFlagIcon from 'country-flag-icons/unicode'
+import {useArtistStore} from "@/stores/artist.js";
+import {useAuthStore} from "@/stores/auth.js";
 
+const props = defineProps({
+  iconSrc: String
+})
 
-    const props = defineProps({
-        iconSrc: String
-    })
-    const tracks = ref({})
+const artistStore = useArtistStore()
+const authStore = useAuthStore()
+const selected = ref('South Korea')
+const trackList = ref([])
+const lastUpdate = ref('')
+const loadingCard = ref(true)
 
-    const artistStore = useArtistStore()
-    const authStore = useAuthStore()
-    const selected = ref('South Korea')
-    const trackList = ref([])
-    const country = ref('KR')
-    const lastUpdate = ref('')
-    const end_date = ref(null)
+const countriesFlag = {
+  'Australia': 'AU',
+  'Brazil': 'BR',
+  'Canada': 'CA',
+  'France': 'FR',
+  'Germany': 'DE',
+  'Hong Kong': 'HK',
+  'India': 'IN',
+  'Indonesia': 'ID',
+  'Italy': 'IT',
+  'Japan': 'JP',
+  'Macao': 'MO',
+  'Malaysia': 'MY',
+  'Mexico': 'MX',
+  'Philippines': 'PH',
+  'South Korea': 'KR',
+  'Spain': 'ES',
+  'Taiwan': 'TW',
+  'Thailand': 'TH',
+  'United Kingdom': 'GB',
+  'United States': 'US',
+  'Vietnam': 'VN'
+}
 
-    // const end_date = ref(new Date().toISOString().split('T')[0])
-    // const drange = ref('')
+const countries = Object.keys(countriesFlag).map(name => ({
+  title: `${getUnicodeFlagIcon(countriesFlag[name])} ${name}`,
+  value: name
+}))
 
-    const chartOptions = ref({})
-    const series = ref([])
-    const loadingCard = ref(true)
-    const upperCaseFirstLetter = (word) => {
-        return word.charAt(0).toUpperCase() + word.slice(1)
-    }
+// overlay 判斷
+const noSpotifyId = computed(() => !artistStore.artist?.spotify_id)
+const overlayText = computed(() => noSpotifyId.value ? 'Spotify data not available' : '')
 
-    const countriesFlag = {
-        'Australia': 'AU',
-        'Brazil': 'BR',
-        'Canada': 'CA',
-        'France': 'FR',
-        'Germany': 'DE',
-        'Hong Kong': 'HK',
-        "India": "IN",
-        'Indonesia': 'ID',
-        'Italy': 'IT',
-        'Japan': 'JP',
-        "Macao": "MO",
-        "Malaysia": "MY",
-        'Mexico': 'MX',
-        'Philippines': 'PH',
-        'South Korea': 'KR',
-        'Spain': 'ES',
-        'Taiwan': 'TW',
-        'Thailand': 'TH',
-        'United Kingdom': 'GB',
-        'United States': 'US',
-        'Vietnam': 'VN'
-    }
+const series = ref([])
+const chartOptions = ref({
+  chart: {height: 350, type: 'bar'},
+  plotOptions: {bar: {borderRadius: 4, borderRadiusApplication: 'around', horizontal: true}},
+  colors: [{}, function ({dataPointIndex}) {
+    return dataPointIndex % 2 ? '#191414' : '#1db954'
+  }],
+  dataLabels: {enabled: false},
+  xaxis: {categories: trackList.value}
+})
 
-    const countries = [
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Taiwan'])} ${'Taiwan'}`,
-        value: 'Taiwan',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Hong Kong'])} ${'Hong Kong'}`,
-        value: 'Hong Kong',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Macao'])} ${'Macao'}`,
-        value: 'Macao',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Japan'])} ${'Japan'}`,
-        value: 'Japan',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} ${'South Korea'}`,
-        value: 'South Korea',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Thailand'])} ${'Thailand'}`,
-        value: 'Thailand',
-        
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Malaysia'])} ${'Malaysia'}`,
-        value: 'Malaysia',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['India'])} ${'India'}`,
-        value: 'India',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Vietnam'])} ${'Vietnam'}`,
-        value: 'Vietnam',
-        
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Philippines'])} ${'Philippines'}`,
-        value: 'Philippines',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Indonesia'])} ${'Indonesia'}`,
-        value: 'Indonesia',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['United States'])} ${'United States'}`,
-        value: 'United States',
-        
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Canada'])} ${'Canada'}`,
-        value: 'Canada',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Brazil'])} ${'Brazil'}`,
-        value: 'Brazil',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Mexico'])} ${'Mexico'}`,
-        value: 'Mexico',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['United Kingdom'])} ${'United Kingdom'}`,
-        value: 'United Kingdom',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Germany'])} ${'Germany'}`,
-        value: 'Germany',
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['France'])} ${'France'}`,
-        value: 'France',
-        
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Spain'])} ${'Spain'}`,
-        value: 'Spain',
-        
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Italy'])} ${'Italy'}`,
-        value: 'Italy',
-        
-    },
-    {
-        title: `${getUnicodeFlagIcon(countriesFlag['Australia'])} ${'Australia'}`,
-        value: 'Australia',
-    }
-]
+const upperCaseFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
-  chartOptions.value = {
-    chart: {
-      height: 350,
-      type: 'bar',
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        borderRadiusApplication: 'around',
-        horizontal: true,
-      }
-    },
-    colors: [
-      function ({value, seriesIndex, dataPointIndex, w}) {
-
-        if (dataPointIndex % 2) {
-          return '#191414';
-        } else {
-          return '#1db954';
-        }
-      }
-    ],
-    dataLabels: {
-      enabled: false
-    },
-    xaxis: {
-      categories: trackList.value
-    }
+// ===== API Calls =====
+const getTopTrackRegion = async () => {
+  if (!artistStore.artist?.spotify_id) {
+    series.value = []
+    loadingCard.value = false
+    return
   }
+  if (!artistStore.artistId) return
 
-  const getTopTrackRegion = async () => {
-    try {
-      loadingCard.value = true
-
-      if (!artistStore.artistId || !selected.value) {
-        series.value = []
-        loadingCard.value = false
-        return
-      }
-
-      const res = await axios.get(
-          `/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=KR`,
-          {timeout: 10000}
-      )
-
-      const data = res.data?.data?.[0] // safe optional chaining
-
-      if (!data) {
-        series.value = []
-        loadingCard.value = false
-        return
-      }
-
-      lastUpdate.value = data.datetime || ""
-      trackList.value = data.top_track?.map((val) => val.track) || []
-
-      const formattedData = data.top_track?.map((e) => ({
-        x: e.track,
-        y: e.popularity ?? 0
-      })) || []
-
-      series.value = [
-        {
-          name: "Popularity",
-          data: formattedData
-        }
-      ]
-
-    } catch (e) {
-      console.error(e)
+  try {
+    loadingCard.value = true
+    const res = await axios.get(
+        `/spotify/v1/country/top-tracks`,
+        {params: {artist_id: artistStore.artistId, country: 'KR'}, timeout: 10000}
+    )
+    const data = res.data?.data?.[0]
+    if (!data) {
       series.value = []
-    } finally {
-      loadingCard.value = false
+      return
     }
+
+    lastUpdate.value = data.datetime || ""
+    trackList.value = data.top_track?.map(val => val.track) || []
+
+    const formattedData = data.top_track?.map(e => ({x: e.track, y: e.popularity ?? 0})) || []
+
+    series.value = [{name: "Popularity", data: formattedData}]
+  } catch (e) {
+    console.error(e)
+    series.value = []
+  } finally {
+    loadingCard.value = false
+  }
+}
+
+const getTopSong = async () => {
+  if (!artistStore.artist?.spotify_id || !artistStore.artistId) {
+    series.value = []
+    loadingCard.value = false
+    return
   }
 
-  const getTopSong = async () => {
-    try {
-      loadingCard.value = true
-
-      if (!artistStore.artistId) return
-
-      const res = await axios.get(
-          `/spotify/v1/country/top-tracks?artist_id=${artistStore.artistId}&country=${countriesFlag[selected.value]}`,
-          {timeout: 5000}
-      )
-
-      // 這裡只更新 selected if data 正確
-      const firstData = res.data?.data?.[0]
-      if (firstData) {
-        selected.value = firstData.country || selected.value
-      }
-
-    } catch (e) {
-      console.error(e)
-    } finally {
-      loadingCard.value = false
-    }
+  try {
+    loadingCard.value = true
+    const res = await axios.get(
+        `/spotify/v1/country/top-tracks`,
+        {params: {artist_id: artistStore.artistId, country: countriesFlag[selected.value]}, timeout: 5000}
+    )
+    const firstData = res.data?.data?.[0]
+    if (firstData) selected.value = firstData.country || selected.value
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loadingCard.value = false
   }
+}
 
+// ===== Lifecycle =====
+const created = async () => {
+  if (!artistStore.artist?.spotify_id) {
+    loadingCard.value = false
+    return
+  }
+  loadingCard.value = true
+  await getTopSong()
+  await getTopTrackRegion()
+  loadingCard.value = false
+}
 
-  onMounted(() => {
-    getTopTrackRegion()
-  })
+onMounted(() => created())
 
-  watch(selected, (newVal) => {
-    if (newVal) getTopTrackRegion()
-  })
-
-  watch(
-      () => artistStore.artistId,
-      async (newId) => {
-        if (newId) {
-          await getTopSong()
-          await getTopTrackRegion()
-        }
-      },
-      {immediate: true}
-  )
+watch(selected, (newVal) => {
+  if (newVal) getTopTrackRegion()
+})
+watch(() => artistStore.artistId, async (newId) => {
+  if (newId) {
+    await getTopSong();
+    await getTopTrackRegion()
+  }
+}, {immediate: true})
 
 </script>
 
+
 <template>
-    <v-card :loading="loadingCard" class="pa-2 ma-2">
-        <template v-slot:title>
-            <div :class="['d-flex', 'align-center']">
-                <v-img
-                :src="props.iconSrc"
-                max-height="30px"
-                max-width="30px"
-                :class="['mr-3']"
-                ></v-img>
-                <span>
-                    {{ $t('By Country') }}
-                </span>
-                <v-tooltip
-                location="bottom">
-                    <span>
-                        {{ $t('Popularity of top tracks by different country') }}
-                    </span>
+  <v-card class="pa-2 ma-2 relative" :loading="loadingCard">
+    <!-- Overlay if no Spotify ID -->
+    <div v-if="noSpotifyId" class="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+      <span class="text-caption text-grey">{{ overlayText }}</span>
+    </div>
 
-                    <template v-slot:activator="{ props }">
-                        <v-icon
-                        size="20"
-                        :class="['mx-1']"
-                        v-bind="props"
-                        icon="mdi-information-outline"
-                        ></v-icon>
-                    </template>
-                </v-tooltip>
-            </div>                            
-        </template>
-        <template v-slot:text>
-            <v-divider></v-divider>
-            <br />
-            <div :class="['d-flex', 'justify-space-between', 'align-center']">
-                <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
-                <v-select
-                    :items="countries"
-                    variant="outlined"
-                    item-title="title"
-                    rounded
-                    density="compact"
-                    v-model="selected"
-                    :minWidth="100"
-                    :maxWidth="200"
-                >
-                    <template v-slot:label>{{ $t('Country') }}</template>
-                </v-select>
-            </div>
-            <apexchart type="bar" height="320" :options="chartOptions" :series="series"></apexchart>
+    <!-- Title -->
+    <template v-slot:title>
+      <div class="d-flex align-center">
+        <v-img :src="props.iconSrc" max-height="30px" max-width="30px" class="mr-3"></v-img>
+        <span>{{ $t('By Country') }}</span>
+        <v-tooltip location="bottom">
+          <span>{{ $t('Popularity of top tracks by different country') }}</span>
+          <template v-slot:activator="{ props }">
+            <v-icon size="20" class="mx-1" v-bind="props" icon="mdi-information-outline"></v-icon>
+          </template>
+        </v-tooltip>
+      </div>
+    </template>
 
-        </template>
-    </v-card>
+    <!-- Content -->
+    <template v-slot:text>
+      <v-divider></v-divider>
+      <br/>
+      <div class="d-flex justify-space-between align-center">
+        <span class="text-caption" style="color:#757575;">{{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
+        <v-select
+          :items="countries"
+          variant="outlined"
+          item-title="title"
+          rounded
+          density="compact"
+          v-model="selected"
+          :minWidth="100"
+          :maxWidth="200"
+        >
+          <template v-slot:label>{{ $t('Country') }}</template>
+        </v-select>
+      </div>
+
+      <apexchart type="bar" height="320" :options="chartOptions" :series="series"></apexchart>
+    </template>
+  </v-card>
 </template>
