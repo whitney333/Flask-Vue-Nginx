@@ -29,7 +29,7 @@
       if (!artistStore.artist?.tiktok_id) return []
       if (userStore.isPremium === undefined) return []
 
-      const range = userStore.isPremium ? "365d" : "28d"
+      const range = userStore.hasActivePremium ? "365d" : "28d"
 
       const keys = [
         tiktokJSON.tiktokFollowerValue,

@@ -43,7 +43,7 @@
       return {
         ...musicJSON.spotifyFollowersValue,
         fetchURL: `/spotify/v1/follower`,
-        range: userStore.isPremium ? "365d" : "28d"
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
@@ -59,7 +59,7 @@
       return {
         ...musicJSON.spotifyMonthlyListenersValue,
         fetchURL: `/spotify/v1/monthly-listener`,
-        range: userStore.isPremium ? "365d" : "28d"
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
@@ -75,7 +75,7 @@
       return {
         ...musicJSON.spotifyFanConversionRateValue,
         fetchURL: `/spotify/v1/conversion-rate`,
-        range: userStore.isPremium ? "365d" : "28d"
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
@@ -105,7 +105,7 @@
       return {
         ...musicJSON.spotifyPopularityIndexValue,
         fetchURL: `/spotify/v1/popularity`,
-        range: userStore.isPremium ? "365d" : "28d"
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
@@ -121,7 +121,7 @@
       return {
         ...musicJSON.melonFollowerValue,
         fetchURL: `/melon/v1/follower`,
-        range: userStore.isPremium ? "365d" : "28d"
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 

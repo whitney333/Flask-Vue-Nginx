@@ -26,7 +26,7 @@
       if (!artistStore.artist?.bilibili_id) return []
       if (userStore.isPremium === undefined) return []
 
-      const range = userStore.isPremium ? "365d" : "28d"
+      const range = userStore.hasActivePremium ? "365d" : "28d"
 
       const keys = [
         bilibiliJSON.bilibiliTotalFollowersValue,

@@ -30,6 +30,12 @@
       six_months: "180d",
       one_year: "365d"
     }
+    const ranges = [
+      { key: "one_month", label: "1M" },
+      { key: "three_months", label: "3M" },
+      { key: "six_months", label: "6M" },
+      { key: "one_year", label: "1Y" },
+    ]
     const series = ref([])
     const latest_date = ref("")
     const index_number = ref("")

@@ -125,11 +125,6 @@
           }
         }
 
-    onMounted(() => {
-      if (!canFetch.value) return
-      getData()
-    })
-
     const disabledText = computed(() => {
       switch (props.value?.disabledReason) {
         case 'NO_SPOTIFY_ID':
@@ -139,15 +134,19 @@
       }
     })
 
+    onMounted(() => {
+      getData()
+    })
+
     watch(
-        () => [canFetch.value, artistStore.artistId, props.end],
-        ([canFetchNow]) => {
-          if (!canFetchNow) return
-          fetchData()
+        () => artistStore.artistId,
+        async (newMid, oldMid) => {
+          if (!newMid) return
+          // console.log("artist changed:", newMid)
+          await getData()
         },
         {immediate: true}
     )
-
 </script>
 
 <template>
@@ -176,8 +175,8 @@
             :class="['mr-3']"
         ></v-img>
         <span>
-                    {{ $t(props.value.title) }}
-                </span>
+          {{ $t(props.value.title) }}
+        </span>
         <v-tooltip
             location="bottom"
             :text="props.value.tooltipText">
@@ -199,13 +198,22 @@
       <br/>
       <div :class="['d-flex', 'justify-space-between', 'align-center']">
         <div>
-          <span :class="['text-h5', 'font-weight-bold']"> {{ monthlyListeners }}</span>
-          <span style="font-size: 12px;">{{ ` ${$t('Monthly Listeners')}` }} </span>
+          <span :class="['text-h5', 'font-weight-bold']">
+            {{ monthlyListeners }}
+          </span>
+          <span style="font-size: 12px;">
+            {{ ` ${$t('Monthly Listeners')}` }}
+          </span>
         </div>
 
         <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
       </div>
-      <apexchart type="bar" height="385" :options="chartOptions" :series="series"></apexchart>
+      <apexchart
+          type="bar"
+          height="385"
+          :options="chartOptions"
+          :series="series">
+      </apexchart>
 
     </template>
   </v-card>

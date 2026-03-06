@@ -488,8 +488,5 @@
                 :series="series">
             </apexchart>
         </template>
-
     </v-card>
-
-
 </template>

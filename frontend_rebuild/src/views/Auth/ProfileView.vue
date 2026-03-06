@@ -9,7 +9,6 @@ const authStore = useAuthStore()
 const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
 const isPremium = computed(() => userStore.isPremium)
-const plan = ref("standard") //plan
 const billingInterval = ref("monthly") // monthly/yearly
 
 // Modal state
@@ -18,6 +17,7 @@ const artists = ref([])                // 所有 tenant 的 artist
 const editingArtists = ref([])         // modal 中選中的 artist ids
 const isSaving = ref(false)
 const isLoadingArtists = ref(false)
+const plan = ref("free")
 
 // plan config
 const PLANS = [
@@ -46,15 +46,16 @@ const PLANS = [
     ]
   }
 ]
+const currentPlanConfig = computed(() => {
+  return PLANS.find(p => p.key === plan.value) || PLANS[0]
+})
 
-
-const currentPlanConfig = computed(() =>
-  PLANS.find(p => p.key === plan.value)
-)
+const planName = computed(() => userStore.plan)
 
 const planLabel = computed(() => {
   if (!isPremium.value) return "Free Plan"
-  return `${currentPlanConfig.value?.name} ${
+
+  return `${planName.value === "starter" ? "Starter" : "Standard"} ${
     billingInterval.value === "yearly" ? "Yearly" : "Monthly"
   }`
 })
@@ -119,6 +120,7 @@ const manageSubscription = async () => {
 
 onMounted(async () => {
   await userStore.fetchMe()
+  plan.value = userStore.plan || "free"
 })
 
 const goUpgrade = () => {
@@ -170,22 +172,32 @@ const isSelected = (artistId) => {
   return editingArtists.value.includes(artistId)
 }
 
-// 判斷 Add 按鈕是否 disable
+// 判斷 Add / Remove 按鈕是否 disable
 const isAddDisabled = (artistId) => {
-  // 如果是已 follow，永遠可 Remove
-  if (isSelected(artistId)) return false
+  const selectedCount = editingArtists.value.length
+  const isAlreadySelected = isSelected(artistId)
 
-  // Free / Starter：不能新增
-  if (isPlanLocked.value) return true
+  // ❌ Remove：不能刪到 0（至少要 1 位）
+  if (isAlreadySelected && selectedCount <= 1) {
+    return true
+  }
 
-  // Standard：超過上限
-  if (editingArtists.value.length >= artistLimit.value) return true
+  // ❌ Add：Free / Starter 不能新增
+  if (!isAlreadySelected && isPlanLocked.value) {
+    return true
+  }
+
+  // ❌ Add：Standard 超過上限
+  if (!isAlreadySelected && selectedCount >= artistLimit.value) {
+    return true
+  }
 
   return false
 }
 
 const toggleArtist = (artistId) => {
   if (isSelected(artistId)) {
+    if (editingArtists.value.length <= 1) return
     editingArtists.value = editingArtists.value.filter(id => id !== artistId)
   } else {
     if (editingArtists.value.length >= artistLimit.value) return
@@ -231,7 +243,7 @@ const saveArtists = async () => {
     <!-- ===== User Info ===== -->
     <div class="bg-white border border-gray-200 rounded-lg p-6 flex items-center gap-4">
       <div
-        class="w-16 h-16 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-semibold"
+        class="w-16 h-16 rounded-full bg-gray-200 text-white flex items-center justify-center text-xl font-semibold"
       >
         <img
           v-if="userStore.photo"
@@ -373,7 +385,7 @@ const saveArtists = async () => {
       <h3 class="text-lg font-semibold text-gray-900">
         Followed Artists
         <span class="ml-2 text-sm text-gray-500">
-          ({{ followedCount }} / {{ artistLimit }})
+          ({{ userStore.followedArtists.length }} / {{ artistLimit }})
         </span>
       </h3>
 
@@ -485,8 +497,8 @@ const saveArtists = async () => {
           >
             Your current plan allows up to {{ artistLimit }} artist<span v-if="artistLimit > 1">s</span>.
             <span v-if="artistLimit === 1">
-          Upgrade to Standard to follow more.
-        </span>
+              Upgrade to Standard to follow more.
+            </span>
           </div>
 
         </div>

@@ -5,6 +5,7 @@
   import {watch, computed, onMounted, reactive, ref} from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import DB_TS_card from '@/views/Dashboard/components/DB_TS_card.vue';
+  import TopStats from '@/views/Dashboard/components/TopStats.vue'
   import { currentProfile } from '@/libs/current-profile';
   import { getAuth } from 'firebase/auth';
 
@@ -136,7 +137,6 @@
     }
   } 
 
-
   const fetchAll = () => {
     fetchFollowedArtist();
     // fetchMemberInfo()
@@ -212,7 +212,7 @@
   }, { immediate: true })
 
 // watch mid & artistInfo, to update graphItems
-  watch([artistStore.artistId, artistInfo], ([newMid, newInfo]) => {
+  watch([() => artistStore.artistId, artistInfo], ([newMid, newInfo]) => {
     // if (!newMid || !newInfo) {
     //   graphItems.value = []
     //   return
@@ -228,6 +228,8 @@
     graphItems.value =  [
       {
         name: 'Instagram Followers',
+        platform: 'Instagram',
+        platformKey: 'instagram_id',
         type: 'Followers',
         fetchURL: artistStore.artistId
             ? `/instagram/v1/follower?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`
@@ -243,6 +245,8 @@
       },
       {
         name: 'Spotify Followers',
+        platform: 'Spotify',
+        platformKey: 'spotify_id',
         type: 'Followers',
         range: "28d",
         fetchURL: artistStore.artistId
@@ -259,6 +263,8 @@
       },
       {
         name: 'Spotify Listeners',
+        platform: 'Spotify',
+        platformKey: 'spotify_id',
         type: 'Listeners',
         range: "28d",
         fetchURL: `/spotify/v1/monthly-listener?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
@@ -273,6 +279,8 @@
       },
       {
         name: 'Tiktok Followers',
+        platform: 'Tiktok',
+        platformKey: 'tiktok_id',
         type: 'Followers',
         range: "28d",
         fetchURL: `/tiktok/v1/follower?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
@@ -287,6 +295,8 @@
       },
       {
         name: 'Youtube Subscribes',
+        platform: 'Youtube',
+        platformKey: 'youtube_id',
         type: 'Subscribers',
         range: "28d",
         fetchURL: `/youtube/v1/channel?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
@@ -299,7 +309,7 @@
         fetchDateType: 'datetime',
         colors: ['#ff0000'],
       }
-    ];
+    ]
   })
 
 </script>
@@ -495,7 +505,7 @@
         </template>
         </v-card>
       </v-col>
-      <!-- Trending Info -->
+      <!-- Campaign Overview -->
       <v-col
       cols="12"
       md="6">
@@ -505,7 +515,7 @@
           >
           <template v-slot:title>
             <span :class="['text-h5']">
-              {{  $t('Following Artists') }}
+              {{  $t('Campaign Overview') }}
             </span>
           </template>
           <template v-slot:text>
@@ -532,54 +542,22 @@
           </v-card>
           <v-card variant="text" v-else>
             No relevant data in 48 hours
-          </v-card>
+            </v-card>
         </template>
         </v-card>
       </v-col>
     </v-row>
-    <!-- Statistic-->
     <br />
   </v-container>
   <v-divider></v-divider>
     <v-container
     fluid
     style="background-color: #f8f7f2;">
-
-    <v-card
-    style="background-color: #f8f7f2;"
-    flat>
-      <template v-slot:title>
-        <span :class="['text-h4']">
-          {{ $t('Top Statistics') }}
-        </span>
-      </template >
-      <template v-slot:text>
-        <v-slide-group
-          show-arrows
-          v-model="model"
-          :class="['pa-4', 'mobile-slide-group']"
-          selected-class="bg-success"
-        >
-        <v-slide-group-item
-          v-for="item in graphItems"
-          :key="item.name"
-        >
-            <DB_TS_card
-            :value="item"
-            :class="['ma-4', 'rounded-xl', 'pa-2']"
-            />
-        </v-slide-group-item>
-      </v-slide-group>
-      </template>
-    </v-card>
+      <TopStats :graphItems="graphItems"/>
     </v-container>
 </template>
 
 <style>
-  .card {
-    min-width: 600px;
-    min-height: 600px;
-  }
 .artist-item {
   transition: background-color 0.2s;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -588,9 +566,5 @@
   background-color: rgba(255, 255, 255, 0.05);
   cursor: pointer;
 }
-.mobile-slide-group {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+
 </style>
