@@ -192,7 +192,12 @@ class InstagramService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -300,7 +305,12 @@ class InstagramService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------

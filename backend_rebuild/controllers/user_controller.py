@@ -322,7 +322,7 @@ class UserController:
 
     @staticmethod
     def update_followed_artists():
-        # ===== Verify Firebase token =====
+        # Verify Firebase token
         try:
             # get firebase token from header
             id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
@@ -335,7 +335,7 @@ class UserController:
         except Exception:
             return jsonify({"error": "Invalid or expired token"}), 401
 
-        # ===== Parse body =====
+        # Parse body
         data = request.get_json(silent=True) or {}
         artist_ids = data.get("artist_ids")
 
@@ -345,7 +345,6 @@ class UserController:
         if not isinstance(artist_ids, list):
             return jsonify({"error": "artist_ids must be a list"}), 400
 
-        # ===== Call service =====
         result, error = UserService.update_followed_artists(
             firebase_id=firebase_id,
             artist_ids=artist_ids

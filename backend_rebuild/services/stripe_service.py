@@ -4,40 +4,43 @@ from models.user_model import Users
 from datetime import datetime, timezone
 
 
-PRICE_MAPPING = {
-    os.getenv("STRIPE_PRICE_STARTER_MONTHLY"): {
-        "plan": "starter",
-        "billing_interval": "monthly"
-    },
-    os.getenv("STRIPE_PRICE_STARTER_YEARLY"): {
-        "plan": "starter",
-        "billing_interval": "yearly"
-    },
-    os.getenv("STRIPE_PRICE_STANDARD_MONTHLY"): {
-        "plan": "standard",
-        "billing_interval": "monthly"
-    },
-    os.getenv("STRIPE_PRICE_STANDARD_YEARLY"): {
-        "plan": "standard",
-        "billing_interval": "yearly"
-    },
-}
+def _build_price_map():
+    return {
+        ("starter", "monthly"): os.getenv("STRIPE_PRICE_STARTER_MONTHLY"),
+        ("starter", "yearly"): os.getenv("STRIPE_PRICE_STARTER_YEARLY"),
+        ("standard", "monthly"): os.getenv("STRIPE_PRICE_STANDARD_MONTHLY"),
+        ("standard", "yearly"): os.getenv("STRIPE_PRICE_STANDARD_YEARLY"),
+    }
+
+
+def _build_price_mapping():
+    price_map = _build_price_map()
+    return {
+        price_id: {
+            "plan": plan,
+            "billing_interval": billing_interval
+        }
+        for (plan, billing_interval), price_id in price_map.items()
+        if price_id
+    }
+
+
+def _to_utc_naive(timestamp):
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).replace(tzinfo=None)
+
 
 class StripeService:
 
     @staticmethod
     def create_checkout_session(user, plan, billing_interval):
-        price_map = {
-            ("starter", "monthly"): os.getenv("STRIPE_PRICE_STARTER_MONTHLY"),
-            ("starter", "yearly"): os.getenv("STRIPE_PRICE_STARTER_YEARLY"),
-            ("standard", "monthly"): os.getenv("STRIPE_PRICE_STANDARD_MONTHLY"),
-            ("standard", "yearly"): os.getenv("STRIPE_PRICE_STANDARD_YEARLY"),
-        }
+        price_map = _build_price_map()
         key = (plan, billing_interval)
         if key not in price_map:
             raise ValueError("Invalid plan or billing interval")
 
         price_id = price_map[key]
+        if not price_id:
+            raise ValueError("Stripe price id is not configured for this plan")
 
         session = stripe.checkout.Session.create(
             mode="subscription",
@@ -134,9 +137,7 @@ class StripeService:
             print("[Stripe] subscription.created missing period_end")
             return
 
-        expired_at = datetime.fromtimestamp(
-            period_end_ts,
-            tz=timezone.utc).replace(tzinfo=None)
+        expired_at = _to_utc_naive(period_end_ts)
 
         user.update(
             set__premium_expired_at=expired_at
@@ -151,7 +152,7 @@ class StripeService:
     @staticmethod
     def handle_subscription_updated(subscription):
         """
-        upgrade from starter plan to standard plan
+        upgrade from the starter plan to the standard plan
         :param subscription:
         :return:
         """
@@ -165,7 +166,7 @@ class StripeService:
 
         price_id = items[0]["price"]["id"]
 
-        mapping = PRICE_MAPPING.get(price_id)
+        mapping = _build_price_mapping().get(price_id)
         if not mapping:
             print(f"[Stripe] Unknown price_id: {price_id}")
             return
@@ -183,7 +184,7 @@ class StripeService:
             set__stripe_subscription_id=subscription.get("id"),
             set__stripe_price_id=price_id,
             set__premium_expired_at=(
-                datetime.fromtimestamp(current_period_end)
+                _to_utc_naive(current_period_end)
                 if current_period_end else None
             )
         )
@@ -222,10 +223,9 @@ class StripeService:
             set__is_premium=False,
             set__plan="free",
             set__billing_interval=None,
-            unset__stripe_subscription_id=1,
-            unset__stripe_price_id=1,
-            unset__premium_expired_at=1,
-            set__stripe_subscription_id=None
+            set__stripe_subscription_id=None,
+            set__stripe_price_id=None,
+            set__premium_expired_at=None
         )
 
         print(f"[Stripe] Subscription canceled for user {user.firebase_id}")
@@ -258,7 +258,7 @@ class StripeService:
 
         user.update(
             set__is_premium=True,
-            set__premium_expired_at=datetime.fromtimestamp(
+            set__premium_expired_at=_to_utc_naive(
                 sub["current_period_end"]
             )
         )

@@ -3,7 +3,6 @@ from models.user_model import Users
 from services.stripe_service import StripeService
 import stripe
 import os
-from dotenv import load_dotenv
 
 
 class StripeController:
@@ -46,13 +45,24 @@ class StripeController:
 
     @staticmethod
     def handle_webhook(payload, sig_header):
+        if not sig_header:
+            return jsonify({
+                "error": "Missing Stripe-Signature header"
+            }), 400
+
+        webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+        if not webhook_secret:
+            return jsonify({
+                "error": "STRIPE_WEBHOOK_SECRET is not configured"
+            }), 500
+
         try:
             event = stripe.Webhook.construct_event(
                 payload,
                 sig_header,
-                os.getenv("STRIPE_WEBHOOK_SECRET")
+                webhook_secret
             )
-        except ValueError as e:
+        except ValueError:
             return jsonify({
                 "error": "Invalid payload"
             }), 400
@@ -65,28 +75,14 @@ class StripeController:
         data_object = event["data"]["object"]
 
         handlers = {
-            # new subscription
-            "checkout.session.completed":
-                StripeService.handle_checkout_completed,
-
-            # get premium expired_at
-            "customer.subscription.created":
-                StripeService.handle_subscription_created,
-
-            # for switching plan or continue plan
-            "customer.subscription.updated":
-                StripeService.handle_subscription_updated,
-            # subscription cancelled
-            "customer.subscription.deleted":
-                StripeService.handle_subscription_canceled,
-
-            # continue subscription/ invoice
-            "invoice.payment_succeeded":
-                StripeService.handle_invoice_payment_succeeded,
-            "invoice.payment_failed":
-                StripeService.handle_invoice_payment_failed,
+            "checkout.session.completed": StripeService.handle_checkout_completed,
+            "customer.subscription.created": StripeService.handle_subscription_created,
+            "customer.subscription.updated": StripeService.handle_subscription_updated,
+            "customer.subscription.deleted": StripeService.handle_subscription_canceled,
+            "invoice.payment_succeeded": StripeService.handle_invoice_payment_succeeded,
+            "invoice.payment_failed": StripeService.handle_invoice_payment_failed,
         }
-        print("Webhook event type:", event["type"], flush=True)
+        print("Webhook event type:", event_type, flush=True)
 
         handler = handlers.get(event_type)
         if not handler:
@@ -107,10 +103,16 @@ class StripeController:
 
     @staticmethod
     def customer_portal():
+        frontend_url = os.getenv("FRONTEND_URL")
+        if not frontend_url:
+            return jsonify({
+                "error": "FRONTEND_URL is not configured"
+            }), 500
+
         try:
             url = StripeService.create_customer_portal(
                 firebase_id=g.firebase_id,
-                return_url="http://localhost/profile"  # 之後可換成正式 domain
+                return_url=frontend_url + "/profile"
             )
             return jsonify({"url": url}), 200
 
