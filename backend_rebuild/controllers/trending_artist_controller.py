@@ -16,7 +16,7 @@ from models.sns.tiktok_model import Tiktok
 # drama related data
 from models.netflix_model import NetflixCharts
 from models.drama_model import Drama
-
+from services.trending_artist_service import TrendingArtistService
 
 class TrendingArtistController:
     """
@@ -1592,6 +1592,83 @@ class TrendingArtistController:
         # print(len(top_result))
         return filtered_list
 
-    @classmethod
-    def get_popularity_score(cls):
-        pass
+    @staticmethod
+    def get_trending_artist_music_score(country, year, week):
+        if not all([country, year, week]):
+            return jsonify({
+                'err': 'Missing required parameters'
+            }), 400
+
+        try:
+            results = TrendingArtistService.get_music_score(
+                country, year, week
+            )
+            artists = []
+
+            for rank, doc in enumerate(results, start=1):
+                artists.append({
+                    "rank": rank,
+                    "artist_id": str(doc.artist_id.id) if doc.artist_id else None,
+                    "english_name": doc.english_name,
+                    "korean_name": doc.korean_name,
+                    "image": doc.image,
+                    "type": doc.type,
+
+                    "spotify_score": doc.spotify_score,
+                    "youtube_score": doc.youtube_score,
+                    "billboard_score": doc.billboard_score,
+
+                    "music_score": doc.music_score
+                })
+
+            return jsonify({
+                "country": country,
+                "year": year,
+                "week": week,
+                "total": len(artists),
+                "artists": artists
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "err": str(e)
+            }), 500
+
+    @staticmethod
+    def get_trending_artist_sns_score(year, week):
+        if not all([year, week]):
+            return jsonify({
+                'err': 'Missing required parameters'
+            }), 400
+
+        try:
+            results = TrendingArtistService.get_sns_score(
+                year, week
+            )
+            artists = []
+
+            for rank, doc in enumerate(results, start=1):
+                artists.append({
+                    "rank": rank,
+                    "artist_id": str(doc.artist_id.id) if doc.artist_id else None,
+                    "english_name": doc.english_name,
+                    "korean_name": doc.korean_name,
+                    "image": doc.image,
+                    "type": doc.type,
+
+                    "instagram_score": doc.instagram_normalized,
+                    "youtube_score": doc.youtube_normalized,
+                    "tiktok_score": doc.tiktok_normalized,
+
+                    "sns_score": doc.sns_score
+                })
+
+            return jsonify({
+                "year": year,
+                "week": week,
+                "total": len(artists),
+                "artists": artists
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "err": str(e)
+            }), 500
