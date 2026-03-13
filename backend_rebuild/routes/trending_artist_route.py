@@ -222,3 +222,23 @@ def overall_popularity():
     popularity = TrendingArtistController.calculate_overall_popularity(country, year, week, type)
 
     return popularity
+
+#################### v2 Endpoint ####################
+@trending_artist_bp.route("/v2/music-score", methods=['GET'])
+def get_artist_music_score():
+    country = request.args.get('country', default=None)
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    results = TrendingArtistController.get_trending_artist_music_score(country, year, week)
+
+    return results
+
+@trending_artist_bp.route("/v2/sns-score", methods=['GET'])
+def get_artist_sns_score():
+    year = request.args.get('year', type=str)
+    week = request.args.get('week', type=int)
+
+    results = TrendingArtistController.get_trending_artist_sns_score(year, week)
+
+    return results
