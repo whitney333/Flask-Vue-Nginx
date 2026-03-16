@@ -193,7 +193,7 @@ router.beforeEach(async (to, from, next) => {
 
     try {
         profile = await currentProfile()
-        console.log("[Router Guard] profile result:", profile)
+        // console.log("[Router Guard] profile result:", profile)
     } catch (err) {
         console.error("[Router Guard] currentProfile error:", err)
         return next('/auth/login') // fallback 避免卡死
@@ -202,13 +202,13 @@ router.beforeEach(async (to, from, next) => {
 
     // const profile = await currentProfile()
     if (!profile && to.path !== '/auth/register/details') {
-         console.log("[Router Guard] no profile, redirect to /auth/register/details")
+         // console.log("[Router Guard] no profile, redirect to /auth/register/details")
         return next('/auth/register/details')
     }
 
 
     // already login, and profile exists
-    console.log("[Router Guard] all checks passed, proceed to:", to.path)
+    // console.log("[Router Guard] all checks passed, proceed to:", to.path)
     next()
 })
 
