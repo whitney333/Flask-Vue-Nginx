@@ -44,17 +44,26 @@ def auth_required(fn):
         auth_header = request.headers.get("Authorization")
 
         if not auth_header:
-            return jsonify({"err": "Missing Authorization header"}), 401
+            return jsonify({
+                "error": "Missing Authorization header"
+            }), 401
 
+        if not auth_header.startswith("Bearer "):
+            return jsonify({
+                "error": "Invalid Authorization header format"
+            }), 401
+
+        token = auth_header.split("Bearer ")[1]
         try:
-            token = auth_header.replace("Bearer ", "")
-            decoded = auth.verify_id_token(token)
+            decoded = auth.verify_id_token(token, clock_skew_seconds=5)
 
             g.firebase_id = decoded["uid"]
             # print("auth_required called")
             # print("firebase uid =", decoded["uid"])
         except Exception as e:
-            return jsonify({"err": "Invalid Firebase token"}), 401
+            return jsonify({
+                "err": str(e)
+            }), 401
 
         return fn(*args, **kwargs)
 

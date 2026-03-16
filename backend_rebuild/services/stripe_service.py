@@ -1,7 +1,11 @@
+from services.user_service import UserService
 import stripe
 import os
 from models.user_model import Users
 from datetime import datetime, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _build_price_map():
@@ -61,8 +65,7 @@ class StripeService:
                 }
             }
         )
-        print("Price ID for plan:", price_id)
-        print("STRIPE KEY:", stripe.api_key[:10], flush=True)
+        logger.info(f"Created checkout session for plan: {plan}, price_id: {price_id}")
         return session
 
     @staticmethod
@@ -77,13 +80,12 @@ class StripeService:
         billing_interval = subscription.metadata.get("billing_interval")
 
         if not plan or not billing_interval:
-            print("[Stripe] subscription metadata missing plan")
-            print("subscription.metadata =", subscription.metadata)
+            logger.warning(f"[Stripe] subscription metadata missing plan for subscription {subscription_id}")
             return
 
         user = Users.objects(firebase_id=firebase_id).first()
         if not user:
-            print(f"[Stripe] User not found: {firebase_id}")
+            logger.error(f"[Stripe] User NOT FOUND in DB for firebase_id={firebase_id} (customer_id={customer_id}, subscription_id={subscription_id}). Payment succeeded but account linking failed.")
             return
 
         # ---- upgrade user ----
@@ -95,7 +97,7 @@ class StripeService:
             set__stripe_subscription_id=subscription_id
         )
 
-        print(f"[Stripe] User {firebase_id} upgraded to {plan} ({billing_interval})")
+        logger.info(f"[Stripe] User {firebase_id} upgraded to {plan} ({billing_interval})")
 
     @staticmethod
     def handle_subscription_created(subscription):
@@ -114,27 +116,27 @@ class StripeService:
         # print("firebase_id: ", subscription.get("metadata"))
 
         if not customer_id:
-            print("[Stripe] subscription.created missing customer_id")
+            logger.warning("[Stripe] subscription.created missing customer_id")
             return
 
         if not firebase_id:
-            print("[Stripe] subscription missing firebase_id")
+            logger.warning("[Stripe] subscription missing firebase_id")
             return
 
         user = Users.objects(firebase_id=firebase_id).first()
         if not user:
-            print("[Stripe] subscription.created user not found")
+            logger.warning("[Stripe] subscription.created user not found")
             return
 
         # ---- get current_period_end ----
         items = subscription.get("items", {}).get("data", [])
         if not items:
-            print("[Stripe] subscription.created items.data empty")
+            logger.warning("[Stripe] subscription.created items.data empty")
             return
 
         period_end_ts = items[0].get("current_period_end") or subscription.get("current_period_end")
         if not period_end_ts:
-            print("[Stripe] subscription.created missing period_end")
+            logger.warning("[Stripe] subscription.created missing period_end")
             return
 
         expired_at = _to_utc_naive(period_end_ts)
@@ -143,10 +145,9 @@ class StripeService:
             set__premium_expired_at=expired_at
         )
 
-        print(
+        logger.info(
             f"[Stripe] subscription.created → "
-            f"customer={customer_id}, expires={expired_at}",
-            flush=True
+            f"customer={customer_id}, expires={expired_at}"
         )
 
     @staticmethod
@@ -168,7 +169,7 @@ class StripeService:
 
         mapping = _build_price_mapping().get(price_id)
         if not mapping:
-            print(f"[Stripe] Unknown price_id: {price_id}")
+            logger.warning(f"[Stripe] Unknown price_id: {price_id}")
             return
 
         user = Users.objects(stripe_customer_id=customer_id).first()
@@ -177,6 +178,20 @@ class StripeService:
 
         status = subscription.get("status")
         current_period_end = subscription.get("current_period_end")
+        cancel_at_period_end = subscription.get("cancel_at_period_end", False)
+
+        if cancel_at_period_end:
+            # If user clicked "Cancel" and it's set to end at period end,
+            # we keep their premium until it actually expires.
+            # Stripe will send a 'customer.subscription.deleted' event when it expires.
+            user.update(
+                set__premium_expired_at=(
+                    _to_utc_naive(current_period_end)
+                    if current_period_end else None
+                )
+            )
+            logger.info(f"[Stripe] Subscription marked for cancellation → user {user.firebase_id} will remain premium until expiry")
+            return
 
         user.update(
             set__plan=mapping["plan"],
@@ -188,8 +203,10 @@ class StripeService:
                 if current_period_end else None
             )
         )
+        user.reload()
+        UserService.enforce_artist_limit(user)
 
-        print(
+        logger.info(
             f"[Stripe] Subscription synced → "
             f"{mapping['plan']} ({mapping['billing_interval']}), "
             f"status={status}"
@@ -205,17 +222,17 @@ class StripeService:
         customer_id = subscription.get("customer")
 
         if not customer_id:
-            print("[Stripe] Missing customer_id in subscription.deleted")
+            logger.warning("[Stripe] Missing customer_id in subscription.deleted")
             return
 
         user = Users.objects(stripe_customer_id=customer_id).first()
         if not user:
-            print(f"[Stripe] User not found for customer: {customer_id}")
+            logger.warning(f"[Stripe] User not found for customer: {customer_id}")
             return
 
         # ---- safety guard ----
         if not user.is_premium:
-            print(f"[Stripe] User already free: {customer_id}")
+            logger.info(f"[Stripe] User already free: {customer_id}")
             return
 
         # ---- downgrade user ----
@@ -227,8 +244,10 @@ class StripeService:
             set__stripe_price_id=None,
             set__premium_expired_at=None
         )
+        user.reload()
+        UserService.enforce_artist_limit(user)
 
-        print(f"[Stripe] Subscription canceled for user {user.firebase_id}")
+        logger.info(f"[Stripe] Subscription canceled for user {user.firebase_id}")
 
     @staticmethod
     def handle_invoice_payment_succeeded(invoice):
@@ -248,7 +267,7 @@ class StripeService:
             return
         # if no subscription id
         if not subscription_id:
-            print("[Stripe] invoice.payment_succeeded without subscription")
+            logger.warning("[Stripe] invoice.payment_succeeded without subscription")
             return
 
         sub = stripe.Subscription.retrieve(subscription_id)
@@ -263,7 +282,7 @@ class StripeService:
             )
         )
 
-        print(f"[Stripe] Payment succeeded, extended premium: {customer_id}")
+        logger.info(f"[Stripe] Payment succeeded, extended premium: {customer_id}")
 
     @staticmethod
     def handle_invoice_payment_failed(invoice):
@@ -281,7 +300,7 @@ class StripeService:
         if not user:
             return
 
-        print(f"[Stripe] Payment failed, premium suspended: {customer_id}")
+        logger.warning(f"[Stripe] Payment failed, premium suspended: {customer_id}")
 
     @staticmethod
     def create_customer_portal(firebase_id, return_url) -> str:

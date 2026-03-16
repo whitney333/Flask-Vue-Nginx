@@ -11,18 +11,20 @@ from bson import json_util
 import json
 from services.user_service import UserService
 from services.artist_service import ArtistService
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class UserController:
 
     def get_user_info(firebase_id):
        try:
-           user = Users.objects(firebase_id="uSI8I0epjHVmFpEWMNyb9g43pv22").first()
-           print(user)
+           user = Users.objects(firebase_id=firebase_id).first()
            if user:
                return jsonify({
                    "status": "success",
-                   "data": "2"
+                   "data": json.loads(user.to_json())
                }), 200
            else:
                return jsonify({
@@ -108,7 +110,7 @@ class UserController:
     def create_user(cls):
         # get data
         data = request.get_json()
-        print(data)
+        logger.info(f"Creating user with data: {data}")
         try:
             if not data.get("firebaseId") or not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
                 return jsonify({
@@ -229,7 +231,7 @@ class UserController:
     @classmethod
     def check_user_exists(cls):
         data = request.get_json()
-        print("here", data)
+        logger.debug(f"Checking user exists: {data}")
         firebase_uid = data.get("firebase_id")
         user = Users.objects(firebase_id=firebase_uid).first()
 
@@ -290,12 +292,16 @@ class UserController:
                 "error": "Unauthorized"
             }), 401
 
-        user_data = UserService.get_me(firebase_id)
-        if not user_data:
+        user = Users.objects(firebase_id=firebase_id).first()
+        if not user:
             return jsonify({
                 "error": "User not found"
             }), 404
 
+        # check for premium expiry & enforce artist limit
+        UserService.enforce_artist_limit(user)
+
+        user_data = UserService.get_me(firebase_id)
         return jsonify(user_data), 200
 
     @staticmethod
@@ -322,18 +328,10 @@ class UserController:
 
     @staticmethod
     def update_followed_artists():
-        # Verify Firebase token
-        try:
-            # get firebase token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
-            # print(id_token)
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
-
-            decoded_token = auth.verify_id_token(id_token)
-            firebase_id = decoded_token["uid"]
-        except Exception:
-            return jsonify({"error": "Invalid or expired token"}), 401
+        # 1. 使用統一的裝飾器獲取 firebase_id (g.firebase_id 已由 auth_required 設置)
+        firebase_id = getattr(g, "firebase_id", None)
+        if not firebase_id:
+            return jsonify({"error": "Unauthorized"}), 401
 
         # Parse body
         data = request.get_json(silent=True) or {}

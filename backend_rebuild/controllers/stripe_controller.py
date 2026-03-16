@@ -3,6 +3,9 @@ from models.user_model import Users
 from services.stripe_service import StripeService
 import stripe
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class StripeController:
@@ -82,17 +85,17 @@ class StripeController:
             "invoice.payment_succeeded": StripeService.handle_invoice_payment_succeeded,
             "invoice.payment_failed": StripeService.handle_invoice_payment_failed,
         }
-        print("Webhook event type:", event_type, flush=True)
+        logger.info(f"Webhook event received: {event_type}")
 
         handler = handlers.get(event_type)
         if not handler:
-            print(f"[Stripe] Unhandled event type: {event_type}")
+            logger.info(f"[Stripe] Unhandled event type: {event_type}")
             return jsonify({"status": "ignored"}), 200
 
         try:
             handler(data_object)
         except Exception as e:
-            print(f"[Stripe] Handler error ({event_type}): {str(e)}", flush=True)
+            logger.error(f"[Stripe] Handler error ({event_type}): {str(e)}", exc_info=True)
             return jsonify({
                 "error": "Webhook handler failed"
             }), 500
@@ -122,7 +125,7 @@ class StripeController:
             }), 400
 
         except Exception as e:
-            print("[Stripe] Portal error:", str(e), flush=True)
+            logger.error(f"[Stripe] Portal error: {str(e)}", exc_info=True)
             return jsonify({
                 "error": "Failed to create customer portal"
             }), 500

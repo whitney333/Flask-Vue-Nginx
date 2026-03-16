@@ -30,6 +30,15 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 if stripe.api_key is None:
     raise ValueError("Stripe API key not found in environment")
 
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 def create_app():
     app = Flask(__name__)
 
@@ -57,10 +66,10 @@ def create_app():
 
     # init DB
     try:
-        print("Initializing DB connection...")
+        logger.info("Initializing DB connection...")
         connect_db()
-        print("DB initialized.")
+        logger.info("DB initialized.")
     except Exception as e:
-        print(f"Database connection failed: {e}", flush=True)
+        logger.error(f"Database connection failed: {e}")
 
     return app

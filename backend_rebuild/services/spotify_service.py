@@ -3,6 +3,9 @@ from models.spotify_model import Spotify, SpotifyCharts, SpotifyOst
 from rules.music_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
 from .user_service import UserService
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SpotifyService:
@@ -296,9 +299,7 @@ class SpotifyService:
             if is_premium
             else FOLLOWER_RANGE_RULES["free"]
         )
-        print("DEBUG is_premium:", is_premium)
-        print("DEBUG range_key repr:", repr(range_key))
-        print("DEBUG allowed_ranges:", allowed_ranges)
+        logger.debug(f"is_premium: {is_premium}, range_key: {range_key}, allowed: {allowed_ranges}")
         if range_key not in allowed_ranges:
             return {
                 "locked": True,

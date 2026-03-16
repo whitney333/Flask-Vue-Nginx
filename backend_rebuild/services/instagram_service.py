@@ -360,6 +360,8 @@ class InstagramService:
         ]
 
 
+
+
     @staticmethod
     def get_chart_comment(user, artist_id, date_end, range_key):
         pass

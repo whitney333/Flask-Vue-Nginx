@@ -52,10 +52,9 @@ def get_me():
     return UserController.get_me()
 
 @user_bp.route("/v1/followed_artists", methods=["PUT"])
+@auth_required
 def update_followed_artists():
-    result = UserController.update_followed_artists()
-
-    return result
+    return UserController.update_followed_artists()
 
 @user_bp.route("/v1/followed_artists", methods=['GET'])
 @auth_required
