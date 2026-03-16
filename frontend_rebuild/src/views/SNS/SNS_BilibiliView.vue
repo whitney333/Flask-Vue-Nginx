@@ -98,17 +98,48 @@
           </div>
         </div>
 
-        <!-- divider -->
-        <div class="my-6 h-px w-full bg-gray-200"></div>
+        <!-- full-bleed background (content stays centered) -->
+        <div class="section-bleed section-bleed--hashtags">
+          <SNSHashtagAnalytics
+            :iconSrc="iconSrc"
+            :colors="colors"
+            :value="bilibiliJSON.hashtagAnalyticsValue"
+          />
+        </div>
 
         <!-- posts -->
-        <SNSAllPosts :platform="platform" />
-
-        <!-- divider -->
-        <div class="my-6 h-px w-full bg-gray-200"></div>
+        <div class="section-bleed section-bleed--posts">
+          <SNSAllPosts :platform="platform" />
+        </div>
 
       </template>
 
     </div>
   </div>
 </template>
+
+<style scoped>
+.section-bleed {
+  position: relative;
+  z-index: 0;
+}
+
+.section-bleed::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: -1;
+}
+
+.section-bleed--hashtags::before {
+  background-color: #f8f7f2; /* matches SNS_HashtagAnalytics inline background */
+}
+
+.section-bleed--posts::before {
+  background-color: #f3f4f6; /* tailwind bg-gray-100 */
+}
+</style>
