@@ -12,7 +12,6 @@ import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vu
 import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
 import * as XLSX from 'xlsx'
 
-
 const infoOpen = ref(false)
 const router = useRouter()
 const artistStore = useArtistStore()

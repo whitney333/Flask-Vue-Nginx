@@ -84,7 +84,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -137,7 +142,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -212,7 +222,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -287,7 +302,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -362,7 +382,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -437,7 +462,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -512,7 +542,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -587,7 +622,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -662,7 +702,12 @@ class BilibiliService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -751,6 +796,8 @@ class BilibiliService:
 
         is_premium = UserService.is_active_premium(user)
 
+        FREE_LIMIT = 5
+
         # ---------- get bilibili id ----------
         bilibili_id = ArtistService.get_bilibili_id(artist_id)
 
@@ -778,8 +825,8 @@ class BilibiliService:
                 "data": [],
                 "meta": {
                     "is_premium": is_premium,
-                    "source": "bilibili",
-                    "reason": "no video data"
+                    "visible_count": 0,
+                    "total_count": 0
                 }
             }
 
@@ -815,12 +862,27 @@ class BilibiliService:
                 "eng_rate": round(eng_rate, 4)
             })
 
+        total_count = len(result)
+
+        # free user
+        if not is_premium:
+            return {
+                "locked": True,
+                "data": result[:FREE_LIMIT],
+                "meta": {
+                    "is_premium": False,
+                    "visible_count": min(FREE_LIMIT, total_count),
+                    "total_count": total_count
+                }
+            }
+
+        # premium user
         return {
             "locked": False,
             "data": result,
             "meta": {
-                "is_premium": is_premium,
-                "source": "bilibili",
-                "latest_datetime": bilibili_doc.datetime
+                "is_premium": True,
+                "visible_count": total_count,
+                "total_count": total_count
             }
         }

@@ -3,15 +3,25 @@
     import {computed, onMounted, ref, watch} from 'vue';
     import { useArtistStore } from '@/stores/artist'
     import { useUserStore } from "@/stores/user.js";
+    import {useAuthStore} from "@/stores/auth.js";
+
 
     const props = defineProps({
         iconSrc: String,
         colors: Object,
         value: Object
     })
-
+    const canFetch = computed(() => {
+      return (
+          props.value &&
+          !props.value.disabled &&
+          typeof props.value.fetchURL === 'string' &&
+          props.value.fetchURL.length > 0
+      )
+    })
     const artistStore = useArtistStore()
     const userStore = useUserStore()
+    const authStore = useAuthStore()
     const citiesData = ref([])
     const cities = ref([])
     const lastUpdate = ref("")
@@ -46,7 +56,7 @@
 
             const res = await axios.get(`/spotify/v1/top-city`,
                 {headers: {
-                  Authorization: `Bearer ${userStore.firebaseToken}`
+                  Authorization: `Bearer ${authStore.idToken}`
                 },
                 params: {
                   artist_id: artistStore.artistId
@@ -114,9 +124,18 @@
             }
           }
         }
-    
+
+    const disabledText = computed(() => {
+      switch (props.value?.disabledReason) {
+        case 'NO_SPOTIFY_ID':
+          return 'Spotify data not available'
+        default:
+          return 'Data not available'
+      }
+    })
+
     onMounted(() => {
-        getData()
+      getData()
     })
 
     watch(
@@ -128,50 +147,74 @@
         },
         {immediate: true}
     )
-
 </script>
 
 <template>
-    <v-card :loading="loadingCard" width="400" height="500">
-        <template v-slot:title>
-            <div :class="['d-flex', 'align-center']">
-                <v-img
-                :src="props.iconSrc"
-                max-height="30px"
-                max-width="30px"
-                :class="['mr-3']"
-                ></v-img>
-                <span>
-                    {{ $t(props.value.title) }}
-                </span>
-                <v-tooltip
-                location="bottom"
-                :text="props.value.tooltipText">
-                    <template v-slot:activator="{ props }">
-                        <v-icon
-                        size="20"
-                        :class="['mx-1']"
-                        v-bind="props"
-                        icon="mdi-information-outline"
-                        ></v-icon>
-                    </template>
-                </v-tooltip>
+  <v-card
+      :loading="loadingBar"
+      width="400"
+      height="500"
+      class="relative"
+  >
+    <!-- ===== Disabled Overlay（不影響 render） ===== -->
+    <div
+        v-if="props.value?.disabled"
+        class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+    >
+      <span class="text-caption text-grey">
+        {{ disabledText }}
+      </span>
+    </div>
+    <!-- ===== Title ===== -->
+    <template v-slot:title>
+      <div :class="['d-flex', 'align-center']">
+        <v-img
+            :src="props.iconSrc"
+            max-height="30px"
+            max-width="30px"
+            :class="['mr-3']"
+        ></v-img>
+        <span>
+          {{ $t(props.value.title) }}
+        </span>
+        <v-tooltip
+            location="bottom"
+            :text="props.value.tooltipText">
+          <template v-slot:activator="{ props }">
+            <v-icon
+                size="20"
+                :class="['mx-1']"
+                v-bind="props"
+                icon="mdi-information-outline"
+            ></v-icon>
+          </template>
+        </v-tooltip>
 
-            </div>
-        </template>
-        <template v-slot:text>
-            <v-divider></v-divider>
-            <br />
-            <div :class="['d-flex', 'justify-space-between', 'align-center']">
-                <div>
-                    <span :class="['text-h5', 'font-weight-bold']"> {{ monthlyListeners }}</span>
-                    <span style="font-size: 12px;">{{ ` ${$t('Monthly Listeners')}` }} </span>
-                </div>
+      </div>
+    </template>
+    <!-- ===== Content ===== -->
+    <template v-slot:text>
+      <v-divider></v-divider>
+      <br/>
+      <div :class="['d-flex', 'justify-space-between', 'align-center']">
+        <div>
+          <span :class="['text-h5', 'font-weight-bold']">
+            {{ monthlyListeners }}
+          </span>
+          <span style="font-size: 12px;">
+            {{ ` ${$t('Monthly Listeners')}` }}
+          </span>
+        </div>
 
-                <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
-            </div>
-            <apexchart type="bar" height="385" :options="chartOptions" :series="series"></apexchart>
+        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
+      </div>
+      <apexchart
+          type="bar"
+          height="385"
+          :options="chartOptions"
+          :series="series">
+      </apexchart>
 
-        </template>
-    </v-card>
+    </template>
+  </v-card>
 </template>

@@ -13,10 +13,9 @@
     const loadingCard = ref(true)
 
     const series = ref([])
-
+    const authStore = useAuthStore()
     const userStore = useUserStore()
     const artistStore = useArtistStore()
-    const authStore = useAuthStore()
     const range = ref(5)
 
     const fetchHashtag = async (limit) => {

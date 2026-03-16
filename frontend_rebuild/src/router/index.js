@@ -25,6 +25,7 @@ import Admin_CampaignView from "@/views/Admin/AdminCampaignsView.vue"
 import Admin_UserView from "@/views/Admin/AdminUsersView.vue"
 import Admin_TenantView from "@/views/Admin/AdminTenantsView.vue"
 import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
+import Payment_SuccessView from "@/views/Payment/Payment_successView.vue"
 
 
 const routes = [
@@ -116,7 +117,13 @@ const routes = [
             { path: 'tenants', name: 'Manage Tenants', component: Admin_TenantView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }}
         ]
-    }
+    },
+    // {
+    //     path: '/payment/success',
+    //     name: 'Payment Success',
+    //     component: Payment_SuccessView,
+    //     meta: { requireAuth: true}
+    // }
 ]
 
   const router = createRouter({
@@ -159,7 +166,7 @@ const getCurrentUser = () => {
 
 router.beforeEach(async (to, from, next) => {
     const auth = getAuth()
-    console.log(">>> navigating to:", to.path, "from:", from.path)
+    console.log(">>> [Router Guard] navigating to:", to.path, "from:", from.path)
 
     // wait Firebase to initialize
     const user = await new Promise(resolve => {
@@ -168,16 +175,16 @@ router.beforeEach(async (to, from, next) => {
             resolve(u)
         })
     })
-    console.log("resolved user:", user)
+    // console.log("[Router Guard] resolved user:", user ? user.uid : 'null')
 
     // if not login
     if (!user) {
         if (to.path === '/auth/login' || to.path === '/auth/register') {
-            console.log("not logged in, allow:", to.path)
+            // console.log("[Router Guard] not logged in, allow:", to.path)
             return next()
         }
         // forced to return to /login
-        console.log("not logged in, redirect to /auth/login")
+        // console.log("[Router Guard] not logged in, redirect to /auth/login")
         return next('/auth/login')
     }
 
@@ -186,22 +193,22 @@ router.beforeEach(async (to, from, next) => {
 
     try {
         profile = await currentProfile()
-        console.log("profile result:", profile)
+        // console.log("[Router Guard] profile result:", profile)
     } catch (err) {
-        console.error("currentProfile error:", err)
+        console.error("[Router Guard] currentProfile error:", err)
         return next('/auth/login') // fallback 避免卡死
     }
 
 
     // const profile = await currentProfile()
     if (!profile && to.path !== '/auth/register/details') {
-         console.log("no profile, redirect to /auth/register/details")
+         // console.log("[Router Guard] no profile, redirect to /auth/register/details")
         return next('/auth/register/details')
     }
 
 
     // already login, and profile exists
-    console.log("all checks passed, proceed")
+    // console.log("[Router Guard] all checks passed, proceed to:", to.path)
     next()
 })
 

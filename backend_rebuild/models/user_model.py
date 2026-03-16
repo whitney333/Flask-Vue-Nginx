@@ -23,7 +23,7 @@ class Users(Document):
         choices=["monthly", "yearly"],
         null=True
     )
-    premium_expired_at = DateTimeField()
+    premium_expired_at = DateTimeField(null=True)
     # Stripe
     stripe_customer_id = StringField()
     stripe_subscription_id = StringField()

@@ -1,12 +1,13 @@
 from datetime import timedelta
-from models.spotify_model import Spotify
+from models.spotify_model import Spotify, SpotifyCharts, SpotifyOst
 from rules.music_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
 from .user_service import UserService
-
+import logging
+logger = logging.getLogger(__name__)
 
 class SpotifyService:
-
+    ##### for chart #####
     @staticmethod
     def get_follower_growth(spotify_id, campaign_start):
         """
@@ -296,7 +297,7 @@ class SpotifyService:
             if is_premium
             else FOLLOWER_RANGE_RULES["free"]
         )
-
+        logger.debug(f"is_premium: {is_premium}, range_key: {range_key}, allowed: {allowed_ranges}")
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
@@ -753,3 +754,175 @@ class SpotifyService:
                 "is_premium": is_premium,
             }
         }
+
+    ##### for trending artists #####
+    @classmethod
+    def get_trending_artist_popularity(cls, spotify_ids):
+        """
+            Return:
+            {
+                "spotify_id_1": popularity,
+                "spotify_id_2": popularity,
+                ...
+            }
+        """
+        if not spotify_ids:
+            return {}
+
+        docs = (
+            Spotify.objects(spotify_id__in=spotify_ids)
+                .order_by("-datetime")
+                .only("spotify_id", "popularity")
+        )
+
+        popularity_map = {}
+        for doc in docs:
+            if doc.spotify_id not in popularity_map:
+                popularity_map[doc.spotify_id] = doc.popularity
+
+        return popularity_map
+
+    @staticmethod
+    def get_trending_artist_chart_score(country, year, week):
+        """
+        calculate spotify chart score
+        :param country: south-korea
+        :param year: 2025
+        :param week: 1
+        :return:
+        """
+        if not country or not year or not week:
+            raise ValueError("country, year and week are required")
+
+        year = str(year)
+        week = int(week)
+
+        pipeline = [
+            # match country / year / week
+            {"$match": {
+                "country": country,
+                "year": year,
+                "week": week,
+            }},
+            # keep only required fields
+            {"$project": {
+                "_id": 0,
+                "datetime": 1,
+                "country": 1,
+                "year": 1,
+                "month": 1,
+                "day": 1,
+                "week": 1,
+                "weekly_top_songs": 1,
+            }},
+            # unwind songs
+            {"$unwind": "$weekly_top_songs"},
+            # calculate rank & score
+            {"$project": {
+                "datetime": 1,
+                "year": 1,
+                "month": 1,
+                "day": 1,
+                "week": 1,
+                "country": 1,
+                "sp_rank": {"$toInt": "$weekly_top_songs.rank"},
+                "sp_song": "$weekly_top_songs.title",
+                "sp_artist_id": "$weekly_top_songs.artist_id",
+                "artist": {
+                    "$trim": {
+                        "input": "$weekly_top_songs.artist",
+                        "chars": ","
+                    }
+                }
+            }},
+            # score = 201 - rank
+            {"$addFields": {
+                "sp_score": {
+                    "$subtract": [201, "$sp_rank"]
+                }
+            }},
+            # group by spotify artist id
+            {"$group": {
+                "_id": "$sp_artist_id",
+                "datetime": {"$first": "$datetime"},
+                "year": {"$first": "$year"},
+                "month": {"$first": "$month"},
+                "day": {"$first": "$day"},
+                "week": {"$first": "$week"},
+                "country": {"$first": "$country"},
+                "artist": {"$first": "$artist"},
+                "sp_score_list": {"$push": "$sp_score"},
+            }},
+            # sum score list
+            {"$project": {
+                "_id": 0,
+                "spotify_id": "$_id",
+                "datetime": 1,
+                "year": 1,
+                "month": 1,
+                "day": 1,
+                "week": 1,
+                "country": 1,
+                "artist": 1,
+                "sp_chart_score": {
+                    "$sum": "$sp_score_list"
+                }
+            }},
+            # sort by score
+            {"$sort": {"sp_chart_score": -1}}
+        ]
+
+        result = list(SpotifyCharts.objects.aggregate(pipeline))
+
+        return result
+
+    @staticmethod
+    def get_trending_artist_ost_score(year, week):
+        if not year or not week:
+            raise ValueError("country, year and week are required")
+
+        year = int(year)
+        week = int(week)
+
+        qs = (
+            SpotifyOst.objects(year=year, week=week)
+                .only(
+                "year",
+                "week",
+                "datetime",
+                "track",
+                "track_code",
+                "album",
+                "album_code",
+                "artist",
+                "artist_code",
+                "added_at",
+                "country",
+                "release_date",
+                "popularity",
+                "thumbnail",
+                "play_counts",
+            )
+        )
+
+        results = []
+        for doc in qs:
+            results.append({
+                "year": doc.year,
+                "week": doc.week,
+                "datetime": doc.datetime,
+                "track": doc.track,
+                "track_code": doc.track_code,
+                "album": doc.album,
+                "album_code": doc.album_code,
+                "artist": doc.artist,
+                "artist_code": doc.artist_code,
+                "added_at": doc.added_at,
+                "country": doc.country,
+                "release_date": doc.release_date,
+                "popularity": doc.popularity,
+                "thumbnail": doc.thumbnail,
+                "play_counts": int(doc.play_counts) if doc.play_counts else 0
+            })
+
+        return results

@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 from mongoengine import connect, disconnect
 import pathlib
 from sshtunnel import SSHTunnelForwarder
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Global variables for shared state
@@ -24,7 +27,7 @@ def connect_docdb():
             "EC2_USER": os.getenv(key="EC2_USER")
         }
         # print(test)
-        print(f"Loaded environment: {environment}")
+        logger.info(f"Loaded environment: {environment}")
     else:
         raise FileNotFoundError(f"Environment file '{env_file}' not found.")
 
@@ -41,7 +44,7 @@ def connect_docdb():
             )
             # start the tunnel
             ssh_tunnel.start()
-            print(f"SSH Tunnel established to {os.getenv(key='DB_URI')}")
+            logger.info(f"SSH Tunnel established to {os.getenv(key='DB_URI')}")
 
             # connect to DocumentDB
             mongo_client = connect(
@@ -59,7 +62,7 @@ def connect_docdb():
                 retryWrites=False,
                 directConnection=True
             )
-            print("Successfully connected to DocumentDB")
+            logger.info("Successfully connected to DocumentDB")
 
             return mongo_client
         except Exception as e:

@@ -22,6 +22,7 @@
     const artists = ref([])
     const selectedArtists = ref([])
     const { currentUser } = getAuth()
+    const followLimit = 1
 
     const nameRules = ref([
         value => {
@@ -48,6 +49,14 @@
     const handleCreateAccount = async () => {
         if (!nameRules.value.every((rule) => rule(name.firstname) && rule(name.lastname))){
             return
+        }
+
+        // validate followed artist
+        if (!selectedArtists.value.length) {
+          errorMsg.value = `You must select at least 1 artist.`
+          return
+        } else {
+          errorMsg.value = null
         }
 
         try {
@@ -160,6 +169,20 @@
       }
     })
 
+    watch(selectedArtists, (newVal, oldVal) => {
+      if (newVal.length === 0) {
+        // if not selecting artist
+        errorMsg.value = `You must select at least 1 artist.`
+      } else if (newVal.length > followLimit) {
+        // number limit
+        selectedArtists.value = oldVal
+        errorMsg.value = `You can only select ${followLimit} artist.`
+      } else {
+        // clear
+        errorMsg.value = null
+      }
+    })
+
 </script>
 
 <template>
@@ -251,7 +274,12 @@
                                   </template>
                                 </v-select>
 
-                              <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
+                              <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal">
+                                {{ errorMsg }}
+                              </v-alert>
+                              <p class="text-caption text-grey">
+                                {{ selectedArtists.length }} / {{ followLimit }} artist selected
+                              </p>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
                             <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Register') }}</v-btn>

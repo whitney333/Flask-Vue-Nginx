@@ -38,6 +38,7 @@ def youtube_chart_score():
 
     return TrendingArtistController.get_youtube_charts_score(country, year, week)
 
+
 @trending_artist_bp.route('/billboard-score', methods=['GET'])
 def billboard_chart_score():
     year = request.args.get('year', type=str)
@@ -64,6 +65,12 @@ def total_music_score():
     music_score = TrendingArtistController.get_music_score(country, year, week)
 
     return music_score
+
+@trending_artist_bp.route("/new-music-score", methods=["GET"])
+def new_total_music_score():
+    result = TrendingArtistController.new_music_score()
+
+    return result
 
 ### SNS Score Section ###
 @trending_artist_bp.route('/tiktok-sns-score', methods=['GET'])
@@ -133,6 +140,18 @@ def total_sns_score():
     return sns_scores
 
 ### Drama Score Section ###
+@trending_artist_bp.route('/new-staging-drama', methods=['GET'])
+def new_staging_drama_score():
+    result = TrendingArtistController.get_staging_drama_score()
+
+    return result
+
+@trending_artist_bp.route('/new-drama-score', methods=['GET'])
+def new_drama_score():
+    result = TrendingArtistController.get_new_drama_score()
+
+    return result
+
 @trending_artist_bp.route('/netflix-score', methods=['GET'])
 def netflix_chart_score():
     country = request.args.get('country', default=None)

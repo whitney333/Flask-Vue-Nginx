@@ -1,6 +1,5 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
-import LangSwitcher from './LangSwitcher.vue'
 import getUnicodeFlagIcon from 'country-flag-icons/unicode'
 import { useI18n } from 'vue-i18n'
 import {ref, watch, defineEmits, computed, reactive, onMounted} from 'vue';
@@ -25,8 +24,6 @@ const artistStore = useArtistStore()
 const route = useRoute()
 const router = useRouter()
 const countriesFlag = {
-    'Hong Kong': 'HK',
-    'Japan': 'JP',
     'South Korea': 'KR',
     'United Kingdom': 'GB',
 }
@@ -34,14 +31,12 @@ const lang = ref('en')
 
 const languages = [
     {
-        lang: 'English',
         value: 'en',
         title: `${getUnicodeFlagIcon(countriesFlag['United Kingdom'])} English`
     },
     {
-        lang: '한국어',
         value: 'kr',
-        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} 한국어`,
+        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} Korean`,
     }]
 
     const handleRegister = () => {
@@ -54,15 +49,36 @@ const languages = [
     const fetchUserProfile = () => {
         router.push("/profile")
     }
+
     function selectArtist(artistId) {
+      if (!artistId) return
       // update artist id
-      artistStore.setArtist(artistId)
-      console.log("cur: ", artistId)
+      artistStore.setArtistId(artistId)
+      // console.log("cur: ", artistId)
     }
-    const followedArtists = computed(() => userStore.followedArtists);
+
+    const getArtistId = (artist) => {
+      if (!artist) return null
+      return artist.id || artist.artist_id || artist._id || artist.artist_objId || null
+    }
+    const getArtistImage = (artist) => artist?.image || artist?.imageURL || ""
+    const getArtistEnglishName = (artist) => artist?.english_name || artist?.artist_name || "Artist"
+    const getArtistKoreanName = (artist) => artist?.korean_name || ""
+
+    const followedArtists = computed(() =>
+        userStore.followedArtists
+    );
+
+    const selectedArtist = computed(() => {
+      const currentArtistId = artistStore.artistId
+      if (!currentArtistId) return null
+      return followedArtists.value?.find((artist) =>
+          String(getArtistId(artist)) === String(currentArtistId)) || null
+    })
+
     // console.log(userStore.followedArtists)
     watch(() => userStore.followedArtists, (val) => {
-      console.log("AppBar followedArtists:", val)
+      // console.log("AppBar followedArtists:", val)
     })
 
 
@@ -81,7 +97,7 @@ const languages = [
 
             <v-menu>
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-web"></v-btn>
+                    <v-btn v-bind="props" icon="mdi-translate"></v-btn>
                 </template>
                 <v-list
                 v-model:selected="lang"
@@ -98,20 +114,29 @@ const languages = [
             <!--  User followed artists list -->
             <v-menu>
               <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" icon="mdi-heart-circle"></v-btn>
+                <v-btn v-bind="props" :icon="!selectedArtist" class="text-none">
+                  <v-avatar v-if="getArtistImage(selectedArtist)" size="28" class="mr-2">
+                    <v-img :src="getArtistImage(selectedArtist)" :alt="getArtistEnglishName(selectedArtist) || 'artist avatar'" cover />
+                  </v-avatar>
+                  <v-icon v-else>mdi-heart-circle</v-icon>
+                  <div v-if="selectedArtist" class="d-flex flex-column align-start justify-center">
+                    <span class="text-body-2 font-weight-medium">{{ getArtistEnglishName(selectedArtist) }}</span>
+                    <span class="text-caption text-grey">{{ getArtistKoreanName(selectedArtist) }}</span>
+                  </div>
+                </v-btn>
               </template>
               <v-list v-if="followedArtists.length > 0">
                 <v-list-item
                     v-for="artist in followedArtists"
-                    :key="artist.id"
-                    :prepend-avatar="artist.image"
-                    @click="selectArtist(artist.id)"
+                    :key="getArtistId(artist)"
+                    :prepend-avatar="getArtistImage(artist)"
+                    @click="selectArtist(getArtistId(artist))"
                 >
                 <v-list-item-title class="text-body-1 font-weight-medium">
-                  {{ artist.english_name }}
+                  {{ getArtistEnglishName(artist) }}
                 </v-list-item-title>
                 <v-list-item-subtitle class="text-grey">
-                  {{ artist.korean_name }}
+                  {{ getArtistKoreanName(artist) }}
                 </v-list-item-subtitle>
                 </v-list-item>
               </v-list>
@@ -148,3 +173,5 @@ const languages = [
         </template>
     </v-app-bar>
 </template>
+
+

@@ -1,3 +1,11 @@
+import os
+from dotenv import load_dotenv
+
+environment = os.getenv("FLASK_ENV", "development")  # default to 'dev'
+env_file = f".env.{environment}"
+if os.path.exists(env_file):
+    load_dotenv(dotenv_path=env_file)
+
 from flask import Flask
 from routes.melon_route import *
 from routes.spotify_route import *
@@ -11,12 +19,25 @@ from routes.bilibili_route import *
 from routes.tenant_route import *
 from routes.campaign_route import *
 from routes.admin_route import *
+from routes.stripe_route import *
 from db_connect import connect_db
-from config import  Config
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials
+import stripe
 
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+if stripe.api_key is None:
+    raise ValueError("Stripe API key not found in environment")
+
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__)
@@ -41,13 +62,14 @@ def create_app():
     app.register_blueprint(tenant_bp, url_prefix="/api/tenant")
     app.register_blueprint(campaign_bp, url_prefix="/api/campaign")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(stripe_bp, url_prefix="/api/stripe")
 
     # init DB
     try:
-        print("Initializing DB connection...")
+        logger.info("Initializing DB connection...")
         connect_db()
-        print("DB initialized.")
+        logger.info("DB initialized.")
     except Exception as e:
-        print(f"Database connection failed: {e}", flush=True)
+        logger.error(f"Database connection failed: {e}")
 
     return app

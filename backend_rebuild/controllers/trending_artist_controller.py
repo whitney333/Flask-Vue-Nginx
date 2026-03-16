@@ -17,6 +17,7 @@ from models.sns.tiktok_model import Tiktok
 from models.netflix_model import NetflixCharts
 from models.drama_model import Drama
 
+from services.trending_artist_service import TrendingArtistService
 
 class TrendingArtistController:
     """
@@ -678,8 +679,122 @@ class TrendingArtistController:
 
         return top_result
 
+    @staticmethod
+    def new_music_score():
+        country = request.args.get("country")
+        year = request.args.get("year")
+        week = request.args.get("week")
+
+        missing = []
+        if not country:
+            missing.append("country")
+        if not year:
+            missing.append("year")
+        if not week:
+            missing.append("week")
+
+        if missing:
+            return jsonify({
+                "err": f"Missing required parameter(s): {', '.join(missing)}"
+            }), 400
+
+        try:
+            artists = TrendingArtistService.get_music_score(
+                country=country,
+                year=year,
+                week=week,
+                top=100
+            )
+
+            artists.sort(
+                key=lambda x: x.get("spotify_score", 0),
+                reverse=True
+            )
+
+            return jsonify({"data": artists}), 200
+
+        except Exception as e:
+            return jsonify({"err": str(e)}), 500
 
     ### Drama Score Section ###
+    @staticmethod
+    def get_staging_drama_score():
+        country = request.args.get("country")
+        year = request.args.get("year")
+        week = request.args.get("week")
+
+        missing = []
+        if not country:
+            missing.append("country")
+        if not year:
+            missing.append("year")
+        if not week:
+            missing.append("week")
+
+        if missing:
+            return jsonify({
+                "err": f"Missing required parameter(s): {', '.join(missing)}"
+            }), 400
+
+        try:
+            drama = TrendingArtistService.get_staging_drama_score(
+                country=country,
+                year=year,
+                week=week
+            )
+
+            return jsonify({"data": drama}), 200
+
+        except Exception as e:
+            return jsonify({"err": str(e)}), 500
+
+    @staticmethod
+    def get_new_drama_score():
+        country = request.args.get("country")
+        year = request.args.get("year")
+        week = request.args.get("week")
+
+        # validate
+        if not country:
+            return jsonify({"err": "Missing country parameter"}), 400
+        if not year:
+            return jsonify({"err": "Missing year parameter"}), 400
+        if not week:
+            return jsonify({"err": "Missing week parameter"}), 400
+
+        try:
+            year = int(year)
+            week = int(week)
+
+            results = TrendingArtistService.get_drama_score(
+                country=country,
+                year=year,
+                week=week
+            )
+
+            # sorting
+            results.sort(
+                key=lambda x: x.get("drama_score", 0),
+                reverse=True
+            )
+
+            return jsonify({
+                "status": "success",
+                "data": results
+            })
+
+        except ValueError:
+            return jsonify({
+                "status": "error",
+                "err": "year and week must be integers"
+            }), 400
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "err": str(e)
+            }), 500
+
     @classmethod
     def get_netflix_chart(cls, country, year, week):
         # Validate required parameters
@@ -773,74 +888,6 @@ class TrendingArtistController:
                     "thumbnail": "$thumbnail",
                     "play_counts": {"$toInt": "$play_counts"}
                 }}
-                # {"$match": {
-                #     "BROADCAST_YEAR": {
-                #         "$gte": year - 1,
-                #         "$lte": year
-                #     }
-                # }},
-                # {"$project": {
-                #     "english_name": "$NAME",
-                #     "korean_name": "$NAME_IN_KOREAN",
-                #     "artist_id": "$STARRING.MID"
-                # }},
-                # # lookup spotify ost
-                # {"$lookup": {
-                #     "from": "spotify_ost",
-                #     "let": {"english_name": "$english_name"},
-                #     "pipeline": [
-                #         {"$match": {
-                #             "year": year,
-                #             "week": week
-                #         }}
-                #     ],
-                #     "as": "spotify_ost"
-                # }},
-                # {"$unwind": "$spotify_ost"},
-                # # match drama name with album name
-                # {"$addFields": {
-                #     "is_match": {
-                #         "$regexMatch": {
-                #             "input": "$spotify_ost.album",
-                #             "regex": {
-                #                 "$concat": [".*", {"$toString": "$english_name"}, ".*"]
-                #             },
-                #             "options": "i"
-                #         }
-                #     }
-                # }},
-                # # return matched drama
-                # {"$match": {
-                #     "is_match": True
-                # }},
-                # # group by drama
-                # {"$group": {
-                #     "_id": "$english_name",
-                #     "korean_name": {"$first": "$korean_name"},
-                #     "artist_id": {"$first": "$artist_id"},
-                #     "year": {"$first": "$spotify_ost.year"},
-                #     "week": {"$first": "$spotify_ost.week"},
-                #     "play_counts": {"$push": {"$toInt": "$spotify_ost.play_counts"}}
-                # }},
-                # # return sum up play_counts
-                # {"$project": {
-                #     "_id": 0,
-                #     "english_name": "$_id",
-                #     "korean_name": "$korean_name",
-                #     "artist_id": "$artist_id",
-                #     "year": "$year",
-                #     "week": "$week",
-                #     "play_counts": {"$sum": "$play_counts"}
-                # }},
-                # {"$unwind": "$artist_id"},
-                # {"$group": {
-                #     "_id": "$artist_id",
-                #     "english_name": {"$push": "$english_name"},
-                #     "korean_name": {"$push": "$korean_name"},
-                #     "year": {"$first": "$year"},
-                #     "week": {"$first": "$week"},
-                #     "ost_score": {"$push": "$play_counts"}
-                # }}
             ]
 
             results = SpotifyOst.objects().aggregate(pipeline)
