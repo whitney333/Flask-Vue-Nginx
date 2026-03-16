@@ -5,13 +5,14 @@
     const props = defineProps({
         iconSrc: String
     })
+
 </script>
 
 <template>
     <v-container
     fluid
     :class="['bg-grey-lighten-4']">
-        <v-card 
+        <v-card
         :class="['bg-grey-lighten-4']"
         flat
         >

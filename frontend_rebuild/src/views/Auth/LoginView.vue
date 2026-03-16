@@ -63,7 +63,6 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken,
               created_at: result.user.metadata.creationTime,
               last_login_at: result.user.metadata.lastSignInTime
             })
@@ -81,8 +80,11 @@
 
           // const token = response.data;
           // if data exists then return
-          const {exists, admin} = response.data
+          const {exists, admin, is_premium, plan, expired_at} = response.data
           userStore.admin = admin || false;
+          userStore.isPremium = is_premium || false;
+          userStore.plan = plan || false;
+          userStore.expiredAt = expired_at || false;
 
           // get followed artists list
           if (exists === true) {
@@ -150,7 +152,6 @@
               email: result.user.email,
               name: result.user.displayName,
               photo: result.user.photoURL,
-              firebaseToken: idToken,
               created_at: result.user.metadata.creationTime,
               last_login_at: result.user.metadata.lastSignInTime
             })
@@ -165,9 +166,11 @@
             );
             // const token = response.data;
             // if data exists then return
-            const { exists, admin, is_premium } = response.data
+            const { exists, admin, is_premium, plan, expired_at } = response.data
             userStore.admin = admin || false;
             userStore.isPremium = is_premium || false;
+            userStore.plan = plan || false;
+            userStore.expiredAt = expired_at || false;
 
             // get followed artists list
             if (exists === true) {

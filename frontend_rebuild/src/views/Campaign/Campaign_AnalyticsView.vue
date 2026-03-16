@@ -1,5 +1,6 @@
 <script setup>
 import {ref, onMounted, computed, watch} from 'vue'
+import { useRouter } from 'vue-router'
 import { getAuth, getIdToken } from "firebase/auth"
 import axios from '@/axios'
 import { useArtistStore } from "@/stores/artist.js";
@@ -10,9 +11,11 @@ import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
 import MiniKpiCard from "@/views/Campaign/components/Campaign_MiniKpiCard.vue"
 import * as XLSX from "xlsx"
+import {useAuthStore} from "@/stores/auth.js";
 
 
 const auth = getAuth()
+const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
@@ -98,9 +101,11 @@ watch(selectedCampaign, async (campaignId) => {
     const token = await getIdToken(user)
     const res = await axios.get(
         `/campaign/v1/${campaignId}/follower-growth`,
-        {headers: {
+        {
+          headers: {
             Authorization: `Bearer ${token}`
-          }}
+          }
+        }
     )
 
     data.value = res.data.data
@@ -167,6 +172,10 @@ const getApprovedDate = (campaignId) => {
 
   return campaign.approved_at.split("T")[0];
 };
+
+const goToUpgradePage = () => {
+  router.push('/profile')
+}
 
 const flattenObject = (obj, parentKey = "", result = {}) => {
   for (const key in obj) {

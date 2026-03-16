@@ -1,5 +1,5 @@
 <script setup>
-    import { computed, onMounted, ref, watch } from 'vue';
+    import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
     import axios from '@/axios';
     import { useUserStore } from "@/stores/user.js";
     import { useArtistStore } from "@/stores/artist.js";
@@ -340,8 +340,11 @@
       }
     }
 
-    onMounted( () => {
+    onMounted(async () => {
+      await nextTick()
+      if (props.value.fetchURL) {
         fetchData()
+      }
     })
 
     const indexDifference = () => {
@@ -358,13 +361,14 @@
     watch(
         () => props.value.fetchURL,
         (newURL) => {
-          // clean old data
           series.value = []
-          if (newURL) {
-            fetchData(newURL);
-          }
-        }
-    );
+          if (!newURL) return
+          if (newURL.includes("id=null")) return
+
+          fetchData()
+        },
+        {immediate: true}
+    )
 </script>
 
 <template>
@@ -492,8 +496,5 @@
                 :series="series">
             </apexchart>
         </template>
-
     </v-card>
-
-
 </template>

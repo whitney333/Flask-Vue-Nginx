@@ -4,6 +4,7 @@ from rules.tiktok_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
 from .artist_service import ArtistService
 from .user_service import UserService
 
+
 def to_int(value, default=0):
     try:
         return int(value)
@@ -138,7 +139,12 @@ class TiktokService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -192,7 +198,12 @@ class TiktokService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -246,7 +257,12 @@ class TiktokService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------

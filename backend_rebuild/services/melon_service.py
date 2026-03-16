@@ -59,5 +59,3 @@ class MelonService:
                 "allowed_ranges": allowed_ranges
             }
         }
-
-

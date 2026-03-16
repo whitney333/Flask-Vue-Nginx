@@ -12,7 +12,6 @@
 
     const loadingCard = ref(true)
     const series = ref([])
-
     const userStore = useUserStore()
     const artistStore = useArtistStore()
     const authStore = useAuthStore()
@@ -34,7 +33,7 @@
                 `/${props.value.apiType}/v1/hashtag/most-engaged`,
                 {
                   headers: {
-                    Authorization: `Bearer ${authStore.IdToken}`
+                    Authorization: `Bearer ${authStore.idToken}`
                   },
                   params: {
                     artist_id: artistStore.artistId,

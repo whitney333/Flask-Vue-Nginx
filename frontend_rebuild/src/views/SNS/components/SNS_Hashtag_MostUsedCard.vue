@@ -13,7 +13,7 @@
     const loadingCard = ref(true)
 
     const series = ref([])
-
+    const authStore = useAuthStore()
     const userStore = useUserStore()
     const artistStore = useArtistStore()
     const authStore = useAuthStore()

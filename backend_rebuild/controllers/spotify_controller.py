@@ -412,10 +412,7 @@ class SpotifyController:
             return jsonify({
                 "status": "locked",
                 "data": [],
-                "meta": {
-                    "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({
@@ -457,10 +454,7 @@ class SpotifyController:
             return jsonify({
                 "status": "locked",
                 "data": [],
-                "meta": {
-                    "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({
@@ -502,10 +496,7 @@ class SpotifyController:
             return jsonify({
                 "status": "locked",
                 "data": [],
-                "meta": {
-                    "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({
@@ -547,10 +538,7 @@ class SpotifyController:
             return jsonify({
                 "status": "locked",
                 "data": [],
-                "meta": {
-                    "allowed_ranges": result["allowed_ranges"],
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({
@@ -583,9 +571,7 @@ class SpotifyController:
             return jsonify({
                 "status": "locked",
                 "data": [],
-                "meta": {
-                    "is_premium": bool(user and user.is_premium)
-                }
+                "meta": result["meta"]
             }), 200
 
         return jsonify({

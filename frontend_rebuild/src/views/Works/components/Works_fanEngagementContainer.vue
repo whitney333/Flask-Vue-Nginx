@@ -1,5 +1,5 @@
 <script setup>
-    import {computed, ref, watch} from 'vue';
+    import {computed, ref, watch, onMounted} from 'vue';
     import WorksCard from './Works_card.vue';
     import musicJSON from '@/views/Works/json/MusicViewDetails.json'
     import WorksCardTopCities from './Works_cardTopCities.vue';
@@ -11,10 +11,16 @@
     const userStore = useUserStore()
     // const artistId = ref('1')
     const end = new Date().toISOString().slice(0, 10)
-    const filter = ref('7d')
-    const spotifyUrl = `/spotify/v1`
+    const hasSpotifyId = computed(() => {
+      const id = artistStore.artist?.spotify_id
+      return typeof id === 'string' && id.trim().length > 0
+    })
 
-    console.log("artistStore: ", artistStore.artistId)
+    const hasMelonId = computed(() => {
+      const id = artistStore.artist?.melon_id
+      return typeof id === 'string' && id.trim().length > 0
+    })
+
 
     const props = defineProps({
         iconSrc: String
@@ -26,59 +32,96 @@
     const melonIconSrc = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-img/melon.svg"
 
     const spotifyFollowersValue = computed(() => {
-      if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
+      if (!hasSpotifyId.value) {
+        return {
+          ...musicJSON.spotifyFollowersValue,
+          disabled: true,
+          disabledReason: 'NO_SPOTIFY_ID'
+        }
+      }
 
       return {
         ...musicJSON.spotifyFollowersValue,
-        fetchURL: `/spotify/v1/follower?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/follower`,
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
     const spotifyMonthlyListenersValue = computed(() => {
-      if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
+      if (!hasSpotifyId.value) {
+        return {
+          ...musicJSON.spotifyMonthlyListenersValue,
+          disabled: true,
+          disabledReason: 'NO_SPOTIFY_ID'
+        }
+      }
 
       return {
         ...musicJSON.spotifyMonthlyListenersValue,
-        fetchURL: `/spotify/v1/monthly-listener?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/monthly-listener`,
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
     const spotifyFanConversionRateValue = computed(() => {
-      if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
+      if (!hasSpotifyId.value) {
+        return {
+          ...musicJSON.spotifyFanConversionRateValue,
+          disabled: true,
+          disabledReason: 'NO_SPOTIFY_ID'
+        }
+      }
 
       return {
         ...musicJSON.spotifyFanConversionRateValue,
-        fetchURL: `/spotify/v1/conversion-rate?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/conversion-rate`,
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
     const spotifyTopCitiesValue = computed(() => {
+      if (!hasSpotifyId.value) {
+        return {
+          ...musicJSON.spotifyTopCitiesValue,
+          disabled: true,
+          disabledReason: 'NO_SPOTIFY_ID'
+        }
+      }
+
       return {
-        ...musicJSON.spotifyTopCitiesValue,
-        fetchURL: ``
+        ...musicJSON.spotifyTopCitiesValue
       }
     })
 
     const spotifyPopularityIndexValue = computed(() => {
-      if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
+      if (!hasSpotifyId.value) {
+        return {
+          ...musicJSON.spotifyPopularityIndexValue,
+          disabled: true,
+          disabledReason: 'NO_SPOTIFY_ID'
+        }
+      }
 
       return {
         ...musicJSON.spotifyPopularityIndexValue,
-        fetchURL: `/spotify/v1/popularity?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/spotify/v1/popularity`,
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
     const melonFollowerValue = computed(() => {
-      if (userStore.isPremium === undefined) return []
-      const range = userStore.isPremium ? "365d" : "28d"
+      if (!hasMelonId.value) {
+        return {
+          ...musicJSON.melonFollowerValue,
+          disabled: true,
+          disabledReason: 'NO_MELON_ID'
+        }
+      }
 
       return {
         ...musicJSON.melonFollowerValue,
-        fetchURL: `/melon/v1/follower?artist_id=${artistStore.artistId}&date_end=${end}&range=${range}`
+        fetchURL: `/melon/v1/follower`,
+        range: userStore.hasActivePremium ? "365d" : "28d"
       }
     })
 
@@ -86,7 +129,7 @@
         () => artistStore.artistId,
         (newMid) => {
           if (newMid) {
-            console.log("Music component 拿到 artistId:", newMid)
+            // console.log("Music component 拿到 artistId:", newMid)
           }
         },
         {immediate: true} // run at the first time
@@ -112,16 +155,37 @@
                 :class="['justify-center', 'd-flex', 'align-center']">
                     <div
                     :class="['justify-center','ga-4', 'd-flex', 'flex-wrap', 'align-center']">
-                        <WorksCard :iconSrc="props.iconSrc" :colors="spotifyHexCode" :value="spotifyFollowersValue" :end="end"></WorksCard>
-                        <WorksCard :iconSrc="props.iconSrc" :colors="spotifyHexCode" :value="spotifyMonthlyListenersValue" :end="end" ></WorksCard>
-                        <WorksCard :iconSrc="props.iconSrc" :colors="spotifyHexCode" :value="spotifyFanConversionRateValue" :end="end" ></WorksCard>
-                        <WorksCardTopCities :iconSrc="props.iconSrc" :colors="spotifyHexCode" :value="spotifyTopCitiesValue"></WorksCardTopCities>
-                        <!-- <WorksCard :iconSrc="props.iconSrc" :colors="spotifyHexCode" :value="spotifyTopCitiesValue" :end="end" ></WorksCard> -->
-                        <WorksCard :iconSrc="props.iconSrc" :colors="spotifyHexCode" :value="spotifyPopularityIndexValue" :end="end" ></WorksCard>
-                        <WorksCard :iconSrc="melonIconSrc" :colors="melonHexCode" :value="melonFollowerValue" :end="end" ></WorksCard>
+                        <WorksCard
+                            :iconSrc="props.iconSrc"
+                            :colors="spotifyHexCode"
+                            :value="spotifyFollowersValue"
+                            :end="end"></WorksCard>
+                        <WorksCard
+                            :iconSrc="props.iconSrc"
+                            :colors="spotifyHexCode"
+                            :value="spotifyMonthlyListenersValue"
+                            :end="end" ></WorksCard>
+                        <WorksCard
+                            :iconSrc="props.iconSrc"
+                            :colors="spotifyHexCode"
+                            :value="spotifyFanConversionRateValue"
+                            :end="end" ></WorksCard>
+                        <WorksCardTopCities
+                            :iconSrc="props.iconSrc"
+                            :colors="spotifyHexCode"
+                            :value="spotifyTopCitiesValue"></WorksCardTopCities>
+                        <WorksCard
+                            :iconSrc="props.iconSrc"
+                            :colors="spotifyHexCode"
+                            :value="spotifyPopularityIndexValue"
+                            :end="end" ></WorksCard>
+                        <WorksCard
+                            :iconSrc="melonIconSrc"
+                            :colors="melonHexCode"
+                            :value="melonFollowerValue"
+                            :end="end" ></WorksCard>
                     </div>
                 </div>
-
             </template>
         </v-card>
     </v-container>

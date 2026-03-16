@@ -11,6 +11,14 @@
         iconSrc: String,
         end: String
     })
+    const canFetch = computed(() => {
+      return (
+          props.value &&
+          !props.value.disabled &&
+          typeof props.value.fetchURL === 'string' &&
+          props.value.fetchURL.length > 0
+      )
+    })
     const userStore = useUserStore()
     const artistStore = useArtistStore()
     const authStore = useAuthStore()
@@ -22,6 +30,12 @@
       six_months: "180d",
       one_year: "365d"
     }
+    const ranges = [
+      { key: "one_month", label: "1M" },
+      { key: "three_months", label: "3M" },
+      { key: "six_months", label: "6M" },
+      { key: "one_year", label: "1Y" },
+    ]
     const series = ref([])
     const latest_date = ref("")
     const index_number = ref("")
@@ -326,7 +340,11 @@
     }
 
     onMounted(() => {
-        fetchData()
+      if (!canFetch.value) {
+        loadingBar.value = false
+        return
+      }
+      fetchData()
     })
 
     const indexDifference = () => {
@@ -340,10 +358,23 @@
     return !allowedRanges.value.includes(range)
   }
 
+    const disabledText = computed(() => {
+      switch (props.value?.disabledReason) {
+        case 'NO_SPOTIFY_ID':
+          return 'Spotify data not available'
+        case 'NO_MELON_ID':
+          return 'Melon data not available'
+        default:
+          return 'Data not available'
+      }
+    })
 
-    watch(
-        () => [props.value, artistStore.artistId, props.end], // 監聽必要的依賴
-        () => {
+    watch(() => [canFetch.value, artistStore.artistId, props.end],
+        ([canFetchNow]) => {
+          if (!canFetchNow) {
+            loadingBar.value = false
+            return
+          }
           fetchData()
         },
         {immediate: true}
@@ -352,132 +383,129 @@
 </script>
 
 <template>
-    <v-card :loading="loadingBar" width="400" height="500">
-        <template v-slot:title>
-            <div :class="['d-flex', 'align-center']">
-                <v-img
-                :src="props.iconSrc"
-                max-height="30px"
-                max-width="30px"
-                :class="['mr-3']"
-                ></v-img>
-                <span>
-                    {{ $t(props.value.title) }}
-                </span>
-                <v-tooltip
-                location="bottom"
-                :text="props.value.tooltipText">
-                    <template v-slot:activator="{ props }">
-                        <v-icon
-                        size="20"
-                        :class="['mx-1']"
-                        v-bind="props"
-                        icon="mdi-information-outline"
-                        ></v-icon>
-                    </template>
-                </v-tooltip>
+  <v-card
+    :loading="loadingBar"
+    width="400"
+    height="500"
+    class="relative"
+  >
+    <!-- ===== Disabled Overlay ===== -->
+    <div
+      v-if="props.value?.disabled"
+      class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+    >
+      <span class="text-caption text-grey">
+        {{ disabledText }}
+      </span>
+    </div>
 
-            </div>
-        </template>
-        <template v-slot:text>
-            <v-divider></v-divider>
-            <br />
-            <div :class="['d-flex', 'align-center', 'justify-space-between']">
-                <span :class="['text-h5', 'font-weight-bold']"> {{ props.value.percentageData ?  `${Number(index_number).toLocaleString()}%` : formatNumber }}</span>
-                <div>
-                    <v-btn
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        @click="updateData('one_month')" 
-                        :active="selection === 'one_month'"
-                        :disabled="isRangeDisabled('one_month')"
-                        :class="['mx-1']"
-                    >
-                    1M
-                    </v-btn>
-                    <v-btn
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        @click="updateData('three_months')" 
-                        :active="selection === 'three_months'"
-                        :disabled="isRangeDisabled('three_months')"
-                        :class="['mx-1']"
-                    >
-                    3M
-                    </v-btn>
-                    <v-btn
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        @click="updateData('six_months')" 
-                        :active="selection === 'six_months'"
-                        :disabled="isRangeDisabled('six_months')"
-                        :class="['mx-1']"
-                    >
-                    6M
-                    </v-btn>
-                    <v-btn
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        @click="updateData('one_year')"
-                        :active="selection === 'one_year'"
-                        :disabled="isRangeDisabled('one_year')"
-                        :class="['mx-1']"
-                    >
-                    1Y
-                    </v-btn>
-                </div>
-            </div>
-            <div :class="['mt-1','d-flex', 'align-center', 'justify-space-between']">
-                <div >
-                    <v-btn
-                    readonly
-                    slim
-                    density="compact"
-                    variant="outlined"
-                    :color="indexDifference() > 0 ? 'success' : indexDifference() < 0 ? 'error' : '' "
-                    >
-                    <span :class="['font-weight-bold']">
-                        {{ ` ${indexDifference() > 0 ? "+" : ""}${(indexDifference()).toFixed(2).toLocaleString()}%` }}
-                    </span>
-                    </v-btn>
-                    <span :class="['text-caption', 'mx-1']"> {{ ` ${$t('Past Month')}` }}</span>
-                </div>
-                <div>
-                    <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${latest_date}` }}</span>
-                </div>
-            </div>
-            <!-- <v-btn variant="outlined" rounded="pill" id="one_year" 
-                @click="updateData('one_year')" :class="{active: selection==='one_year'}"
-                >
-            1Y
-            </v-btn> -->
-            <!-- <br /> -->
-    
-            <apexchart
-                :id="props.value.chart"
-                :class="['mt-2']"
-                ref="chart"
-                width="100%"
-                height="142%"
-                type="line" 
-                :options="chartOptions" 
-                :series="series">
-            </apexchart>
-        </template>
+    <!-- ===== Title ===== -->
+    <template #title>
+      <div class="d-flex align-center">
+        <v-img
+          :src="props.iconSrc"
+          max-height="30"
+          max-width="30"
+          class="mr-3"
+        />
+        <span>{{ $t(props.value.title) }}</span>
 
-    </v-card>
+        <v-tooltip
+          v-if="props.value.tooltipText"
+          location="bottom"
+          :text="props.value.tooltipText"
+        >
+          <template #activator="{ props: tooltipProps }">
+            <v-icon
+              v-bind="tooltipProps"
+              size="20"
+              class="mx-1"
+              icon="mdi-information-outline"
+            />
+          </template>
+        </v-tooltip>
+      </div>
+    </template>
 
+    <!-- ===== Content ===== -->
+    <template #text>
+      <v-divider class="mb-3" />
 
+      <!-- ===== Header numbers ===== -->
+      <div class="d-flex align-center justify-space-between">
+        <span class="text-h5 font-weight-bold">
+          {{
+            props.value.percentageData
+              ? `${Number(index_number).toLocaleString()}%`
+              : formatNumber
+          }}
+        </span>
+
+        <!-- ===== Range buttons ===== -->
+        <div>
+          <v-btn
+            v-for="range in ranges"
+            :key="range.key"
+            size="x-small"
+            variant="outlined"
+            color="blue-grey-darken-2"
+            rounded
+            class="mx-1"
+            :active="selection === range.key"
+            :disabled="isRangeDisabled(range.key)"
+            @click="updateData(range.key)"
+          >
+            {{ range.label }}
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- ===== Delta + last updated ===== -->
+      <div class="mt-1 d-flex align-center justify-space-between">
+        <div>
+          <v-btn
+            readonly
+            slim
+            density="compact"
+            variant="outlined"
+            :color="
+              indexDifference() > 0
+                ? 'success'
+                : indexDifference() < 0
+                ? 'error'
+                : undefined
+            "
+          >
+            <span class="font-weight-bold">
+              {{
+                `${indexDifference() > 0 ? '+' : ''}${indexDifference()
+                  .toFixed(2)
+                  .toLocaleString()}%`
+              }}
+            </span>
+          </v-btn>
+
+          <span class="text-caption mx-1">
+            {{ $t('Past Month') }}
+          </span>
+        </div>
+
+        <span class="text-caption text-grey">
+          {{ `${$t('Last updated')}: ${latest_date}` }}
+        </span>
+      </div>
+
+      <!-- ===== Chart ===== -->
+      <apexchart
+        :id="props.value.chart"
+        ref="chart"
+        class="mt-2"
+        width="100%"
+        height="142%"
+        type="line"
+        :options="chartOptions"
+        :series="series"
+      />
+    </template>
+  </v-card>
 </template>

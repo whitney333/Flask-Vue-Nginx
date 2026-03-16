@@ -1,5 +1,5 @@
 from datetime import timedelta
-from models.sns.youtube_model import Youtube
+from models.sns.youtube_model import Youtube, YoutubeCharts
 from rules.youtube_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS, HASHTAG_RANGE_RULES
 from .artist_service import ArtistService
 from .user_service import UserService
@@ -281,7 +281,7 @@ class YoutubeService:
     @staticmethod
     def get_chart_follower(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -292,7 +292,12 @@ class YoutubeService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -339,7 +344,7 @@ class YoutubeService:
     @staticmethod
     def get_chart_video_view(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -350,7 +355,12 @@ class YoutubeService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
         days = RANGE_DAYS[range_key]
         start_date = date_end - timedelta(days=days)
@@ -449,7 +459,7 @@ class YoutubeService:
     @staticmethod
     def get_chart_video_likes_and_comments(user, artist_id, date_end, range_key):
         # ---------- check if user is premium or not ----------
-        is_premium = bool(user and user.is_premium)
+        is_premium = UserService.is_active_premium(user)
 
         allowed_ranges = (
             FOLLOWER_RANGE_RULES["premium"]
@@ -460,7 +470,12 @@ class YoutubeService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
         days = RANGE_DAYS[range_key]
         start_date = date_end - timedelta(days=days)
@@ -650,12 +665,13 @@ class YoutubeService:
     @staticmethod
     def get_chart_most_engaged_hashtag(user, artist_id, range_key="5"):
         range_key = str(range_key)
-        # ---------- check if user is premium or not ----------
+
+        # check if user is premium or not
         is_premium = UserService.is_active_premium(user)
         plan = "premium" if is_premium else "free"
         rule = HASHTAG_RANGE_RULES[plan]
 
-        # ---------- validate range ----------
+        #validate range
         if range_key not in rule["ranges"]:
             return {
                 "locked": True,
@@ -670,7 +686,7 @@ class YoutubeService:
         video_limit = int(range_key)
         hashtag_limit = rule["hashtag_limit"]
 
-        # ----------get youtube id ----------
+        # get youtube id
         youtube_id = ArtistService.get_youtube_id(artist_id)
 
         youtube_doc = (
@@ -729,7 +745,7 @@ class YoutubeService:
                 }
             }
 
-        # ---------- calculate avg engagement rate ----------
+        # calculate avg engagement rate
         result = []
         for tag, rates in hashtag_eng_map.items():
             avg_rate = sum(rates) / len(rates) * 100  # %
@@ -738,7 +754,7 @@ class YoutubeService:
                 "eng_rate": round(avg_rate, 4)
             })
 
-        # ---------- sort & limit ----------
+        # sort & limit
         result.sort(key=lambda x: x["eng_rate"], reverse=True)
 
         return {
@@ -827,3 +843,67 @@ class YoutubeService:
                 "latest_datetime": youtube_doc.datetime
             }
         }
+
+    @staticmethod
+    def get_trending_artist_chart_score(country, year, week):
+        """
+        calculate youtube chart score
+        :param country: south-korea
+        :param year: 2025
+        :param week: 1
+        :return:
+        """
+        if not country or not year or not week:
+            raise ValueError("country, year and week are required")
+
+        year = str(year)
+        week = int(week)
+
+        pipeline = [
+            {"$match": {"country": country, "year": year, "week": week}},
+            {"$project": {
+                "country": 1,
+                "datetime": 1,
+                "year": 1,
+                "month": 1,
+                "day": 1,
+                "week": 1,
+                "yt_charts": {
+                    "$map": {
+                        "input": "$weekly_top_songs",
+                        "as": "yt_item",
+                        "in": {
+                            "rank": {"$toInt": "$$yt_item.rank"},
+                            "artist": "$$yt_item.artist",
+                            "title": "$$yt_item.title",
+                            "channel_id": "$$yt_item.channel_id",
+                            "yt_score": {"$subtract": [101, {"$toInt": "$$yt_item.rank"}]}
+                        }
+                    }
+                }
+            }},
+            {"$unwind": "$yt_charts"},
+            {"$group": {
+                "_id": "$yt_charts.channel_id",
+                "yt_score_list": {"$push": "$yt_charts.yt_score"},
+                "artist": {"$first": "$yt_charts.artist"},
+                "year": {"$first": "$year"},
+                "month": {"$first": "$month"},
+                "day": {"$first": "$day"},
+                "week": {"$first": "$week"},
+            }},
+            {"$project": {
+                "_id": 0,
+                "artist": "$artist",
+                "channel_id": "_id",
+                "year": "$year",
+                "month": "$month",
+                "day": "$day",
+                "week": "$week",
+                "yt_chart_score": {"$sum": "$yt_score_list"}
+            }},
+            {"$sort": {"yt_chart_score": -1}}
+        ]
+
+        results = list(YoutubeCharts.objects.aggregate(*pipeline))
+        return results

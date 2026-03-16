@@ -10,18 +10,22 @@ from functools import wraps
 from firebase_admin import auth
 from bson import json_util
 import json
+from services.user_service import UserService
+from services.artist_service import ArtistService
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class UserController:
 
     def get_user_info(firebase_id):
        try:
-           user = Users.objects(firebase_id="uSI8I0epjHVmFpEWMNyb9g43pv22").first()
-           print(user)
+           user = Users.objects(firebase_id=firebase_id).first()
            if user:
                return jsonify({
                    "status": "success",
-                   "data": "2"
+                   "data": json.loads(user.to_json())
                }), 200
            else:
                return jsonify({
@@ -107,7 +111,7 @@ class UserController:
     def create_user(cls):
         # get data
         data = request.get_json()
-        print(data)
+        logger.info(f"Creating user with data: {data}")
         try:
             if not data.get("firebaseId") or not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
                 return jsonify({
@@ -225,37 +229,9 @@ class UserController:
             }), 401
 
     @classmethod
-    def get_user_followed_artist_by_id(cls):
-        user = Users.objects(firebase_id=g.firebase_id).first()
-
-        if not user or not user.followed_artist:
-            return jsonify({
-                "status": "error",
-                "message": "No followed artists"
-            }), 404
-        # find all followed artist. return Artist object
-        followed = user.followed_artist
-
-        artist_data = list()
-        # get user followed artist
-        for artist in followed:
-            artist_data.append({
-                "id": str(artist.id) if artist.id else None,
-                "artist_id": artist.artist_id,
-                "english_name": artist.english_name,
-                "korean_name": artist.korean_name,
-                "image": artist.image_url
-            })
-
-        return jsonify({
-            "status": "success",
-            "data": artist_data
-        }), 200
-
-    @classmethod
     def check_user_exists(cls):
         data = request.get_json()
-        # print("here", data)
+        logger.debug(f"Checking user exists: {data}")
         firebase_uid = data.get("firebase_id")
         user = Users.objects(firebase_id=firebase_uid).first()
 
@@ -282,28 +258,31 @@ class UserController:
         """
         tenants = Tenant.objects().order_by("tenant_name")
         company = [
-            {"tenant_name": t.tenant_name,
+            {"tenant_name": t.tenant_name.lower(),
              "tenant_id": str(t.id) } for t in tenants]
+
+        company.sort(key=lambda x: x["tenant_name"])
 
         return jsonify({
             "status": "success",
             "data": company
         }), 200
 
+    @staticmethod
     def get_all_artist_by_tenant(tenant_id):
-        artists = Artists.objects(tenant_id=tenant_id).order_by("english_name")
-        artist_names = [
-            {"artist_name": a.english_name,
-             "korean_name": a.korean_name,
-             "artist_id": a.artist_id,
-             "artist_objId": str(a.id),
-             "imageURL": a.image_url} for a in artists
-        ]
+        try:
+            artist_data = ArtistService.get_all_artists_by_tenant(tenant_id)
 
-        return jsonify({
-            "status": "success",
-            "data": artist_names
-        }), 200
+            return jsonify({
+                "status": "success",
+                "data": artist_data
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
 
     @staticmethod
     def get_me():
@@ -313,10 +292,63 @@ class UserController:
                 "error": "Unauthorized"
             }), 401
 
-        user_data = UserService.get_me(firebase_id)
-        if not user_data:
+        user = Users.objects(firebase_id=firebase_id).first()
+        if not user:
             return jsonify({
                 "error": "User not found"
             }), 404
 
+        # check for premium expiry & enforce artist limit
+        UserService.enforce_artist_limit(user)
+
+        user_data = UserService.get_me(firebase_id)
         return jsonify(user_data), 200
+
+    @staticmethod
+    def get_user_followed_artist():
+        try:
+            artist_data = UserService.get_followed_artist(g.firebase_id)
+
+            return jsonify({
+                "status": "success",
+                "data": artist_data
+            }), 200
+
+        except ValueError as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 404
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
+
+    @staticmethod
+    def update_followed_artists():
+        # 1. 使用統一的裝飾器獲取 firebase_id (g.firebase_id 已由 auth_required 設置)
+        firebase_id = getattr(g, "firebase_id", None)
+        if not firebase_id:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        # Parse body
+        data = request.get_json(silent=True) or {}
+        artist_ids = data.get("artist_ids")
+
+        if artist_ids is None:
+            return jsonify({"error": "artist_ids is required"}), 400
+
+        if not isinstance(artist_ids, list):
+            return jsonify({"error": "artist_ids must be a list"}), 400
+
+        result, error = UserService.update_followed_artists(
+            firebase_id=firebase_id,
+            artist_ids=artist_ids
+        )
+
+        if error:
+            return jsonify({"error": error}), 400
+
+        return jsonify({"data": result}), 200

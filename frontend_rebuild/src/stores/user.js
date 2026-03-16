@@ -16,10 +16,24 @@ export const useUserStore = defineStore("user", {
     last_login_at: null,
     isPremium: null,
     plan: null,
-    expiredAt: null
+    expiredAt: null,
+    billingInterval: null,
   }),
+  getters: {
+    hasActivePremium: (state) => {
+      if (!state.isPremium) return false
+      if (!state.expiredAt) return true
+
+      const raw = String(state.expiredAt).trim()
+      const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+      const expiredAt = new Date(isDateOnly ? `${raw}T23:59:59.999` : raw)
+
+      if (Number.isNaN(expiredAt.getTime())) return !!state.isPremium
+      return Date.now() <= expiredAt.getTime()
+    },
+  },
   actions: {
-    // get user state in backend
+    // get user state in the backend
     async fetchMe() {
       const userStore = useUserStore()
       const auth = getAuth()
@@ -44,7 +58,9 @@ export const useUserStore = defineStore("user", {
         }
 
         const user = await res.json()
+        console.log("print user: ", user)
         this.setUser(user)
+        this.followedArtists = user.followed_artists || []
       } catch (err) {
         console.error("[userStore] fetchMe error:", err)
       }
@@ -64,9 +80,9 @@ export const useUserStore = defineStore("user", {
       this.last_login_at = user.last_login_at;
       this.isPremium = !!user.is_premium;
       this.plan = user.plan;
-      if (user.expired_at !== undefined) {
-        this.expiredAt = user.expired_at;
-      }
+
+      // Accept either backend field name to avoid UI breakage.
+      this.expiredAt = user.premium_expired_at ?? user.expired_at ?? null;
     },
     reset() {
       this.firebase_id = null

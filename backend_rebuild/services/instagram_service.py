@@ -4,6 +4,7 @@ from .artist_service import ArtistService
 from .user_service import UserService
 from rules.instagram_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS, HASHTAG_RANGE_RULES
 from collections import Counter, defaultdict
+from .user_service import UserService
 
 
 class InstagramService:
@@ -192,7 +193,12 @@ class InstagramService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -300,7 +306,12 @@ class InstagramService:
         if range_key not in allowed_ranges:
             return {
                 "locked": True,
-                "allowed_ranges": allowed_ranges
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
             }
 
         # ---------- calculate date ----------
@@ -348,6 +359,8 @@ class InstagramService:
                 "likes_per_post": "$likes_per_post",
             }}
         ]
+
+
 
 
     @staticmethod

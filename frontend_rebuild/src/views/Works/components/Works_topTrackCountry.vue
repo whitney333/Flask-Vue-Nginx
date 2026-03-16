@@ -269,55 +269,55 @@
 </script>
 
 <template>
-    <v-card :loading="loadingCard" class="pa-2 ma-2">
-        <template v-slot:title>
-            <div :class="['d-flex', 'align-center']">
-                <v-img
-                :src="props.iconSrc"
-                max-height="30px"
-                max-width="30px"
-                :class="['mr-3']"
-                ></v-img>
-                <span>
+  <v-card :loading="loadingCard" class="pa-2 ma-2">
+    <template v-slot:title>
+      <div :class="['d-flex', 'align-center']">
+        <v-img
+            :src="props.iconSrc"
+            max-height="30px"
+            max-width="30px"
+            :class="['mr-3']"
+        ></v-img>
+        <span>
                     {{ $t('By Country') }}
                 </span>
-                <v-tooltip
-                location="bottom">
+        <v-tooltip
+            location="bottom">
                     <span>
                         {{ $t('Popularity of top tracks by different country') }}
                     </span>
 
-                    <template v-slot:activator="{ props }">
-                        <v-icon
-                        size="20"
-                        :class="['mx-1']"
-                        v-bind="props"
-                        icon="mdi-information-outline"
-                        ></v-icon>
-                    </template>
-                </v-tooltip>
-            </div>                            
-        </template>
-        <template v-slot:text>
-            <v-divider></v-divider>
-            <br />
-            <div :class="['d-flex', 'justify-space-between', 'align-center']">
-                <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
-                <v-select
-                    :items="countries"
-                    variant="outlined"
-                    item-title="title"
-                    rounded
-                    density="compact"
-                    v-model="selected"
-                    :minWidth="100"
-                    :maxWidth="200"
-                >
-                    <template v-slot:label>{{ $t('Country') }}</template>
-                </v-select>
-            </div>
-            <apexchart type="bar" height="320" :options="chartOptions" :series="series"></apexchart>
+          <template v-slot:activator="{ props }">
+            <v-icon
+                size="20"
+                :class="['mx-1']"
+                v-bind="props"
+                icon="mdi-information-outline"
+            ></v-icon>
+          </template>
+        </v-tooltip>
+      </div>
+    </template>
+    <template v-slot:text>
+      <v-divider></v-divider>
+      <br/>
+      <div :class="['d-flex', 'justify-space-between', 'align-center']">
+        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
+        <v-select
+            :items="countries"
+            variant="outlined"
+            item-title="title"
+            rounded
+            density="compact"
+            v-model="selected"
+            :minWidth="100"
+            :maxWidth="200"
+        >
+          <template v-slot:label>{{ $t('Country') }}</template>
+        </v-select>
+      </div>
+      <apexchart type="bar" height="320" :options="chartOptions" :series="series"></apexchart>
 
-        </template>
-    </v-card>
+    </template>
+  </v-card>
 </template>

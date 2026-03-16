@@ -754,7 +754,9 @@ class YoutubeController:
                 range_key=range
             )
         except ValueError as e:
-            return jsonify({"err": str(e)}), 404
+            return jsonify({
+                "err": str(e)
+            }), 404
 
         # response
         if result.get("locked"):
@@ -799,7 +801,9 @@ class YoutubeController:
                 range_key=range
             )
         except ValueError as e:
-            return jsonify({"err": str(e)}), 404
+            return jsonify({
+                "err": str(e)
+            }), 404
 
         # response
         if result.get("locked"):
@@ -844,7 +848,9 @@ class YoutubeController:
                 range_key=range
             )
         except ValueError as e:
-            return jsonify({"err": str(e)}), 404
+            return jsonify({
+                "err": str(e)
+            }), 404
 
         # response
         if result.get("locked"):
