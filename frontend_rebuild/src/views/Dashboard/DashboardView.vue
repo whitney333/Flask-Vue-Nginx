@@ -515,7 +515,7 @@
           >
           <template v-slot:title>
             <span :class="['text-h5']">
-              {{  $t('Campaign Overview') }}
+              {{  $t('Following Artists') }}
             </span>
           </template>
           <template v-slot:text>

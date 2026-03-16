@@ -1,5 +1,6 @@
 <script setup>
 import {ref, onMounted, computed, watch} from 'vue'
+import { useRouter } from 'vue-router'
 import { getAuth, getIdToken } from "firebase/auth"
 import axios from '@/axios'
 import { useArtistStore } from "@/stores/artist.js";
@@ -13,6 +14,7 @@ import {useAuthStore} from "@/stores/auth.js";
 
 
 const auth = getAuth()
+const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
@@ -169,6 +171,10 @@ const getApprovedDate = (campaignId) => {
 
   return campaign.approved_at.split("T")[0];
 };
+
+const goToUpgradePage = () => {
+  router.push('/profile')
+}
 
 const flattenObject = (obj, parentKey = "", result = {}) => {
   for (const key in obj) {
