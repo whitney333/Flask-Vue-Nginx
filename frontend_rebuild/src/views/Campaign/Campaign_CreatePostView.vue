@@ -20,7 +20,6 @@
     import { useAuthStore } from "@/stores/auth.js";
     import axios from '@/axios';
     import { useRouter } from 'vue-router';
-    import { useAuthStore } from "@/stores/auth.js";
 
     const router = useRouter()
     const artistStore = useArtistStore()

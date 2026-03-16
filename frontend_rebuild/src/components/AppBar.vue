@@ -54,7 +54,7 @@ const languages = [
       if (!artistId) return
       // update artist id
       artistStore.setArtistId(artistId)
-      console.log("cur: ", artistId)
+      // console.log("cur: ", artistId)
     }
 
     const getArtistId = (artist) => {
@@ -78,7 +78,7 @@ const languages = [
 
     // console.log(userStore.followedArtists)
     watch(() => userStore.followedArtists, (val) => {
-      console.log("AppBar followedArtists:", val)
+      // console.log("AppBar followedArtists:", val)
     })
 
 

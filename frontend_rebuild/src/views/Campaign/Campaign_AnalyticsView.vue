@@ -11,7 +11,6 @@ import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
 import MiniKpiCard from "@/views/Campaign/components/Campaign_MiniKpiCard.vue"
 import * as XLSX from "xlsx"
-import {useAuthStore} from "@/stores/auth.js";
 
 
 const auth = getAuth()

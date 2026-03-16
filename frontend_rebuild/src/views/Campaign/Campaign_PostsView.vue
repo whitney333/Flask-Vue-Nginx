@@ -11,8 +11,6 @@ import campaignJSON from './json/campaignViewDetails.json'
 import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vue";
 import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
 import * as XLSX from 'xlsx'
-import {useAuthStore} from "@/stores/auth.js";
-
 
 const infoOpen = ref(false)
 const router = useRouter()

@@ -40,7 +40,7 @@ export const useUserStore = defineStore("user", {
       const user = auth.currentUser
 
       if (!user) {
-        console.log("[userStore] fetchMe skipped: no user logged in")
+        // console.log("[userStore] fetchMe skipped: no user logged in")
         return
       }
       // refresh token
@@ -58,7 +58,7 @@ export const useUserStore = defineStore("user", {
         }
 
         const user = await res.json()
-        console.log("print user: ", user)
+        // console.log("print user: ", user)
         this.setUser(user)
         this.followedArtists = user.followed_artists || []
       } catch (err) {
@@ -99,7 +99,7 @@ export const useUserStore = defineStore("user", {
       this.expiredAt = null
     },
     setFollowedArtists(artists) {
-      console.log("Setting followedArtists in store:", artists);
+      // console.log("Setting followedArtists in store:", artists);
       this.followedArtists = artists || [];
     },
     removeFollowedArtist(artistId) {

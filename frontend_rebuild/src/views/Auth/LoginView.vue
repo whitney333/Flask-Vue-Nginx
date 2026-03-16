@@ -110,7 +110,7 @@
               }
           } else {
             // first time login > redirect to fill out company name & followed artists
-            console.log("First time login, redirecting to details...")
+            // console.log("First time login, redirecting to details...")
 
             snackbarText.value = 'Welcome to Mishkan! Monitor the artists more easily, and promote overseas efficiently!'
             snackbarColor.value = 'success'
@@ -192,7 +192,7 @@
               }
             } else {
               // first time login > redirect to fill out company name & followed artists
-              console.log("First time login, redirecting to details...")
+              // console.log("First time login, redirecting to details...")
               router.push("/auth/register/details")
             }
         } catch(e) {

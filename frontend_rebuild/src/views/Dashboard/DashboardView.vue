@@ -62,7 +62,7 @@
         // mid.value = firstArtistId
         cardLoading.artist = true
 
-        console.log("🎯 first artistId:", firstArtistId)
+        // console.log("🎯 first artistId:", firstArtistId)
         // await fetchArtistInfo(mid.value, token);
         // request artist information
         const artistInfoRes = await axios.get(`/artist/info?artist_id=${firstArtistId}`, {
