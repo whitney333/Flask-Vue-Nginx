@@ -256,33 +256,88 @@ class StripeService:
         :param invoice:
         :return:
         """
-        customer_id = invoice.get("customer")
-        subscription_id = invoice.get("subscription")
-
-        if not customer_id:
-            return
-
-        user = Users.objects(stripe_customer_id=customer_id).first()
-        if not user:
-            return
-        # if no subscription id
-        if not subscription_id:
-            logger.warning("[Stripe] invoice.payment_succeeded without subscription")
-            return
-
-        sub = stripe.Subscription.retrieve(subscription_id)
-
-        if sub.get("status") != "active":
-            return
-
-        user.update(
-            set__is_premium=True,
-            set__premium_expired_at=_to_utc_naive(
-                sub["current_period_end"]
+        # Never throw from a webhook handler. Stripe will retry on 5xx, creating noise.
+        try:
+            customer_id = invoice.get("customer")
+            subscription_id = invoice.get("subscription")
+            email = (
+                invoice.get("customer_email")
+                or (invoice.get("customer_details", {}) or {}).get("email")
             )
-        )
 
-        logger.info(f"[Stripe] Payment succeeded, extended premium: {customer_id}")
+            # Prefer using invoice payload to avoid an extra Stripe API call (prod egress/NAT issues).
+            period_end_ts = None
+            lines = (invoice.get("lines", {}) or {}).get("data", []) or []
+            if lines:
+                period = (lines[0].get("period") or {})
+                period_end_ts = period.get("end")
+
+            # Fallback: retrieve subscription if we couldn't infer it from invoice lines.
+            if not period_end_ts and subscription_id:
+                try:
+                    sub = stripe.Subscription.retrieve(subscription_id)
+                    period_end_ts = sub.get("current_period_end")
+                except Exception as e:
+                    logger.warning(
+                        f"[Stripe] invoice.payment_succeeded failed to retrieve subscription "
+                        f"subscription_id={subscription_id}: {type(e).__name__}: {e}",
+                        exc_info=True
+                    )
+
+            expired_at = _to_utc_naive(period_end_ts) if period_end_ts else None
+
+            if not customer_id and not email:
+                logger.warning("[Stripe] invoice.payment_succeeded missing both customer_id and email")
+                return
+
+            user = None
+            if customer_id:
+                user = Users.objects(stripe_customer_id=customer_id).first()
+
+            # Fallback: link by email, then backfill stripe_customer_id.
+            if not user and email:
+                user = Users.objects(email=email).first()
+                if user and customer_id and not user.stripe_customer_id:
+                    try:
+                        user.update(set__stripe_customer_id=customer_id)
+                        user.reload()
+                    except Exception as e:
+                        logger.warning(
+                            f"[Stripe] Failed to backfill stripe_customer_id for email={email}: "
+                            f"{type(e).__name__}: {e}",
+                            exc_info=True
+                        )
+
+            if not user:
+                logger.warning(
+                    f"[Stripe] invoice.payment_succeeded user not found "
+                    f"customer_id={customer_id} email={email} subscription_id={subscription_id}"
+                )
+                return
+
+            update_doc = {"set__is_premium": True}
+            if expired_at:
+                update_doc["set__premium_expired_at"] = expired_at
+            if subscription_id:
+                update_doc["set__stripe_subscription_id"] = subscription_id
+
+            try:
+                user.update(**update_doc)
+                logger.info(
+                    f"[Stripe] invoice.payment_succeeded synced user firebase_id={user.firebase_id} "
+                    f"customer_id={customer_id} subscription_id={subscription_id} expires={expired_at}"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"[Stripe] invoice.payment_succeeded failed to update user "
+                    f"customer_id={customer_id} subscription_id={subscription_id}: {type(e).__name__}: {e}",
+                    exc_info=True
+                )
+        except Exception as e:
+            logger.error(
+                f"[Stripe] Unexpected error in handle_invoice_payment_succeeded: {type(e).__name__}: {e}",
+                exc_info=True
+            )
 
     @staticmethod
     def handle_invoice_payment_failed(invoice):

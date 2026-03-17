@@ -85,7 +85,8 @@ class StripeController:
             "invoice.payment_succeeded": StripeService.handle_invoice_payment_succeeded,
             "invoice.payment_failed": StripeService.handle_invoice_payment_failed,
         }
-        logger.info(f"Webhook event received: {event_type}")
+        # Include Stripe event id to correlate with Dashboard deliveries.
+        logger.info(f"[Stripe] Webhook event received: id={event.get('id')} type={event_type}")
 
         handler = handlers.get(event_type)
         if not handler:
@@ -95,7 +96,10 @@ class StripeController:
         try:
             handler(data_object)
         except Exception as e:
-            logger.error(f"[Stripe] Handler error ({event_type}): {str(e)}", exc_info=True)
+            logger.error(
+                f"[Stripe] Handler error (event_id={event.get('id')} type={event_type}): {str(e)}",
+                exc_info=True
+            )
             return jsonify({
                 "error": "Webhook handler failed"
             }), 500
