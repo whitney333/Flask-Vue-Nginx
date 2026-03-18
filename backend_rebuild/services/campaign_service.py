@@ -137,3 +137,6 @@ class CampaignService:
                 "weibo": weibo_result
             }
         }
+
+    def get_campaign_overview_by_artist(self):
+        pass
