@@ -39,6 +39,18 @@ app.use(VueApexCharts);
 app.use(i18n);
 app.use(pinia);
 
+if (import.meta.env.VITE_GA4_ID) {
+  router.afterEach((to) => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: to.fullPath,
+        page_title: document.title,
+        page_location: window.location.href
+      })
+    }
+  })
+}
+
 const authStore = useAuthStore()
 authStore.init()
 
