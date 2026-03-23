@@ -3,12 +3,10 @@
     import axios from '@/axios';
     import { useUserStore } from "@/stores/user.js";
     import { useArtistStore } from "@/stores/artist.js";
-    import { useAuthStore } from "@/stores/auth.js";
     import { nextTick } from 'vue'
 
     const userStore = useUserStore()
     const artistStore = useArtistStore()
-    const authStore = useAuthStore()
     const props = defineProps({
         value: Object,
         colors: Object,
@@ -179,10 +177,7 @@
     const fetchData = async () => {
       loadingBar.value = true
       try {
-        const res = await axios.get(props.value.fetchURL,
-            {headers: {
-              Authorization: `Bearer ${authStore.idToken}`
-              }})
+        const res = await axios.get(props.value.fetchURL, {})
         // console.log("fetchURL", props.value.fetchURL)
         if (!res || !res.data) {
           console.warn("Response is empty or invalid");

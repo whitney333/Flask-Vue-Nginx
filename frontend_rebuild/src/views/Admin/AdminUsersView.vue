@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch, computed} from "vue";
-import axios from "axios";
+import axios from "@/axios";
 import {useUserStore} from "@/stores/user.js";
 import {indexToCountry} from "@/libs/utils.js";
 import StatusChip from "@/components/StatusChip.vue"
@@ -50,7 +50,7 @@ const fetchUsers = async () => {
   loading.value = true;
   try {
     const res = await axios.get(
-        `/api/admin/v1/users`, {
+        `/admin/v1/users`, {
           params: {
             page: page.value,
             limit: limit.value,
@@ -81,12 +81,9 @@ const viewUserDetail = async () => {
 const getTenantDropDownList = async () => {
   loading.value = true;
   try {
-    const token = userStore.firebaseToken
     const res = await axios.get(
-        `/api/admin/v1/tenants/list`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        `/admin/v1/tenants/list`, {
+          headers: {}
         }
     )
     tenantOptions.value = res.data.data;
@@ -112,12 +109,10 @@ const handleCompanyChange = async (tenantId) => {
 const addUser = async () => {
   loading.value = true;
   try {
-    const token = userStore.firebaseToken
     const res = await axios.post(
-      `/api/admin/v1/users`,
+      `/admin/v1/users`,
           newUser.value, {
         headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           }
         }
@@ -161,7 +156,7 @@ watch(
       }
 
       try {
-        const res = await axios.get(`/api/user/v1/artists/${newTenantId}`)
+        const res = await axios.get(`/user/v1/artists/${newTenantId}`)
         artists.value = res.data.data || []
 
         // renew options of v-select

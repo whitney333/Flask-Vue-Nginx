@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch, computed} from "vue";
-import axios from "axios";
+import axios from "@/axios";
 import {useUserStore} from "@/stores/user.js";
 import {indexToCountry} from "@/libs/utils.js";
 import StatusChip from "@/components/StatusChip.vue"
@@ -60,7 +60,7 @@ const fetchCampaigns = async () => {
   loading.value = true;
   try {
     const res = await axios.get(
-        `/api/admin/v1/campaigns`, {
+        `/admin/v1/campaigns`, {
           params: {
             page: page.value,
             limit: limit.value,
@@ -84,11 +84,8 @@ const fetchCampaigns = async () => {
 // approve campaign
 const approveCampaign = async (campaignId) => {
   try {
-    const token = userStore.firebaseToken
-    await axios.patch(`/api/admin/v1/campaigns/${campaignId}/approve`,
-        {}, {
-          headers: {Authorization: `Bearer ${token}`}
-        });
+    await axios.patch(`/admin/v1/campaigns/${campaignId}/approve`,
+        {}, {});
     fetchCampaigns();
   } catch (err) {
     console.error("Approve failed:", err);
@@ -98,11 +95,8 @@ const approveCampaign = async (campaignId) => {
 // cancel campaign
 const cancelCampaign = async (campaignId) => {
   try {
-    const token = userStore.firebaseToken;
-    await axios.patch(`/api/admin/v1/campaigns/${campaignId}/cancel`,
-        {}, {
-          headers: {Authorization: `Bearer ${token}`}
-        })
+    await axios.patch(`/admin/v1/campaigns/${campaignId}/cancel`,
+        {}, {})
     fetchCampaigns();
   } catch (err) {
     console.error("Cancel failed:", err);
@@ -122,14 +116,9 @@ const viewCampaignDetail = async (campaignId) => {
   selectedCampaign.value = {};
 
   try {
-    const token = userStore.firebaseToken
     const res = await axios.get(
-        `/api/admin/v1/campaigns/${campaignId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        `/admin/v1/campaigns/${campaignId}`,
+        {}
     );
 
     selectedCampaign.value = res.data.data || {};
@@ -162,7 +151,6 @@ const addCampaign = async () => {
 // update campaign
 const updateCampaign = async (section, campaignId) => {
   try {
-    const token = userStore.firebaseToken
     let payload = {}
 
     if (section === "basic") {
@@ -219,11 +207,9 @@ const updateCampaign = async (section, campaignId) => {
     console.log("payload: ", payload)
     // console.log(typeof(payload))
     const res = await axios.patch(
-        `/api/admin/v1/campaigns/${campaignId}/update`,
+        `/admin/v1/campaigns/${campaignId}/update`,
         payload, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: {}
         }
     );
     // console.log("revise: ", res.data)

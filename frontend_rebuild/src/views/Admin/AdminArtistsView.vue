@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch, computed} from "vue";
-import axios from "axios";
+import axios from "@/axios";
 import {useUserStore} from "@/stores/user.js";
 import {useAuthStore} from "@/stores/auth.js";
 import StatusChip from "@/components/StatusChip.vue"
@@ -126,9 +126,8 @@ const submitTenant = async () => {
     submitting.value = true;
     loading.value = true;
     try {
-      const token = authStore.idToken
       const res = await axios.post(
-          `/api/admin/v1/tenants`,
+          `/admin/v1/tenants`,
           {
             tenant_name: newTenant.value.tenant_name,
             website: newTenant.value.website,
@@ -136,7 +135,6 @@ const submitTenant = async () => {
           },
           {
             headers: {
-              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             }
           }
@@ -190,7 +188,7 @@ const fetchArtists = async () => {
   loading.value = true;
   try {
     const res = await axios.get(
-        `/api/admin/v1/artists`, {
+        `/admin/v1/artists`, {
           params: {
             page: page.value,
             limit: limit.value,
@@ -228,12 +226,10 @@ const typeClass = (t) => {
 const addArtist = async () => {
   loading.value = true;
   try {
-    const token = authStore.idToken
     const res = await axios.post(
-        `/api/admin/v1/artists`,
+        `/admin/v1/artists`,
         newArtist.value, {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           }
         }
@@ -270,14 +266,9 @@ const viewArtistDetail = async (artistId) => {
   selectedArtist.value = {};
 
   try {
-    const token = userStore.firebaseToken
     const res = await axios.get(
-        `/api/admin/v1/artists/${artistId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        `/admin/v1/artists/${artistId}`,
+        {}
     );
 
     selectedArtist.value = res.data.data || {};
@@ -298,7 +289,6 @@ const normalizeValue = (value) => {
 // update artist
 const updateArtist = async (section, artistId) => {
   try {
-    const token = userStore.firebaseToken
     let payload = {}
 
     //basic info
@@ -345,11 +335,9 @@ const updateArtist = async (section, artistId) => {
     }
     // console.log("payload: ", payload)
     const res = await axios.patch(
-        `/api/admin/v1/artists/${artistId}/update`,
+        `/admin/v1/artists/${artistId}/update`,
         payload, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: {}
         }
     );
 
@@ -402,14 +390,12 @@ const uploadImage = async () => {
   // console.log("artist_name", selectedArtist.value.artist_en_name)
 
   try {
-    const token = authStore.idToken
     const res = await axios.post(
-      "/api/admin/v1/artists/upload/image",
+      "/admin/v1/artists/upload/image",
       formData,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`
+          "Content-Type": "multipart/form-data"
         }
       }
     )
@@ -431,12 +417,9 @@ const getTenantName = (tenantId) => {
 const getTenantDropDownList = async () => {
   loading.value = true;
   try {
-    const token = authStore.idToken
     const res = await axios.get(
-        `/api/admin/v1/tenants/list`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        `/admin/v1/tenants/list`, {
+          headers: {}
         }
     )
     tenantOptions.value = res.data.data;
@@ -460,11 +443,8 @@ const openChangeStatusDialog = (artist) => {
 // confirm change status
 const confirmChangeStatus = async () => {
   try {
-    const token = userStore.firebaseToken;
-    await axios.patch(`/api/admin/v1/artists/${selectedArtistId.value}/cancel`,
-        {}, {
-          headers: {Authorization: `Bearer ${token}`}
-        })
+    await axios.patch(`/admin/v1/artists/${selectedArtistId.value}/cancel`,
+        {}, {})
     deleteDialog.value = false;
     fetchArtists();
   } catch (err) {
