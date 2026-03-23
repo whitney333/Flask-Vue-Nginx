@@ -2,6 +2,7 @@ from controllers.admin_campaign_controller import AdminCampaignController
 from controllers.admin_tenant_controller import AdminTenantController
 from controllers.admin_artist_controller import AdminArtistController
 from controllers.admin_user_controller import AdminUserController
+from controllers.admin_drama_controller import AdminDramaController
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
 from libs.utils import auth_required, admin_required
@@ -151,3 +152,37 @@ def cancel_user(user_id):
 @admin_bp.route("/v1/users/<string:user_id>/update", methods=["PATCH"])
 def update_user(user_id):
     pass
+
+##### Drama routes #####
+@admin_bp.route("/v1/dramas", methods=["GET"])
+def get_all_dramas():
+    result = AdminDramaController.get_all_dramas()
+
+    return result
+
+@admin_bp.route("/v1/dramas", methods=["POST"])
+def add_drama():
+    result = AdminDramaController.add_drama()
+
+    return result
+
+@admin_bp.route("/v1/dramas/<string:drama_id>", methods=["GET"])
+@admin_required
+def get_drama_by_id(drama_id):
+    result = AdminDramaController.get_drama_by_id(drama_id)
+
+    return result
+
+@admin_bp.route("/v1/dramas/<string:drama_id>", methods=["PATCH"])
+@admin_required
+def update_drama(drama_id):
+    result = AdminDramaController.update_drama(drama_id)
+
+    return result
+
+# @admin_bp.route("/v1/dramas/<string:drama_id>/status", methods=["PATCH"])
+# @admin_required
+# def update_drama_status(drama_id):
+#     result = AdminDramaController.update_drama_status(drama_id)
+#
+#     return result
