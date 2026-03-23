@@ -72,11 +72,20 @@ def auth_required(fn):
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
+        # Prefer token-based auth; fallback to request.user_uid if provided by other middleware.
         user_uid = getattr(request, "user_uid", None)
         if not user_uid:
-            return jsonify({"error": "Authentication required"}), 401
+            auth_header = request.headers.get("Authorization")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Authentication required"}), 401
+            token = auth_header.split("Bearer ")[1]
+            try:
+                decoded = auth.verify_id_token(token, clock_skew_seconds=5)
+                user_uid = decoded.get("uid")
+            except Exception as e:
+                return jsonify({"error": str(e)}), 401
 
-        user = Users.objects(uid=user_uid).first()
+        user = Users.objects(firebase_id=user_uid).first()
         if not user:
             return jsonify({"error": "User not found"}), 404
 
