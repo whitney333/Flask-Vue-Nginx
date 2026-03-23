@@ -2,10 +2,9 @@
 import { useUserStore } from "@/stores/user.js";
 import { computed, ref, onMounted } from "vue"
 import { getAuth } from "firebase/auth"
-import { useAuthStore } from "@/stores/auth.js";
+import axios from "@/axios";
 
 const userStore = useUserStore()
-const authStore = useAuthStore()
 const defaultAvatar = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
 const isPremium = computed(() => userStore.isPremium)
@@ -77,20 +76,11 @@ const upgrade = async () => {
     return
   }
 
-  const idToken = await user.getIdToken(true)
-
-  const res = await fetch("/api/stripe/checkout-session", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      plan: plan.value,
-      billing_interval: billingInterval.value
-    })
+  const res = await axios.post("/api/stripe/checkout-session", {
+    plan: plan.value,
+    billing_interval: billingInterval.value
   })
-  const data = await res.json()
+  const data = res.data
   if (data.checkout_url) {
     window.location.href = data.checkout_url
   } else {
@@ -100,22 +90,14 @@ const upgrade = async () => {
 
 //subscription status
 const manageSubscription = async () => {
-  const res = await fetch("/api/stripe/customer-portal", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${authStore.idToken}`,
-      "Content-Type": "application/json"
-    }
-  })
-
-  if (!res.ok) {
-    console.error(await res.text())
+  try {
+    const res = await axios.post("/api/stripe/customer-portal", {})
+    const data = res.data
+    window.location.href = data.url
+  } catch (err) {
+    console.error(err)
     alert("Failed to open portal")
-    return
   }
-
-  const data = await res.json()
-  window.location.href = data.url
 }
 
 onMounted(async () => {
@@ -137,12 +119,8 @@ const openManageArtists = async () => {
   editingArtists.value = userStore.followedArtists.map(a => a.artist_id)
 
   try {
-    const res = await fetch(`/api/user/v1/artists/${userStore.tenant}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.idToken}`
-      }
-    })
-    const data = await res.json()
+    const res = await axios.get(`/api/user/v1/artists/${userStore.tenant}`)
+    const data = res.data
     artists.value = data.data || []
   } catch (err) {
     console.error(err)
@@ -209,18 +187,9 @@ const toggleArtist = (artistId) => {
 const saveArtists = async () => {
   isSaving.value = true
   try {
-    const res = await fetch("/api/user/v1/followed_artists", {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${authStore.idToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        artist_ids: editingArtists.value
-      })
+    await axios.put("/api/user/v1/followed_artists", {
+      artist_ids: editingArtists.value
     })
-
-    if (!res.ok) throw new Error(await res.text())
 
     await userStore.fetchMe()
     showManageArtists.value = false

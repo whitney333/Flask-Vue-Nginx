@@ -911,16 +911,16 @@ class TrendingArtistController:
             year = int(year)
             pipeline = [
                 {"$match": {
-                    "BROADCAST_YEAR": {
+                    "broadcast_year": {
                         "$gte": year - 1,  # fetch drama within 2 yrs
                         "$lte": year
                     }
                 }},
                 {"$project": {
                     "_id": 0,
-                    "english_name": "$NAME",
-                    "korean_name": "$NAME_IN_KOREAN",
-                    "artist_id": "$STARRING.MID"
+                    "english_name": "$name",
+                    "korean_name": "$name_in_korean",
+                    "artist_id": "$starring"
                 }},
             ]
 
@@ -1107,10 +1107,9 @@ class TrendingArtistController:
         if not all([artist_id]):
             return jsonify({'err': 'Missing required parameters'}), 400
 
+        match_query = {"_id": {"$in": artist_id}} if isinstance(artist_id, list) else {"_id": artist_id}
         pipeline = [
-            {"$match": {
-                "artist_id": artist_id
-            }},
+            {"$match": match_query},
             {"$project": {
                 "_id": 0,
                 "artist_id": "$artist_id",

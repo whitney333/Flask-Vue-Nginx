@@ -581,12 +581,16 @@ class AdminArtistController:
             :return:
         """
         try:
-            artists = Artists.objects.only("id", "english_name")
+            artists = Artists.objects.only("id", "artist_id", "english_name", "korean_name", "birth", "image_url")
 
             result = [
                 {
                     "id": str(c.id),
-                    "artist": c.english_name
+                    "artist_id": c.artist_id,
+                    "artist_en_name": c.english_name,
+                    "artist_kr_name": c.korean_name,
+                    "birth": c.birth,
+                    "image": c.image_url
                 }
                 for c in artists
             ]

@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch, computed} from "vue";
-import axios from "axios";
+import axios from "@/axios";
 import {useUserStore} from "@/stores/user.js";
 
 
@@ -54,7 +54,7 @@ const fetchTenants = async () => {
   loading.value = true;
   try {
     const res = await axios.get(
-        `/api/admin/v1/tenants`, {
+        `/admin/v1/tenants`, {
           params: {
             page: page.value,
             limit: limit.value,
@@ -81,14 +81,9 @@ const openUpdateDialog = async (tenantId) => {
   selectedTenant.value = {};
 
   try {
-    const token = userStore.firebaseToken
     const res = await axios.get(
-        `/api/admin/v1/tenants/${tenantId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        `/admin/v1/tenants/${tenantId}`,
+        {}
     );
 
     selectedTenant.value = res.data.data || {};
@@ -110,16 +105,13 @@ const closeDialog = () => {
 const submitUpdateTenant = async () => {
   try {
     // console.log(selectedTenant.value)
-    const token = userStore.firebaseToken
     const res = await axios.put(
-        `/api/admin/v1/tenants/${selectedTenant.value.tenant_id}/update`,
+        `/admin/v1/tenants/${selectedTenant.value.tenant_id}/update`,
         {tenant_name: selectedTenant.value.tenant_name,
               website: selectedTenant.value.website,
               email: selectedTenant.value.email,
               status: selectedTenant.value.status},
-        {headers: {
-              Authorization: `Bearer ${token}`
-          }}
+        {headers: {}}
     )
 
     showUpdateDialog.value = false
@@ -135,9 +127,8 @@ const submitUpdateTenant = async () => {
 const addTenant = async () => {
   loading.value = true;
   try {
-    const token = userStore.firebaseToken
     const res = await axios.post(
-        `/api/admin/v1/tenants`,
+        `/admin/v1/tenants`,
         {
           tenant_name: newTenant.value.tenant_name,
           website: newTenant.value.website,
@@ -145,7 +136,6 @@ const addTenant = async () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           }
         }
@@ -186,11 +176,8 @@ const openDeleteDialog = (tenantId) => {
 // cancel tenant
 const confirmCancelTenant = async () => {
   try {
-    const token = userStore.firebaseToken;
-    await axios.patch(`/api/admin/v1/tenants/${selectedTenantId.value}/cancel`,
-        {}, {
-          headers: {Authorization: `Bearer ${token}`}
-        })
+    await axios.patch(`/admin/v1/tenants/${selectedTenantId.value}/cancel`,
+        {}, {})
     deleteDialog.value = false;
     fetchTenants();
   } catch (err) {

@@ -1,11 +1,10 @@
 <script setup>
 import {ref, onMounted, computed, watch} from 'vue'
 import { useRouter } from 'vue-router'
-import { getAuth, getIdToken } from "firebase/auth"
+import { getAuth } from "firebase/auth"
 import axios from '@/axios'
 import { useArtistStore } from "@/stores/artist.js";
 import { useUserStore } from "@/stores/user.js";
-import { useAuthStore } from "@/stores/auth.js";
 import CampaignLineChart from "@/views/Campaign/components/Campaign_LineChart.vue";
 import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
@@ -17,7 +16,6 @@ const auth = getAuth()
 const router = useRouter()
 const artistStore = useArtistStore()
 const userStore = useUserStore()
-const authStore = useAuthStore()
 const data = ref(null)
 const miniKpiData = ref({
   fastest_growing_city: {},
@@ -60,12 +58,7 @@ watch(selectedArtist, async (artistId) => {
     return
   }
   try {
-    const token = await getIdToken(user)
-
     const res = await axios.get("/campaign/v1/list", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
       params: {artist_id: artistId}
     })
 
@@ -97,14 +90,9 @@ watch(selectedCampaign, async (campaignId) => {
 
   if (!campaignId) return
   try {
-    const token = await getIdToken(user)
     const res = await axios.get(
         `/campaign/v1/${campaignId}/follower-growth`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+        {}
     )
 
     data.value = res.data.data
@@ -142,10 +130,6 @@ const getMiniKpi = async (artist_id, start) => {
     const res = await axios.get(
         `/spotify/v1/top-city/growth`,
         {
-          headers: {
-            "Authorization": `Bearer ${authStore.idToken}`,
-            "Content-Type": "application/json"
-          },
           params: {
             artist_id,
             start

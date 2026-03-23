@@ -135,6 +135,11 @@
                   title: 'Campaigns',
                   icon: 'mdi-file-table-box-outline',
                   to: '/admin/campaigns'
+                },
+                {
+                  title: 'Dramas',
+                  icon: 'mdi-movie-open-outline',
+                  to: '/admin/dramas'
                 }
               ]
             });

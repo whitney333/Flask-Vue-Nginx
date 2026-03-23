@@ -3,7 +3,6 @@
     import {onMounted, reactive, ref, watch} from 'vue';
     import { useArtistStore } from '@/stores/artist'
     import { useUserStore } from '@/stores/user'
-    import { useAuthStore } from "@/stores/auth.js";
 
     const props = defineProps({
         value: Object,
@@ -14,7 +13,6 @@
     const series = ref([])
     const userStore = useUserStore()
     const artistStore = useArtistStore()
-    const authStore = useAuthStore()
     const range = ref(5)
     const chartOptions = ref({})
     const recent10Series = ref(null)
@@ -32,9 +30,6 @@
             const {data} = await axios.get(
                 `/${props.value.apiType}/v1/hashtag/most-engaged`,
                 {
-                  headers: {
-                    Authorization: `Bearer ${authStore.idToken}`
-                  },
                   params: {
                     artist_id: artistStore.artistId,
                     range: range.value

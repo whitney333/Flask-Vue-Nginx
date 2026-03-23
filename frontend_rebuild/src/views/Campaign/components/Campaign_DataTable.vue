@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
 import { AgGridVue } from "ag-grid-vue3";
-import axios from "axios";
+import axios from "@/axios";
 import InstagramIcon from "@/assets/icons/instagram.svg";
 import TikTokIcon from "@/assets/icons/tiktok.svg";
 import XiaohongshuIcon from "@/assets/icons/xiaohongshu.svg";
@@ -18,7 +18,6 @@ const props = defineProps({
   },
 });
 
-const userStore = useUserStore()
 const rowData = ref([])
 
 
@@ -235,7 +234,6 @@ const fetchData = async (campaignId) => {
     const res = await axios.get(
         `/api/campaign/v1/detail/${campaignId}`,
         {headers: {
-            "Authorization": `Bearer ${userStore.firebaseToken}`,
             "Content-Type": "application/json"
           }}
     )

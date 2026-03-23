@@ -25,6 +25,7 @@ import Admin_CampaignView from "@/views/Admin/AdminCampaignsView.vue"
 import Admin_UserView from "@/views/Admin/AdminUsersView.vue"
 import Admin_TenantView from "@/views/Admin/AdminTenantsView.vue"
 import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
+import Admin_DramaView from "@/views/Admin/AdminDramasView.vue";
 import Payment_SuccessView from "@/views/Payment/Payment_successView.vue"
 
 
@@ -115,7 +116,8 @@ const routes = [
             { path: 'campaigns', name: 'Manage Campaign', component: Admin_CampaignView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'users', name: 'Manage Users', component: Admin_UserView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'tenants', name: 'Manage Tenants', component: Admin_TenantView, meta: { requireAuth: true, requireAdmin: true }},
-            { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }}
+            { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }},
+            { path: 'dramas', name: 'Manage Dramas', component: Admin_DramaView, meta: { requireAuth: true, requireAdmin: true }},
         ]
     },
     // {
