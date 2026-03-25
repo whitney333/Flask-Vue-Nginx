@@ -22,6 +22,7 @@ youtube_api = Api(youtube_bp)
 # ARCHIVE
 # get youtube channel views
 @youtube_bp.route('/v1/channel-view', methods=['GET'])
+@auth_required
 def get_youtube_channel_view():
     artist_id = request.args.get('artist_id', type=str)
     date_end = request.args.get('date_end', type=str)
@@ -33,6 +34,7 @@ def get_youtube_channel_view():
 
 # get youtube latest 12 videos total views
 @youtube_bp.route('/v1/video-view', methods=['GET'])
+@auth_required
 def get_youtube_video_view():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -49,6 +51,7 @@ def get_youtube_video_view():
 # ARCHIVE
 # get youtube channel hashtag counts
 @youtube_bp.route('/channel-hashtag', methods=['GET'])
+@auth_required
 def get_youtube_channel_hashtag():
     artist_id = request.args.get('artist_id', type=str)
     date_end = request.args.get('date_end', type=str)
@@ -61,6 +64,7 @@ def get_youtube_channel_hashtag():
 # ARCHIVE
 # get youtube video hashtag counts
 @youtube_bp.route('/video-hashtag', methods=['GET'])
+@auth_required
 def get_youtube_video_hashtag():
     artist_id = request.args.get('artist_id', type=str)
     date_end = request.args.get('date_end', type=str)
@@ -72,6 +76,7 @@ def get_youtube_video_hashtag():
 
 # get youtube channel basic info
 @youtube_bp.route('/v1/channel', methods=['GET'])
+@auth_required
 def get_youtube_channel_basic_info():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -87,6 +92,7 @@ def get_youtube_channel_basic_info():
 
 # get youtube latest 50 videos indexes
 @youtube_bp.route('/v1/video-index', methods=['GET'])
+@auth_required
 def get_youtube_video_index():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -102,6 +108,7 @@ def get_youtube_video_index():
 
 # get youtube latest videos information
 @youtube_bp.route('/v1/posts', methods=['GET'])
+@auth_required
 def get_youtube_videos():
     # artist_id = request.args.get('artist_id', type=str)
     #
@@ -116,6 +123,7 @@ def get_youtube_videos():
     return result
 
 @youtube_bp.route("/v1/follower/growth", methods=["GET"])
+@auth_required
 def get_youtube_follower_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -123,6 +131,7 @@ def get_youtube_follower_growth():
     return YoutubeController.get_youtube_follower_growth(artist_id, campaign_start)
 
 @youtube_bp.route("/v1/channel-hashtag/growth", methods=["GET"])
+@auth_required
 def get_youtube_channel_hashtag_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -130,6 +139,7 @@ def get_youtube_channel_hashtag_growth():
     return YoutubeController.get_youtube_channel_hashtag_growth(artist_id, campaign_start)
 
 @youtube_bp.route("/v1/video-hashtag/growth", methods=["GET"])
+@auth_required
 def get_youtube_video_hashtag_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -137,6 +147,7 @@ def get_youtube_video_hashtag_growth():
     return YoutubeController.get_youtube_video_hashtag_growth(artist_id, campaign_start)
 
 @youtube_bp.route("/v1/engagement/growth", methods=["GET"])
+@auth_required
 def get_youtube_engagement_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -144,6 +155,7 @@ def get_youtube_engagement_growth():
     return YoutubeController.get_youtube_engagement_growth(artist_id, campaign_start)
 
 @youtube_bp.route("/v1/hashtag/most-used", methods=["GET"])
+@auth_required
 def get_most_used_hashtags():
     artist_id = request.args.get("artist_id", type=str)
     range_key = request.args.get("range", default="5", type=str)
@@ -155,6 +167,7 @@ def get_most_used_hashtags():
     return result
 
 @youtube_bp.route("/v1/hashtag/most-engaged", methods=["GET"])
+@auth_required
 def get_most_engaged_hashtags():
     artist_id = request.args.get("artist_id", type=str)
     range_key = request.args.get("range", default="5", type=str)

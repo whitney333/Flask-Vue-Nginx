@@ -1,4 +1,5 @@
 from controllers.trending_artist_controller import TrendingArtistController
+from libs.utils import auth_required
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, reqparse, Api
 
@@ -7,6 +8,7 @@ trending_artist_api = Api(trending_artist_bp)
 
 ### Music Score Section ###
 @trending_artist_bp.route('/spotify-chart-score', methods=['GET'])
+@auth_required
 def spotify_chart_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -15,12 +17,14 @@ def spotify_chart_score():
     return TrendingArtistController.get_spotify_charts_score(country, year, week)
 
 @trending_artist_bp.route('/spotify-popularity', methods=['GET'])
+@auth_required
 def spotify_popularity():
     spotify_pop_score = TrendingArtistController.get_spotify_popularity_score()
 
     return spotify_pop_score
 
 @trending_artist_bp.route('/spotify-score', methods=['GET'])
+@auth_required
 def total_spotify_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -31,6 +35,7 @@ def total_spotify_score():
     return merge_spotify_score
 
 @trending_artist_bp.route('/youtube-score', methods=['GET'])
+@auth_required
 def youtube_chart_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -40,6 +45,7 @@ def youtube_chart_score():
 
 
 @trending_artist_bp.route('/billboard-score', methods=['GET'])
+@auth_required
 def billboard_chart_score():
     year = request.args.get('year', type=str)
     week = request.args.get('week', type=int)
@@ -47,6 +53,7 @@ def billboard_chart_score():
     return TrendingArtistController.get_billboard_charts_score(year, week)
 
 @trending_artist_bp.route('/merge-music-score', methods=['GET'])
+@auth_required
 def merge_music_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -57,6 +64,7 @@ def merge_music_score():
     return merge_music_score
 
 @trending_artist_bp.route('/music-score', methods=['GET'])
+@auth_required
 def total_music_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -67,6 +75,7 @@ def total_music_score():
     return music_score
 
 @trending_artist_bp.route("/new-music-score", methods=["GET"])
+@auth_required
 def new_total_music_score():
     result = TrendingArtistController.new_music_score()
 
@@ -74,6 +83,7 @@ def new_total_music_score():
 
 ### SNS Score Section ###
 @trending_artist_bp.route('/tiktok-sns-score', methods=['GET'])
+@auth_required
 def tiktok_sns_score():
     artist_id = request.args.get('artist_id', type=str)
 
@@ -82,6 +92,7 @@ def tiktok_sns_score():
     return tk_sns_score
 
 @trending_artist_bp.route('/youtube-sns-score', methods=['GET'])
+@auth_required
 def youtube_sns_score():
     artist_id = request.args.get('artist_id', type=str)
 
@@ -90,6 +101,7 @@ def youtube_sns_score():
     return yt_sns_score
 
 @trending_artist_bp.route('/instagram-follower-growth', methods=['GET'])
+@auth_required
 def instagram_follower_growth():
     artist_id = request.args.get('artist_id', type=str)
     
@@ -98,6 +110,7 @@ def instagram_follower_growth():
     return ig_follower_growth_score
 
 @trending_artist_bp.route('/instagram-engagement', methods=['GET'])
+@auth_required
 def instagram_engagement():
     artist_id = request.args.get('artist_id', type=str)
 
@@ -106,6 +119,7 @@ def instagram_engagement():
     return ig_engage_score
 
 @trending_artist_bp.route('/instagram-sns-score', methods=['GET'])
+@auth_required
 def instagram_sns_score():
     artist_id = request.args.get('artist_id', type=str)
 
@@ -114,6 +128,7 @@ def instagram_sns_score():
     return ig_sns_score
 
 @trending_artist_bp.route('/merge-sns-score', methods=['GET'])
+@auth_required
 def get_sns_score():
     """
     Based on music chart data
@@ -128,12 +143,14 @@ def get_sns_score():
     return all_sns_score
 
 @trending_artist_bp.route('/pre-sns-score', methods=['GET'])
+@auth_required
 def _sns_score():
     sns_score = TrendingArtistController.get_sns_score()
 
     return sns_score
 
 @trending_artist_bp.route('/sns-score', methods=['GET'])
+@auth_required
 def total_sns_score():
     sns_scores = TrendingArtistController.get_sns_score()
 
@@ -141,18 +158,21 @@ def total_sns_score():
 
 ### Drama Score Section ###
 @trending_artist_bp.route('/new-staging-drama', methods=['GET'])
+@auth_required
 def new_staging_drama_score():
     result = TrendingArtistController.get_staging_drama_score()
 
     return result
 
 @trending_artist_bp.route('/new-drama-score', methods=['GET'])
+@auth_required
 def new_drama_score():
     result = TrendingArtistController.get_new_drama_score()
 
     return result
 
 @trending_artist_bp.route('/netflix-score', methods=['GET'])
+@auth_required
 def netflix_chart_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -163,6 +183,7 @@ def netflix_chart_score():
     return netflix_chart
 
 @trending_artist_bp.route('/ost-score', methods=['GET'])
+@auth_required
 def spotify_ost_score():
     year = request.args.get('year', type=str)
     week = request.args.get('week', type=int)
@@ -172,6 +193,7 @@ def spotify_ost_score():
     return ost_score
 
 @trending_artist_bp.route('/dramas', methods=['GET'])
+@auth_required
 def all_drama():
     year = request.args.get('year', type=int)
     dramas = TrendingArtistController.get_dramas(year)
@@ -179,6 +201,7 @@ def all_drama():
     return dramas
 
 @trending_artist_bp.route('/artist', methods=['GET'])
+@auth_required
 def _get_artist_id():
     artist_id = request.args.get('id', type=str)
 
@@ -187,6 +210,7 @@ def _get_artist_id():
     return artist
 
 @trending_artist_bp.route('/f-ost-score', methods=['GET'])
+@auth_required
 def group_ost_score_by_drama():
     year = request.args.get('year', type=str)
     week = request.args.get('week', type=int)
@@ -196,6 +220,7 @@ def group_ost_score_by_drama():
     return result
 
 @trending_artist_bp.route('/merge-drama-score', methods=['GET'])
+@auth_required
 def _drama_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -206,6 +231,7 @@ def _drama_score():
     return _drama_score
 
 @trending_artist_bp.route('/drama-score', methods=['GET'])
+@auth_required
 def total_drama():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -216,6 +242,7 @@ def total_drama():
     return drama_scores
 
 @trending_artist_bp.route('/pre-drama-score', methods=['GET'])
+@auth_required
 def pre_drama_score():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)
@@ -226,12 +253,14 @@ def pre_drama_score():
     return pre_drama_scores
 
 @trending_artist_bp.route('/artists', methods=['GET'])
+@auth_required
 def artists():
     artists = TrendingArtistController.query_db_artist()
 
     return artists
 
 @trending_artist_bp.route('/popularity', methods=['GET'])
+@auth_required
 def overall_popularity():
     country = request.args.get('country', default=None)
     year = request.args.get('year', type=str)

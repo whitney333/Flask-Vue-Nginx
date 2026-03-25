@@ -7,22 +7,26 @@ campaign_bp = Blueprint('campaign', __name__)
 campaign_api = Api(campaign_bp)
 
 @campaign_bp.route("/v1/create", methods=["POST"])
+@auth_required
 def create_campaign():
     return CampaignController.create_campaign()
 
 @campaign_bp.route("/v1/read", methods=["GET"])
+@auth_required
 def get_all_campaign_by_user_id():
     result = CampaignController.get_all_campaign_by_user_id()
 
     return result
 
 @campaign_bp.route("/v1/cancel/<string:campaign_id>", methods=["PATCH"])
+@auth_required
 def cancel_campaign(campaign_id):
     result = CampaignController.cancel_campaign(campaign_id)
 
     return result
 
 @campaign_bp.route("/v1/detail/<string:campaign_id>", methods=["GET"])
+@auth_required
 def get_per_campaign_detail(campaign_id):
     result = CampaignController.get_per_campaign_by_campaign_id(campaign_id)
 
@@ -38,6 +42,7 @@ def get_per_artist_campaigns():
     return result
 
 @campaign_bp.route("/v1/<string:campaign_id>/follower-growth", methods=["GET"])
+@auth_required
 def get_campaign_follower_growth(campaign_id):
     result = CampaignController.get_campaign_follower_growth(campaign_id)
 

@@ -20,18 +20,18 @@ const rowData = ref([])
 
 
 const kolAccountRenderer = (params) => {
-  // add link to account
   const account = params.value || "";
-  const platform = params.data.platform || "Instagram"; // fallback Instagram
+  const platform = params.data.platform || "Instagram";
   const username = account.startsWith("@") ? account.slice(1) : account;
+  const safeUsername = encodeURIComponent(username);
 
   let url = "#";
   switch (platform.toLowerCase()) {
     case "instagram":
-      url = `https://www.instagram.com/${username}`;
+      url = `https://www.instagram.com/${safeUsername}`;
       break;
     case "tiktok":
-      url = `https://www.tiktok.com/@${username}`;
+      url = `https://www.tiktok.com/@${safeUsername}`;
       break;
     case "xiaohongshu":
       url = "#";
@@ -40,7 +40,7 @@ const kolAccountRenderer = (params) => {
       url = "#";
       break;
     case "youtube":
-      url = `https://www.youtube.com/${username}`
+      url = `https://www.youtube.com/${safeUsername}`;
       break;
     case "offline":
       url = "#";
@@ -49,11 +49,18 @@ const kolAccountRenderer = (params) => {
       url = "#";
   }
 
-  return `<a href="${url}" target="_blank" style="color:#1a73e8;text-decoration:underline;">${account}</a>`;
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.style.color = "#1a73e8";
+  link.style.textDecoration = "underline";
+  link.textContent = account;
+  return link;
 };
 
 const platformRenderer = (params) => {
-   const platform = params.value?.toLowerCase();
+  const platform = params.value?.toLowerCase();
   let iconPath = "";
   let name = "";
 
@@ -87,11 +94,17 @@ const platformRenderer = (params) => {
       name = platform || "Unknown";
   }
 
-  return `
-    <div class="platform-icon" title="${name}">
-      <img src="${iconPath}" alt="${name}" class="platform-img" />
-    </div>
-  `;
+  const container = document.createElement("div");
+  container.classList.add("platform-icon");
+  container.title = name;
+
+  const img = document.createElement("img");
+  img.src = iconPath;
+  img.alt = name;
+  img.classList.add("platform-img");
+  container.appendChild(img);
+
+  return container;
 };
 
 const hashtagRenderer = (params) => {
@@ -230,7 +243,7 @@ const fetchData = async (campaignId) => {
   if (!campaignId) return;
   try {
     const res = await axios.get(
-        `/api/campaign/v1/detail/${campaignId}`,
+        `/campaign/v1/detail/${campaignId}`,
         {headers: {
             "Content-Type": "application/json"
           }}

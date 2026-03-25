@@ -75,6 +75,7 @@ class AdminDramaController:
                     "country": d.get("country"),
                     "episode": d.get("episode"),
                     "type": d.get("type"),
+                    "finale": d.get("finale").strftime("%Y-%m-%d") if d.get("finale") else None,
                     "genre": d.get("genre"),
                     "thumbnail": d.get("thumbnail")
                 })

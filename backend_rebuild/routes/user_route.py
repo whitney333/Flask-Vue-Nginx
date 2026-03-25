@@ -8,8 +8,9 @@ user_bp = Blueprint('user', __name__)
 user_api = Api(user_bp)
 
 @user_bp.route("/v1/auth/me", methods=["GET"])
-def get_user_profile(firebase_id):
-    return UserController.get_user_info(firebase_id)
+@auth_required
+def get_user_profile():
+    return UserController.get_user_info()
 
 @user_bp.route("/v1/auth/signup", methods=["POST"])
 def signup():
@@ -17,30 +18,36 @@ def signup():
 
 # used in RegisterDetailsView.vue to insert all user data
 @user_bp.route("/v1/auth/register", methods=["POST"])
+@auth_required
 def create_user():
     return UserController.create_user()
 
 @user_bp.route("/v1/auth/<string:firebase_id>", methods=["GET"])
+@auth_required
 def get_user_by_firebase_id(firebase_id):
     result = UserController.get_user_by_firebase_id(firebase_id)
 
     return result
 
 @user_bp.route("/v1/auth/check", methods=["POST"])
+@auth_required
 def check_user_exists():
     return UserController.check_user_exists()
 
 @user_bp.route("/v1/auth/check_admin", methods=["POST"])
+@auth_required
 def check_is_admin():
     return UserController.check_is_admin()
 
 @user_bp.route("/v1/company", methods=["GET"])
+@auth_required
 def get_all_tenant_company():
     result = UserController.get_all_tenant_company()
 
     return result
 
 @user_bp.route("/v1/artists/<string:tenant_id>", methods=["GET"])
+@auth_required
 def get_all_artists_of_per_tenant(tenant_id):
     result = UserController.get_all_artist_by_tenant(tenant_id)
 

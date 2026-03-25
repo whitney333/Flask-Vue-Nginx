@@ -39,10 +39,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def _get_cors_origins():
+    raw = os.getenv("CORS_ORIGINS")
+    if raw:
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+    frontend_url = os.getenv("FRONTEND_URL")
+    if frontend_url:
+        return [frontend_url]
+
+    # Safe local default for dev only.
+    return ["http://localhost", "http://localhost:8080", "http://127.0.0.1:8080"]
+
 def create_app():
     app = Flask(__name__)
 
-    CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": _get_cors_origins()}}, supports_credentials=True)
 
     # app.config.from_object(Config)
     # Initialize Firebase Admin SDK

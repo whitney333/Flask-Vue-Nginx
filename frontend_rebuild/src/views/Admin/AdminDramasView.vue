@@ -230,7 +230,7 @@ const addDrama = async () => {
       starring: [],
       broadcast_day: [],
       premiere_channel: [],
-      streaming: []
+      streaming: [],
     }
     fetchDramas();
   } catch (err) {
@@ -364,12 +364,6 @@ const uploadThumbnail = async () => {
     console.error(err)
     alert("Upload failed")
   }
-}
-
-const openChangeStatusDialog = (drama) => {
-  selectedDramaId.value = drama.id;
-  selectedDramaName.value = drama.name;
-  deleteDialog.value = true;
 }
 
 const confirmChangeStatus = async () => {
@@ -786,6 +780,7 @@ watch([page, limit], () => {
             <th class="px-4 py-2">Name (KR)</th>
             <th class="px-4 py-2">Year</th>
             <th class="px-4 py-2">Type</th>
+            <th class="px-4 py-2">Status</th>
             <th class="px-4 py-2">Actions</th>
           </tr>
         </thead>
@@ -802,13 +797,17 @@ watch([page, limit], () => {
             <td class="px-4 py-2">
               <span class="px-2 py-1 rounded text-xs font-medium" :class="typeClass(d.type || '')">{{ d.type }}</span>
             </td>
+            <td class="px-4 py-2">
+              <v-chip size="x-small" :color="d.finale ? 'success' : 'warning'" variant="flat">
+                {{ d.finale ? 'Completed' : 'On Air' }}
+              </v-chip>
+            </td>
             <td class="px-4 py-2 flex gap-2">
               <button @click="viewDramaDetail(d.id)" class="px-2 py-1 rounded text-xs font-medium border border-green-600 text-green-600 hover:bg-green-50">Update</button>
-              <button @click="openChangeStatusDialog(d)" class="px-2 py-1 rounded text-xs font-medium border border-red-600 text-red-600 hover:bg-red-50">Status</button>
             </td>
           </tr>
           <tr v-if="!loading && dramas.length === 0">
-            <td colspan="7" class="text-center text-gray-500 py-6">No dramas found</td>
+            <td colspan="8" class="text-center text-gray-500 py-6">No dramas found</td>
           </tr>
         </tbody>
       </table>

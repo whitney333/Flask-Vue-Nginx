@@ -19,8 +19,14 @@ logger = logging.getLogger(__name__)
 
 class UserController:
 
-    def get_user_info(firebase_id):
+    def get_user_info():
        try:
+           firebase_id = getattr(g, "firebase_id", None)
+           if not firebase_id:
+               return jsonify({
+                   "error": "Unauthorized"
+               }), 401
+
            user = Users.objects(firebase_id=firebase_id).first()
            if user:
                return jsonify({
@@ -43,6 +49,17 @@ class UserController:
         :return:
         """
         try:
+            requester_id = getattr(g, "firebase_id", None)
+            if not requester_id:
+                return jsonify({"error": "Unauthorized"}), 401
+
+            requester = Users.objects(firebase_id=requester_id).first()
+            if not requester:
+                return jsonify({"error": "User not found"}), 404
+
+            if requester_id != firebase_id and not requester.admin:
+                return jsonify({"error": "Forbidden"}), 403
+
             # return QuerySet
             user = Users.objects(firebase_id=firebase_id).exclude("id").first()
 
@@ -113,12 +130,16 @@ class UserController:
         data = request.get_json()
         logger.info(f"Creating user with data: {data}")
         try:
-            if not data.get("firebaseId") or not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
+            firebase_id = getattr(g, "firebase_id", None)
+            if not firebase_id:
+                return jsonify({"error": "Unauthorized"}), 401
+
+            if not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
                 return jsonify({
                     "error": "Missing required fields"
                 }), 400
             # user already exists
-            if Users.objects(firebase_id=data.get("firebaseId")).first():
+            if Users.objects(firebase_id=firebase_id).first():
                 return jsonify({
                     "error": "User already exists"
                 }), 400
@@ -149,7 +170,7 @@ class UserController:
                 image_url = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
             new_user = Users(
-                firebase_id = data.get("firebaseId"),
+                firebase_id = firebase_id,
                 name = data.get("name"),
                 image_url = image_url,
                 email = data.get("email"),
@@ -230,9 +251,10 @@ class UserController:
 
     @classmethod
     def check_user_exists(cls):
-        data = request.get_json()
-        logger.debug(f"Checking user exists: {data}")
-        firebase_uid = data.get("firebase_id")
+        firebase_uid = getattr(g, "firebase_id", None)
+        if not firebase_uid:
+            return jsonify({"error": "Unauthorized"}), 401
+
         user = Users.objects(firebase_id=firebase_uid).first()
 
         if user:

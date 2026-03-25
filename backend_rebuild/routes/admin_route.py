@@ -12,6 +12,7 @@ admin_api = Api(admin_bp)
 
 ##### Upload image routes #####
 @admin_bp.route("/v1/artists/upload/image", methods=["POST"])
+@admin_required
 def upload_image():
     result = AdminArtistController.uploadImage()
 
@@ -19,36 +20,42 @@ def upload_image():
 
 ##### Campaign routes #####
 @admin_bp.route("/v1/campaigns", methods=["GET"])
+@admin_required
 def get_all_campaigns():
     result = AdminCampaignController.getAllCampaigns()
 
     return result
 
 @admin_bp.route("/v1/campaigns/<string:campaign_id>", methods=["GET"])
+@admin_required
 def get_single_campaign(campaign_id):
     result = AdminCampaignController.getSingleCampaign(campaign_id)
 
     return result
 
 @admin_bp.route("/v1/campaigns", methods=["POST"])
+@admin_required
 def add_campaign():
     result = AdminCampaignController.addCampaign()
 
     return result
 
 @admin_bp.route("/v1/campaigns/<string:campaign_id>/update", methods=["PATCH"])
+@admin_required
 def update_campaign(campaign_id):
     result = AdminCampaignController.updateCampaign(campaign_id)
 
     return result
 
 @admin_bp.route("/v1/campaigns/<string:campaign_id>/cancel", methods=["PATCH"])
+@admin_required
 def cancel_campaign(campaign_id):
     result = AdminCampaignController.cancelCampaign(campaign_id)
 
     return result
 
 @admin_bp.route("/v1/campaigns/<string:campaign_id>/approve", methods=["PATCH"])
+@admin_required
 def approve_campaign(campaign_id):
     result = AdminCampaignController.approveCampaign(campaign_id)
 
@@ -56,36 +63,42 @@ def approve_campaign(campaign_id):
 
 ##### Artist routes #####
 @admin_bp.route("/v1/artists", methods=["GET"])
+@admin_required
 def get_all_artists():
     result = AdminArtistController.getAllArtists()
 
     return result
 
 @admin_bp.route("/v1/artists/<string:artist_id>", methods=["GET"])
+@admin_required
 def get_single_artist(artist_id):
     result = AdminArtistController.getSingleArtist(artist_id)
 
     return result
 
 @admin_bp.route("/v1/artists/<string:artist_id>/cancel", methods=["PATCH"])
+@admin_required
 def cancel_artist(artist_id):
     result = AdminArtistController.cancelArtist(artist_id)
 
     return result
 
 @admin_bp.route("/v1/artists", methods=["POST"])
+@admin_required
 def add_artist():
     result = AdminArtistController.addArtist()
 
     return result
 
 @admin_bp.route("/v1/artists/<string:artist_id>/update", methods=["PATCH"])
+@admin_required
 def update_artist(artist_id):
     result = AdminArtistController.updateArtist(artist_id)
 
     return result
 
 @admin_bp.route("/v1/artists/list", methods=["GET"])
+@admin_required
 def get_artist_dropdownlist():
     result = AdminArtistController.getArtistsList()
 
@@ -93,36 +106,42 @@ def get_artist_dropdownlist():
 
 ##### Tenant routes #####
 @admin_bp.route("/v1/tenants", methods=["GET"])
+@admin_required
 def get_all_tenants():
     result = AdminTenantController.getAllTenants()
 
     return result
 
 @admin_bp.route("/v1/tenants/<string:tenant_id>", methods=["GET"])
+@admin_required
 def get_single_tenant(tenant_id):
     result = AdminTenantController.getSingleTenant(tenant_id)
 
     return result
 
 @admin_bp.route("/v1/tenants/<string:tenant_id>/cancel", methods=["PATCH"])
+@admin_required
 def cancel_tenant(tenant_id):
     result = AdminTenantController.cancelTenant(tenant_id)
 
     return result
 
 @admin_bp.route("/v1/tenants", methods=["POST"])
+@admin_required
 def add_tenant():
     result = AdminTenantController.addTenant()
 
     return result
 
 @admin_bp.route("/v1/tenants/<string:tenant_id>/update", methods=["PUT"])
+@admin_required
 def update_tenant(tenant_id):
     result = AdminTenantController.updateTenant(tenant_id)
 
     return result
 
 @admin_bp.route("/v1/tenants/list", methods=["GET"])
+@admin_required
 def get_tenant_dropdownlist():
     result = AdminTenantController.getTenantsList()
 
@@ -130,37 +149,44 @@ def get_tenant_dropdownlist():
 
 ##### User routes #####
 @admin_bp.route("/v1/users", methods=["GET"])
+@admin_required
 def get_all_users():
     result = AdminUserController.getAllUsers()
 
     return result
 
 @admin_bp.route("/v1/users/<string:user_id>", methods=["GET"])
+@admin_required
 def get_single_user(user_id):
     pass
 
 @admin_bp.route("/v1/users", methods=["POST"])
+@admin_required
 def add_user():
     result = AdminUserController.addUser()
 
     return result
 
 @admin_bp.route("/v1/users/<string:user_id>/cancel", methods=["PATCH"])
+@admin_required
 def cancel_user(user_id):
     pass
 
 @admin_bp.route("/v1/users/<string:user_id>/update", methods=["PATCH"])
+@admin_required
 def update_user(user_id):
     pass
 
 ##### Drama routes #####
 @admin_bp.route("/v1/dramas", methods=["GET"])
+@admin_required
 def get_all_dramas():
     result = AdminDramaController.get_all_dramas()
 
     return result
 
 @admin_bp.route("/v1/dramas", methods=["POST"])
+@admin_required
 def add_drama():
     result = AdminDramaController.add_drama()
 

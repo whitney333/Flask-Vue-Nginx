@@ -8,6 +8,7 @@ spotify_api = Api(spotify_bp)
 
 # spotify follower route
 @spotify_bp.route('/v1/follower', methods=['GET'])
+@auth_required
 def get_spotify_follower():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -23,6 +24,7 @@ def get_spotify_follower():
 
 # spotify monthly_listener route
 @spotify_bp.route('/v1/monthly-listener', methods=['GET'])
+@auth_required
 def get_spotify_monthly_listener():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -38,6 +40,7 @@ def get_spotify_monthly_listener():
 
 # spotify popularity route
 @spotify_bp.route('/v1/popularity', methods=['GET'])
+@auth_required
 def get_spotify_popularity():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -53,6 +56,7 @@ def get_spotify_popularity():
 
 # spotify fan conversion rate route
 @spotify_bp.route('/v1/conversion-rate', methods=['GET'])
+@auth_required
 def get_spotify_conversion_rate():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")
@@ -67,6 +71,7 @@ def get_spotify_conversion_rate():
     return result
 
 @spotify_bp.route('/v1/top-city', methods=['GET'])
+@auth_required
 def get_spotify_top_five_city():
     artist_id = request.args.get("artist_id")
 
@@ -77,6 +82,7 @@ def get_spotify_top_five_city():
     return result
 
 @spotify_bp.route('/v1/country/top-tracks', methods=['GET'])
+@auth_required
 def get_top_tracks_by_country():
     artist_id = request.args.get("artist_id")
     country = request.args.get("country")
@@ -89,6 +95,7 @@ def get_top_tracks_by_country():
     return result
 
 @spotify_bp.route('/v1/region/top-tracks', methods=['GET'])
+@auth_required
 def get_top_tracks_by_region():
     artist_id = request.args.get("artist_id")
     country = request.args.get("country")
@@ -101,6 +108,7 @@ def get_top_tracks_by_region():
     return result
 
 @spotify_bp.route("/v1/follower/growth", methods=["GET"])
+@auth_required
 def get_spotify_follower_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -108,6 +116,7 @@ def get_spotify_follower_growth():
     return SpotifyController.get_spotify_follower_growth(artist_id, campaign_start)
 
 @spotify_bp.route("/v1/monthly-listener/growth", methods=["GET"])
+@auth_required
 def get_spotify_monthly_listener_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -115,6 +124,7 @@ def get_spotify_monthly_listener_growth():
     return SpotifyController.get_spotify_monthly_listener_by_artist_id(artist_id, campaign_start)
 
 @spotify_bp.route("/v1/popularity/growth", methods=["GET"])
+@auth_required
 def get_spotify_popularity_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
@@ -122,6 +132,7 @@ def get_spotify_popularity_growth():
     return SpotifyController.get_spotify_popularity_growth(artist_id, campaign_start)
 
 @spotify_bp.route("/v1/top-city/growth", methods=["GET"])
+@auth_required
 def get_spotify_top_city_growth():
     artist_id = request.args.get('artist_id', type=str)
     campaign_start = request.args.get('start', type=str)
