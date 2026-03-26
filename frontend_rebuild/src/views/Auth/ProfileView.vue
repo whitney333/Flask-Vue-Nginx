@@ -76,7 +76,7 @@ const upgrade = async () => {
     return
   }
 
-  const res = await axios.post("/api/stripe/checkout-session", {
+  const res = await axios.post("/stripe/checkout-session", {
     plan: plan.value,
     billing_interval: billingInterval.value
   })
@@ -91,7 +91,7 @@ const upgrade = async () => {
 //subscription status
 const manageSubscription = async () => {
   try {
-    const res = await axios.post("/api/stripe/customer-portal", {})
+    const res = await axios.post("/stripe/customer-portal", {})
     const data = res.data
     window.location.href = data.url
   } catch (err) {
@@ -119,9 +119,10 @@ const openManageArtists = async () => {
   editingArtists.value = userStore.followedArtists.map(a => a.artist_id)
 
   try {
-    const res = await axios.get(`/api/user/v1/artists/${userStore.tenant}`)
+    const res = await axios.get(`/user/v1/artists/${userStore.tenant}`)
     const data = res.data
     artists.value = data.data || []
+
   } catch (err) {
     console.error(err)
     alert("Failed to load artists")
@@ -187,7 +188,7 @@ const toggleArtist = (artistId) => {
 const saveArtists = async () => {
   isSaving.value = true
   try {
-    await axios.put("/api/user/v1/followed_artists", {
+    await axios.put("/user/v1/followed_artists", {
       artist_ids: editingArtists.value
     })
 

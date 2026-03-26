@@ -101,18 +101,18 @@
         </div>
 
         <!-- full-bleed background (content stays centered) -->
-        <div class="section-bleed section-bleed--hashtags">
-          <SNSHashtagAnalytics
-            :iconSrc="iconSrc"
-            :colors="colors"
-            :value="tiktokJSON.hashtagAnalyticsValue"
-          />
-        </div>
+<!--        <div class="section-bleed section-bleed&#45;&#45;hashtags">-->
+<!--          <SNSHashtagAnalytics-->
+<!--            :iconSrc="iconSrc"-->
+<!--            :colors="colors"-->
+<!--            :value="tiktokJSON.hashtagAnalyticsValue"-->
+<!--          />-->
+<!--        </div>-->
 
         <!-- posts -->
-        <div class="section-bleed section-bleed--posts">
-          <SNSAllPosts :platform="platform" />
-        </div>
+<!--        <div class="section-bleed section-bleed&#45;&#45;posts">-->
+<!--          <SNSAllPosts :platform="platform" />-->
+<!--        </div>-->
 
       </template>
 

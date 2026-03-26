@@ -19,37 +19,59 @@ const props = defineProps({
 const rowData = ref([])
 
 
+const buildSafeProfileUrl = (platform, rawAccount) => {
+  if (!platform || !rawAccount) return null;
+  const account = String(rawAccount);
+  const username = account.startsWith("@") ? account.slice(1) : account;
+
+  let base = null;
+  let path = "";
+  switch (String(platform).toLowerCase()) {
+    case "instagram":
+      base = "https://www.instagram.com/";
+      path = username;
+      break;
+    case "tiktok":
+      base = "https://www.tiktok.com/";
+      path = `@${username}`;
+      break;
+    case "youtube":
+      base = "https://www.youtube.com/";
+      path = username;
+      break;
+    default:
+      return null;
+  }
+
+  try {
+    const url = new URL(base);
+    url.pathname = path;
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
+
 const kolAccountRenderer = (params) => {
   // add link to account
   const account = params.value || "";
   const platform = params.data.platform || "Instagram"; // fallback Instagram
-  const username = account.startsWith("@") ? account.slice(1) : account;
+  const safeUrl = buildSafeProfileUrl(platform, account);
 
-  let url = "#";
-  switch (platform.toLowerCase()) {
-    case "instagram":
-      url = `https://www.instagram.com/${username}`;
-      break;
-    case "tiktok":
-      url = `https://www.tiktok.com/@${username}`;
-      break;
-    case "xiaohongshu":
-      url = "#";
-      break;
-    case "bilibili":
-      url = "#";
-      break;
-    case "youtube":
-      url = `https://www.youtube.com/${username}`
-      break;
-    case "offline":
-      url = "#";
-      break;
-    default:
-      url = "#";
+  if (!safeUrl) {
+    const span = document.createElement("span");
+    span.textContent = account;
+    return span;
   }
 
-  return `<a href="${url}" target="_blank" style="color:#1a73e8;text-decoration:underline;">${account}</a>`;
+  const link = document.createElement("a");
+  link.href = safeUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.style.color = "#1a73e8";
+  link.style.textDecoration = "underline";
+  link.textContent = account;
+  return link;
 };
 
 const platformRenderer = (params) => {
@@ -87,11 +109,16 @@ const platformRenderer = (params) => {
       name = platform || "Unknown";
   }
 
-  return `
-    <div class="platform-icon" title="${name}">
-      <img src="${iconPath}" alt="${name}" class="platform-img" />
-    </div>
-  `;
+  const container = document.createElement("div");
+  container.classList.add("platform-icon");
+  container.title = name;
+
+  const img = document.createElement("img");
+  img.classList.add("platform-img");
+  img.src = iconPath;
+  img.alt = name;
+  container.appendChild(img);
+  return container;
 };
 
 const hashtagRenderer = (params) => {
@@ -230,7 +257,7 @@ const fetchData = async (campaignId) => {
   if (!campaignId) return;
   try {
     const res = await axios.get(
-        `/api/campaign/v1/detail/${campaignId}`,
+        `/campaign/v1/detail/${campaignId}`,
         {headers: {
             "Content-Type": "application/json"
           }}

@@ -1,7 +1,7 @@
 from models.campaign_model import Campaign
 from models.user_model import Users
 from models.artist_model import Artists
-from flask import request, jsonify
+from flask import request, jsonify, g
 from firebase_admin import auth
 import datetime
 import uuid
@@ -57,22 +57,16 @@ class CampaignController:
         :return:
         """
         try:
-            # get token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
-
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
-
-            # verify token
-            # decoded_token = auth.verify_id_token(id_token)
-            # uid = decoded_token["uid"]
-
             # get data
             data = request.get_json()
             # print("Received data: ", data)
 
             # get user ObjectId
-            user_objId = Users.objects(firebase_id=data.get("firebase_id")).first()
+            firebase_id = getattr(g, "firebase_id", None)
+            if not firebase_id:
+                return jsonify({"error": "Unauthorized"}), 401
+
+            user_objId = Users.objects(firebase_id=firebase_id).first()
             if not user_objId:
                 return jsonify({"error": "User not found"}), 404
 
@@ -128,18 +122,13 @@ class CampaignController:
         :return:
         """
         try:
-            # get token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            firebase_id = getattr(g, "firebase_id", None)
+            if not firebase_id:
+                return jsonify({"error": "Unauthorized"}), 401
 
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
-
-            try:
-                # verify token, get user firebase_id
-                decoded_token = auth.verify_id_token(id_token)
-                uid = decoded_token["uid"]
-            except Exception as e:
-                return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+            user = Users.objects(firebase_id=firebase_id).first()
+            if not user:
+                return jsonify({"error": "User not found"}), 404
 
             data = request.get_json()
             # print("data: ", data)
@@ -150,6 +139,8 @@ class CampaignController:
 
             if not campaign:
                 return jsonify({"error": "Campaign not found"}), 404
+            if campaign.user_id != user:
+                return jsonify({"error": "Forbidden"}), 403
 
             if status:
                 campaign.update(status=status)
@@ -175,30 +166,12 @@ class CampaignController:
     @classmethod
     def get_all_campaign_by_user_id(cls):
         try:
-            # get token from header
-            auth_header = request.headers.get("Authorization", "")
-
-            if not auth_header or "Bearer" not in auth_header:
-                return jsonify({"error": "Missing or malformed Authorization header"}), 401
-
-            id_token = auth_header.replace("Bearer ", "").strip()
-
-            if id_token == "null" or id_token == "undefined" or not id_token:
-                return jsonify({"error": "Token is null or empty"}), 401
-
-            id_token = auth_header.split(" ")[1]
-
-            if id_token == "null" or id_token == "undefined" or not id_token:
-                return jsonify({"error": "Token is null or empty"}), 401
-            try:
-                # verify token, get user firebase_id
-                decoded_token = auth.verify_id_token(id_token)
-                uid = decoded_token["uid"]
-            except Exception as e:
-                return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+            firebase_id = getattr(g, "firebase_id", None)
+            if not firebase_id:
+                return jsonify({"error": "Unauthorized"}), 401
 
             # get user ObjectId by firebase id
-            user_objId = Users.objects(firebase_id=uid).first()
+            user_objId = Users.objects(firebase_id=firebase_id).first()
             if not user_objId:
                 return jsonify({"error": "User not found"}), 404
 
@@ -234,23 +207,20 @@ class CampaignController:
     @classmethod
     def get_per_campaign_by_campaign_id(cls, campaign_id):
         try:
-            # get token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+            firebase_id = getattr(g, "firebase_id", None)
+            if not firebase_id:
+                return jsonify({"error": "Unauthorized"}), 401
 
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
-
-            # try:
-            #     # verify token, get user firebase_id
-            #     decoded_token = auth.verify_id_token(id_token)
-            #     uid = decoded_token["uid"]
-            # except Exception as e:
-            #     return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+            user = Users.objects(firebase_id=firebase_id).first()
+            if not user:
+                return jsonify({"error": "User not found"}), 404
 
             campaign = Campaign.objects(campaign_id=campaign_id).first()
 
             if not campaign:
                 return jsonify({"error": "Campaign not found"}), 404
+            if campaign.user_id != user:
+                return jsonify({"error": "Forbidden"}), 403
 
             data = serialize_campaign(campaign)
 
