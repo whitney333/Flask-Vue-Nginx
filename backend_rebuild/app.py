@@ -42,7 +42,19 @@ logger = logging.getLogger(__name__)
 def create_app():
     app = Flask(__name__)
 
-    CORS(app, resources={r'/*': {'origins': '*'}}, supports_credentials=True)
+    cors_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "").strip()
+    origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+    if not origins:
+        frontend_url = os.getenv("FRONTEND_URL", "").strip()
+        if frontend_url:
+            origins = [frontend_url]
+
+    if origins:
+        # Never allow credentials with wildcard origins.
+        supports_credentials = "*" not in origins
+        CORS(app, resources={r"/*": {"origins": origins}}, supports_credentials=supports_credentials)
+    else:
+        logger.warning("CORS_ALLOWED_ORIGINS/FRONTEND_URL not set; CORS is disabled.")
 
     # app.config.from_object(Config)
     # Initialize Firebase Admin SDK

@@ -8,29 +8,35 @@ user_bp = Blueprint('user', __name__)
 user_api = Api(user_bp)
 
 @user_bp.route("/v1/auth/me", methods=["GET"])
+@auth_required
 def get_user_profile(firebase_id):
     return UserController.get_user_info(firebase_id)
 
 @user_bp.route("/v1/auth/signup", methods=["POST"])
+@auth_required
 def signup():
     return UserController.signup()
 
 # used in RegisterDetailsView.vue to insert all user data
 @user_bp.route("/v1/auth/register", methods=["POST"])
+@auth_required
 def create_user():
     return UserController.create_user()
 
 @user_bp.route("/v1/auth/<string:firebase_id>", methods=["GET"])
+@auth_required
 def get_user_by_firebase_id(firebase_id):
     result = UserController.get_user_by_firebase_id(firebase_id)
 
     return result
 
 @user_bp.route("/v1/auth/check", methods=["POST"])
+@auth_required
 def check_user_exists():
     return UserController.check_user_exists()
 
 @user_bp.route("/v1/auth/check_admin", methods=["POST"])
+@auth_required
 def check_is_admin():
     return UserController.check_is_admin()
 

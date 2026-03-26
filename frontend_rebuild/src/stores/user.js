@@ -47,11 +47,11 @@ export const useUserStore = defineStore("user", {
       const idToken = await user.getIdToken(true)
 
       try {
-        const res = await fetch("/api/user/me", {
-          headers: {
-            Authorization: `Bearer ${idToken}`
-          }
-        })
+      const res = await fetch("/api/user/me", {
+        headers: {
+          Authorization: `Bearer ${idToken}`
+        }
+      })
 
         if (!res.ok) {
            new Error("fetchMe failed")

@@ -20,6 +20,14 @@ class UserController:
 
     def get_user_info(firebase_id):
        try:
+           request_uid = getattr(g, "firebase_id", None)
+           if not request_uid:
+               return jsonify({"error": "Unauthorized"}), 401
+           if request_uid != firebase_id:
+               requester = Users.objects(firebase_id=request_uid).only("admin").first()
+               if not requester or not requester.admin:
+                   return jsonify({"error": "Forbidden"}), 403
+
            user = Users.objects(firebase_id=firebase_id).first()
            if user:
                return jsonify({
@@ -42,6 +50,14 @@ class UserController:
         :return:
         """
         try:
+            request_uid = getattr(g, "firebase_id", None)
+            if not request_uid:
+                return jsonify({"error": "Unauthorized"}), 401
+            if request_uid != firebase_id:
+                requester = Users.objects(firebase_id=request_uid).only("admin").first()
+                if not requester or not requester.admin:
+                    return jsonify({"error": "Forbidden"}), 403
+
             # return QuerySet
             user = Users.objects(firebase_id=firebase_id).exclude("id").first()
 
@@ -62,19 +78,13 @@ class UserController:
     @classmethod
     def signup(cls):
         try:
-            # get firebase token from header
-            id_token = request.headers.get("Authorization", "").replace("Bearer ", "")
-            # print(id_token)
-            if not id_token:
-                return jsonify({"error": "Missing token"}), 401
-
-            # auth Firebase token
-            decoded_token = auth.verify_id_token(id_token)
-            uid = decoded_token["uid"]
+            # firebase uid from verified token only (set by @auth_required).
+            uid = getattr(g, "firebase_id", None)
+            if not uid:
+                return jsonify({"error": "Unauthorized"}), 401
 
             # get email
             data = request.get_json()
-            # print(data)
             email = data.get("email")
 
             if not email:
@@ -108,16 +118,26 @@ class UserController:
 
     @classmethod
     def create_user(cls):
-        # get data
-        data = request.get_json()
+        # Use Firebase UID from verified token only (set by @auth_required).
+        firebase_uid = getattr(g, "firebase_id", None)
+        if not firebase_uid:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        data = request.get_json(silent=True) or {}
         logger.info(f"Creating user with data: {data}")
         try:
-            if not data.get("firebaseId") or not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
+            if not data.get("name") or not data.get("email") or not data.get("tenant") or not data.get("followed_artist"):
                 return jsonify({
                     "error": "Missing required fields"
                 }), 400
+
+            # Reject if client tries to register a different Firebase identity.
+            incoming_firebase_id = data.get("firebaseId")
+            if incoming_firebase_id and incoming_firebase_id != firebase_uid:
+                return jsonify({"error": "Forbidden"}), 403
+
             # user already exists
-            if Users.objects(firebase_id=data.get("firebaseId")).first():
+            if Users.objects(firebase_id=firebase_uid).first():
                 return jsonify({
                     "error": "User already exists"
                 }), 400
@@ -148,7 +168,7 @@ class UserController:
                 image_url = "https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/web-dist/user-circle-96.png"
 
             new_user = Users(
-                firebase_id = data.get("firebaseId"),
+                firebase_id = firebase_uid,
                 name = data.get("name"),
                 image_url = image_url,
                 email = data.get("email"),
@@ -262,11 +282,20 @@ class UserController:
     @classmethod
 
     def check_user_exists(cls):
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         logger.debug(f"Checking user exists: {data}")
-        firebase_uid = data.get("firebase_id")
 
-        # firebase_uid = g.firebase_id
+        request_uid = getattr(g, "firebase_id", None)
+        if not request_uid:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        # Reject probing other users.
+        requested_uid = data.get("firebase_id")
+        if requested_uid and requested_uid != request_uid:
+            return jsonify({"error": "Forbidden"}), 403
+
+        firebase_uid = request_uid
+
         user = Users.objects(firebase_id=firebase_uid).first()
 
         if user:
@@ -284,6 +313,21 @@ class UserController:
             return jsonify({
                 "exists": False
             }), 200
+
+    @staticmethod
+    def check_is_admin():
+        firebase_uid = getattr(g, "firebase_id", None)
+        if not firebase_uid:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user = Users.objects(firebase_id=firebase_uid).first()
+        if not user:
+            return jsonify({"exists": False, "admin": False}), 404
+
+        return jsonify({
+            "exists": True,
+            "admin": bool(user.admin)
+        }), 200
 
     @staticmethod
     def get_all_tenant_company():

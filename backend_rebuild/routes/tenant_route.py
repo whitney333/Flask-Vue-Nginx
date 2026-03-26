@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, reqparse, Api
 from controllers.tenant_controller import TenantController
+from libs.utils import admin_required
 
 
 tenant_bp = Blueprint("tenant", __name__)
 tenant_api = Api(tenant_bp)
 
 @tenant_bp.route("/v1/tenant", methods=["POST"])
+@admin_required
 def create_tenant():
     """
     create new tenant
@@ -21,6 +23,7 @@ def create_tenant():
 
 
 @tenant_bp.route("/v1/tenant/<string:tenant_id>", methods=["GET"])
+@admin_required
 def get_tenant_by_id(tenant_id):
     """
     get tenant by id
@@ -30,6 +33,7 @@ def get_tenant_by_id(tenant_id):
     return TenantController.get_tenant_by_id(tenant_id)
 
 @tenant_bp.route("/v1/tenant/all", methods=["GET"])
+@admin_required
 def get_all_tenants():
     """
     get all tenants
