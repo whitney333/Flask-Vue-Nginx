@@ -325,20 +325,22 @@ class InstagramService:
         pipeline = [
             # Match artist
             {"$match": {
-                "user_id": instagram_id
+                "user_id": instagram_id,
+                "datetime": {
+                    "$gt": start_date,
+                    "$lte": date_end
+                }
             }},
             # Sort by datetime for consistent results
             {"$sort": {"datetime": 1}},
-            # Limit to specified number of days
-            {"$limit": days},
             # Unwind posts array to work with individual posts
             {"$unwind": "$posts"},
             # Project required fields
             {"$project": {
                 "_id": 0,
                 "datetime": "$datetime",
-                "code": "$posts.code",
-                "like_count": "$posts.like_count",
+                "code": "$posts.shortCode",
+                "like_count": "$posts.likesCount",
             }},
             # Group by date to calculate daily totals
             {"$group": {
@@ -360,6 +362,20 @@ class InstagramService:
             }}
         ]
 
+        records = list(InstagramLatest.objects.aggregate(*pipeline))
+
+        # ---------- format response ----------
+
+        return {
+            "locked": False,
+            "data": records,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges,
+            }
+        }
 
 
 
@@ -523,5 +539,94 @@ class InstagramService:
             "meta": {
                 "post_count": len(ins_doc.posts),
                 "follower": follower
+            }
+        }
+
+    @staticmethod
+    def get_latest_posts(user, artist_id):
+        if not artist_id:
+            raise ValueError("Missing artist_id parameter")
+
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+        plan = "premium" if is_premium else "free"
+
+        # ----------get instagram id ----------
+        instagram_id = ArtistService.get_instagram_id(artist_id)
+
+        if not instagram_id:
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "source": "instagram",
+                    "reason": "no instagram id"
+                }
+            }
+
+        ins_doc = (
+            InstagramLatest.objects(user_id=instagram_id)
+                .order_by("-datetime")
+                .only("posts")
+                .first()
+        )
+
+        profile = (Instagram.objects(user_id=instagram_id)
+                   .only("follower_count").first()
+        )
+
+        follower_count = int(profile.follower_count or 0) \
+            if profile else 0
+
+        # ---------- no data ----------
+        if not ins_doc or not ins_doc.posts:
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "source": "instagram",
+                    "reason": "no post data"
+                }
+            }
+
+        # ---------- return all posts ----------
+        result = []
+        for post in ins_doc.posts:
+            like_count = int(getattr(post, "like_count", 0) or 0)
+            comment_count = int(getattr(post, "comment_count", 0) or 0)
+            total_eng = like_count + comment_count
+            eng_rate = (
+                (total_eng / follower_count) * 100
+                if follower_count > 0 else 0
+            )
+
+            result.append({
+                "id": getattr(post, "id", None),
+                "type": getattr(post, "type", None),
+                "caption_text": getattr(post, "caption_text", None),
+                "hashtags": getattr(post, "hashtag", None),
+                "like_count": getattr(post, "like_count", None),
+                "comment_count": getattr(post, "comment_count", None),
+                "eng_rate": round(eng_rate, 4),
+                "thumbnail": getattr(post, "thumbnail", None),
+                "post_url": getattr(post, "post_url", None),
+                "taken_at": getattr(post, "taken_at", None),
+            })
+
+        sorted_posts = sorted(
+            result,
+            key=lambda x: getattr(x, "taken_at", 0),
+            reverse=True
+        )
+
+        return {
+            "locked": False,
+            "data": sorted_posts,
+            "meta": {
+                "is_premium": is_premium,
+                "source": "instagram",
+                "latest_datetime": ins_doc.datetime
             }
         }
