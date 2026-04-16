@@ -62,12 +62,17 @@ def get_instagram_comment():
     Get Instagram latest 12 posts total comments & comments per post
     :return:
     """
-    artist_id = request.args.get('artist_id', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    comments = InstagramController.get_comments(artist_id, filter)
+    result = InstagramController.get_instagram_comment(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return comments
+    return result
 
 @instagram_bp.route('/v1/posts', methods=['GET'])
 def get_instagram_latest_posts():

@@ -377,11 +377,90 @@ class InstagramService:
             }
         }
 
-
-
     @staticmethod
     def get_chart_comment(user, artist_id, date_end, range_key):
-        pass
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get instagram id ----------
+        instagram_id = ArtistService.get_instagram_id(artist_id)
+        # print("ins id: ", instagram_id)
+
+        pipeline = [
+            # Match artist
+            {"$match": {
+                "user_id": instagram_id,
+                "datetime": {
+                    "$gt": start_date,
+                    "$lte": date_end
+                }
+            }},
+            # Sort by datetime for consistent results
+            {"$sort": {"datetime": 1}},
+            # Unwind posts array to work with individual posts
+            {"$unwind": "$posts"},
+            # Project required fields
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "code": "$posts.shortCode",
+                "comment_count": "$posts.commentsCount",
+            }},
+            # Group by date to calculate daily totals
+            {"$group": {
+                "_id": "$datetime",
+                "total_comment": {"$sum": "comment_count"},
+                "comments_per_post": {"$avg": "comment_count"},
+            }},
+            {"$sort": {"_id": 1}},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$_id"
+                    }
+                },
+                "total_comments": "total_comment",
+                "comments_per_post": "$comments_per_post",
+            }}
+        ]
+
+        records = list(InstagramLatest.objects.aggregate(*pipeline))
+
+        # ---------- format response ----------
+
+        return {
+            "locked": False,
+            "data": records,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges,
+            }
+        }
 
     @staticmethod
     def get_chart_most_used_hashtag(user, artist_id, range_key="5"):
