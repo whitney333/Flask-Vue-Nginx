@@ -430,8 +430,8 @@ class InstagramService:
             # Group by date to calculate daily totals
             {"$group": {
                 "_id": "$datetime",
-                "total_comment": {"$sum": "comment_count"},
-                "comments_per_post": {"$avg": "comment_count"},
+                "total_comment": {"$sum": "$comment_count"},
+                "comments_per_post": {"$avg": "$comment_count"},
             }},
             {"$sort": {"_id": 1}},
             {"$project": {
@@ -442,7 +442,7 @@ class InstagramService:
                         "date": "$_id"
                     }
                 },
-                "total_comments": "total_comment",
+                "total_comments": "$total_comment",
                 "comments_per_post": "$comments_per_post",
             }}
         ]
