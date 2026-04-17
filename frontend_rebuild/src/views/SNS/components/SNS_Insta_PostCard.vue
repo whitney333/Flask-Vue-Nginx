@@ -69,18 +69,21 @@
 </script>
 
 <template>
-  <div class="max-w-sm w-96 xl:w-2/5 xl:max-w-full xl:h-96 flex flex-shrink-0 overflow-hidden bg-white shadow rounded">
+  <div class="w-full max-w-sm sm:max-w-md xl:w-2/5 xl:max-w-full
+            flex flex-col xl:flex-row
+            h-auto xl:h-96
+            overflow-hidden bg-white shadow rounded">
 
     <!-- image -->
     <v-img
       v-if="post?.thumbnail"
       :src="post.thumbnail"
       cover
-      class="h-48 w-full xl:w-64 xl:h-full"
+      class="w-full h-48 sm:h-56 xl:w-64 xl:h-full flex-shrink-0"
     />
 
     <!-- content -->
-    <div class="flex flex-col justify-between w-full p-4 overflow-visible">
+    <div class="flex flex-col justify-between w-full p-4 overflow-visible min-w-0">
 
       <div class="flex flex-col gap-3 overflow-visible">
 
