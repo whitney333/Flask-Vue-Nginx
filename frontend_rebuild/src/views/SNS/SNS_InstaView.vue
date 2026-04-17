@@ -37,9 +37,9 @@
         instaJSON.instagramFollowerValue,
         instaJSON.instagramThreadsFollowerValue,
         instaJSON.instagramPostsValue,
-        // instaJSON.instagramLikesValue,
-        // instaJSON.instagramCommentsValue,
-        // instaJSON.instagramEngagementRateValue,
+        instaJSON.instagramLikesValue,
+        instaJSON.instagramCommentsValue,
+        instaJSON.instagramEngagementRateValue,
       ]
 
       return keys.map((base) => ({

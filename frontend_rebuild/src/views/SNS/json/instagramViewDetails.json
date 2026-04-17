@@ -66,9 +66,9 @@
         "title": "Instagram Engagement Rate",
         "type": "Engagement Rate",
         "tooltipText": "Average engagement rate of the latest 12 posts on Instagram",
-        "fetchURL": "/instagram/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "eng_rate",
+        "fetchURL": "/instagram/v1/eng-rate",
+        "fetchFollowerType": "data",
+        "followerDataType": "engagement_rate",
         "fetchDateType": "datetime",
         "percentageData": true
     },

@@ -130,9 +130,9 @@
           <span
               v-if="hiddenHashtagCount > 0"
               class="px-1.5 py-0.5 text-[10px] leading-none rounded-full
-           bg-blue-100 text-blue-700
-           hover:bg-blue-200 transition
-           cursor-default font-medium"
+             bg-blue-100 text-blue-700
+             hover:bg-blue-200 transition
+             cursor-default font-medium"
               @click="toggleHashtags"
           >
             {{ showAllHashtags ? 'less' : `+${hiddenHashtagCount}` }}
