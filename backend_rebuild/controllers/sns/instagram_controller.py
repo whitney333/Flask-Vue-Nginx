@@ -726,6 +726,51 @@ class InstagramController:
         }), 200
 
     @staticmethod
+    def get_instagram_engagement_rate(artist_id, date_end, range):
+        # validate
+        if not artist_id or not date_end or not range:
+            return jsonify({
+                "err": "Missing required parameters"
+            }), 400
+
+        try:
+            date_end = datetime.datetime.strptime(date_end, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({
+                "err": "Invalid date format. Use YYYY-MM-DD"
+            }), 400
+
+        # get user
+        user = get_current_user(optional=True)
+
+        try:
+            result = InstagramService.get_chart_engagement(
+                user=user,
+                artist_id=artist_id,
+                date_end=date_end,
+                range_key=range
+            )
+        except ValueError as e:
+            return jsonify({"err": str(e)}), 404
+
+        # response
+        if result.get("locked"):
+            return jsonify({
+                "status": "locked",
+                "data": [],
+                "meta": {
+                    "allowed_ranges": result["allowed_ranges"],
+                    "is_premium": result["meta"]["is_premium"]
+                }
+            }), 200
+
+        return jsonify({
+            "status": "success",
+            "data": result["data"],
+            "meta": result["meta"]
+        }), 200
+
+    @staticmethod
     def get_instagram_most_used_hashtag(artist_id, range_key):
         # get user info
         user = get_current_user(optional=True)

@@ -75,6 +75,7 @@ def get_instagram_comment():
     return result
 
 @instagram_bp.route('/v1/posts', methods=['GET'])
+@auth_required
 def get_instagram_latest_posts():
     """
     Get Instagram latest 12 posts information
@@ -86,9 +87,20 @@ def get_instagram_latest_posts():
 
     return posts
 
-@instagram_bp.route('/v1/eng-rate/<string:artist_id>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/v1/eng-rate', methods=['GET'])
+@auth_required
 def get_instagram_engagement_rate():
-    pass
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
+
+    result = InstagramController.get_instagram_engagement_rate(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
 
 @instagram_bp.route("/v1/follower/growth", methods=["GET"])
 @auth_required
