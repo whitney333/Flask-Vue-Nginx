@@ -18,28 +18,24 @@
             style="background-color: #f8f7f2;"
             flat
             >
-            <template v-slot:title>
-                <span :class="['text-h4']">
-                {{ $t('Hashtags Analytics') }}
-                </span>
-            </template >
-            <template v-slot:text>
-                <v-row>
-                    <v-col
-                    cols="12"
-                    lg="6">
-                        <SNSHashtagMostUsedCard :iconSrc="iconSrc" :value="props.value"></SNSHashtagMostUsedCard>
-                    </v-col>
-                    <v-col
-                    cols="12"
-                    lg="6">
-                        <SNSHashtagMostEngagedCard :iconSrc="iconSrc" :value="props.value"></SNSHashtagMostEngagedCard>
-                    </v-col>
-                </v-row>
+          <!-- Title -->
+          <div class="px-4 pt-4 min-w-0">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
+              {{ $t('Hashtags Analytics') }}
+            </h2>
+          </div>
+          <!-- Content -->
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" lg="6">
+                <SNSHashtagMostUsedCard :iconSrc="iconSrc" :value="props.value"/>
+              </v-col>
 
-            </template>
+              <v-col cols="12" lg="6">
+                <SNSHashtagMostEngagedCard :iconSrc="iconSrc" :value="props.value"/>
+              </v-col>
+            </v-row>
+          </v-card-text>
         </v-card>
-
     </v-container>
-
 </template>
