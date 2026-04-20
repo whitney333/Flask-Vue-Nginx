@@ -117,30 +117,38 @@
         </div>
 
         <!-- Hashtags (clean small chips) -->
-        <div class="flex flex-wrap gap-1 mt-2">
-
-        <span
-            v-for="(tag, i) in visibleHashtags"
-            :key="i"
-            class="px-1.5 py-0.5 text-[10px] leading-none rounded-full
-                 bg-blue-50 text-blue-600
-                 hover:bg-blue-100 transition
-                 cursor-default border border-blue-100"
-        >
-          {{ tag.startsWith('#') ? tag : `${tag}` }}
-        </span>
+        <div class="flex flex-wrap gap-1 sm:gap-2 mt-2">
+          <span
+              v-for="(tag, i) in visibleHashtags"
+              :key="i"
+              class="
+              px-1.5 py-0.5 text-[10px]
+              sm:px-2 sm:py-1 sm:text-xs
+              md:px-2.5 md:py-1 md:text-sm
+              leading-none rounded-full
+              bg-blue-50 text-blue-600
+              hover:bg-blue-100 transition
+              cursor-default border border-blue-100
+            "
+          >
+            {{ tag.startsWith('#') ? tag : `${tag}` }}
+          </span>
 
           <span
               v-if="hiddenHashtagCount > 0"
-              class="px-1.5 py-0.5 text-[10px] leading-none rounded-full
-             bg-blue-100 text-blue-700
-             hover:bg-blue-200 transition
-             cursor-default font-medium"
               @click="toggleHashtags"
+              class="
+              px-1.5 py-0.5 text-[10px]
+              sm:px-2 sm:py-1 sm:text-xs
+              md:px-2.5 md:py-1 md:text-sm
+              leading-none rounded-full
+              bg-blue-100 text-blue-700
+              hover:bg-blue-200 transition
+              cursor-default font-medium
+            "
           >
             {{ showAllHashtags ? 'less' : `+${hiddenHashtagCount}` }}
           </span>
-
         </div>
 
         <!-- date -->
