@@ -1,21 +1,20 @@
 <script setup>
     import axios from '@/axios';
-    import {onMounted, reactive, ref, watch} from 'vue';
+    import {computed, onMounted, reactive, ref, watch} from 'vue';
     import { useArtistStore } from '@/stores/artist'
     import { useUserStore } from '@/stores/user'
+    import { useDisplay } from 'vuetify';
 
     const props = defineProps({
         value: Object,
         iconSrc: String
     })
-
+    const { mobile } = useDisplay();
     const loadingCard = ref(true)
     const series = ref([])
     const userStore = useUserStore()
     const artistStore = useArtistStore()
     const range = ref(5)
-    const chartOptions = ref({})
-    const recent10Series = ref(null)
 
     const fetchHashtag = async (limit) => {
         // free user limits to 5
@@ -60,101 +59,59 @@
         }
     }
 
-    chartOptions.value = {
-        chart: {
-            type: 'bar',
-            height: '350px',
-        },
-        dataLabels: {
-            enabled: false
-        },
+   // 使用 computed 確保在桌機/手機切換時，圖表會重新渲染配置
+    const chartOptions = computed(() => ({
+      chart: {
+        type: 'bar',
+        toolbar: {show: false},
+        redrawOnParentResize: true, // 重要：隨容器大小自動重繪
+        fontFamily: 'Cairo, sans-serif',
+      },
       noData: {
         text: 'No relevant data',
-        align: 'center',
-        verticalAlign: 'middle',
-        offsetX: 0,
-        offsetY: 0,
-        style: {
-          fontSize: '14px',
-          fontFamily: 'Cairo, sans-serif',
-          fontWeight: 600,
+        style: {fontSize: '14px', fontWeight: 600}
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 4,
+          // 桌機 (非 mobile) 設為橫向 (true)，手機設為直向 (false)
+          horizontal: !mobile.value,
+          columnWidth: '50%',
+          barHeight: '70%'
         }
       },
-        plotOptions: {
-            bar: {
-                borderRadius: 4,
-                borderRadiusApplication: 'around',
-                horizontal: true,
-                columnWidth: '50%',
-            }
+      dataLabels: {enabled: false},
+      fill: {
+        type: 'gradient',
+        gradient: {
+          type: mobile.value ? "vertical" : "horizontal",
+          shadeIntensity: 0.5,
+          gradientToColors: ['#ab93ff'],
+          inverseColors: true,
+          opacityFrom: 1,
+          opacityTo: 1,
+          stops: [0, 100]
+        }
+      },
+      colors: ['#10a3ff'],
+      xaxis: {
+        type: 'category',
+        labels: {
+          show: true,
+          rotate: mobile.value ? -45 : 0, // 手機版標籤傾斜避免重疊
         },
-        fill: {
-                type: 'gradient',
-                gradient: {
-                // shade: 'dark',
-                type: "horizontal",
-                shadeIntensity: 0.5,
-                gradientToColors: ['#ab93ff'], // optional, if not defined - uses the shades of same color in series
-                inverseColors: true,
-                opacityFrom: 1,
-                opacityTo: 1,
-                stops: [0, 50, 100],
-                colorStops: []
-            }
-        },
-        colors: ['#10a3ff'],
-        // legend: {
-        //   show: false
-        // },
-        // yaxis: {
-        //   type: 'category',
-        //   labels: {
-        //     show: true,
-        //     trim: true,
-        //     style: {
-        //       colors: [],
-        //       fontSize: '14px',
-        //       fontFamily: 'Cairo, sans-serif',
-        //       fontWeight: 400,
-        //       // cssClass: 'apexcharts-xaxis-label',
-        //     },
-        //   }
-        // },
-        xaxis: {
-          labels: {
-            show: true,
-            formatter: (value) => {
-              return Number(value).toLocaleString()
-            }
-          },
-          title: {
-            text: 'Percentage',
-            offsetX: 0,
-            offsetY: 0,
-            style: {
-                color: undefined,
-                fontSize: '14px',
-                fontFamily: 'Cairo, sans-serif',
-                fontWeight: 600,
-              // cssClass: 'apexcharts-xaxis-title',
-            },
-          },
-        },
-        yaxis: {
-          type: 'category',
-          labels: {
-            show: true,
-            trim: true,
-            style: {
-              colors: [],
-              fontSize: '14px',
-              fontFamily: 'Cairo, sans-serif',
-              fontWeight: 400,
-              // cssClass: 'apexcharts-xaxis-label',
-            },
-          }
-        },
-    }
+        title: {
+          text: mobile.value ? '' : 'Occurrence', // 手機版隱藏標題節省空間
+        }
+      },
+      yaxis: {
+        labels: {
+          show: true,
+          maxWidth: mobile.value ? 100 : 150, // 防止長 Hashtag 撐破畫面
+        }
+      }
+    }))
+
     onMounted(() => {
         fetchHashtag(5)
     })
@@ -173,81 +130,67 @@
 </script>
 
 <template>
-    <v-card :loading="loadingCard" class="pa-2 ma-2">
-        <template v-slot:title>
-            <div :class="['d-flex', 'align-center']">
-                <v-img
-                :src="props.iconSrc"
-                max-height="30px"
-                max-width="30px"
-                :class="['mr-3']"
-                ></v-img>
-                <span>
-                    {{ $t('Top 10 Most-engaged Hashtags') }}
-                </span>
-                <v-tooltip
-                location="bottom"
-                :text="props.value.engagedCol.tooltipText">
-                    <template v-slot:activator="{ props }">
-                        <v-icon
-                        size="20"
-                        :class="['mx-1']"
-                        v-bind="props"
-                        icon="mdi-information-outline"
-                        ></v-icon>
-                    </template>
-                </v-tooltip>
-            </div>                            
-        </template>
-        <template v-slot:text>
-            <v-divider></v-divider>
-            <br />
-            <div :width="100" :class="['d-flex', 'justify-start']">
-                <div>
-                    <v-btn
-                        :class="['mx-1']"
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        :active="range === 5"
-                        @click="fetchHashtag(5)"
-                    >
-                    Latest 5 Posts
-                    </v-btn>
-                    <v-btn
-                        :class="['mx-1']"
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        :active="range === 8"
-                        @click="fetchHashtag(8)"
-                    >
-                    Latest 8 Posts
-                    </v-btn>
-                    <v-btn
-                        :class="['mx-1']"
-                        size='x-small'
-                        variant='outlined'
-                        color="blue-grey-darken-2"
-                        dark
-                        rounded
-                        :active="range === 12"
-                        @click="fetchHashtag(12)"
-                    >
-                    Latest 10 Posts
-                    </v-btn>
-                </div>
-            </div>
-            <apexchart
-                width="100%"
-                height="180%"
-                :options="chartOptions" 
-                :series="series">
-            </apexchart>
-        </template>
-    </v-card>
+  <v-card :loading="loadingCard" class="pa-3 ma-2 overflow-hidden">
+    <template v-slot:title>
+      <div class="flex items-center w-full min-w-0">
+        <v-img :src="props.iconSrc" width="20" height="20" class="mr-2 flex-none"/>
+
+        <span
+            class="font-bold truncate text-sm md:text-lg lg:text-xl text-gray-800 flex-shrink min-w-0 max-w-[180px] sm:max-w-[300px] md:max-w-none">
+          {{ $t(`Most-engaged #`) }}
+        </span>
+
+        <v-tooltip location="bottom">
+          <template v-slot:activator="{ props: tooltipProps }">
+            <v-icon size="14" class="ml-1 flex-none opacity-70" v-bind="tooltipProps" icon="mdi-information-outline"/>
+          </template>
+          <span>{{ props.value.usedCol.tooltipText }}</span>
+        </v-tooltip>
+
+        <v-spacer/>
+      </div>
+    </template>
+
+    <v-card-text class="pa-0">
+      <v-divider class="mb-3 mx-4"></v-divider>
+
+      <div class="flex flex-nowrap overflow-x-auto no-scrollbar gap-1 mb-2 px-4">
+        <v-btn
+          v-for="v in [5, 8, 12]"
+          :key="v"
+          size="x-small"
+          variant="tonal"
+          :color="range === v ? 'primary' : 'blue-grey-darken-2'"
+          rounded
+          :disabled="!userStore.isPremium && v !== 5"
+          @click="fetchHashtag(v)"
+          class="flex-none"
+        >
+          Latest {{ v }}
+        </v-btn>
+      </div>
+
+      <div class="w-full px-2 overflow-hidden">
+        <apexchart
+          width="100%"
+          :height="mobile ? 280 : 320"
+          :options="chartOptions"
+          :series="series"
+        />
+      </div>
+    </v-card-text>
+  </v-card>
 </template>
+
+<style scoped>
+/* 隱藏按鈕橫向捲軸的 CSS (Tailwind 預設通常不含 hide-scrollbar) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  /* 確保手機滑動順暢 */
+  -webkit-overflow-scrolling: touch;
+}
+</style>

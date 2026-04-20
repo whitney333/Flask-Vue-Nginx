@@ -25,7 +25,7 @@
             </h2>
           </div>
           <!-- Content -->
-          <v-card-text>
+          <v-card-text class="min-w-0">
             <v-row>
               <v-col cols="12" lg="6">
                 <SNSHashtagMostUsedCard :iconSrc="iconSrc" :value="props.value"/>
