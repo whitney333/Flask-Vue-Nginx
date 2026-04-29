@@ -48,7 +48,7 @@
 
       const keys = [
         instaJSON.instagramFollowerValue,
-        instaJSON.instagramThreadsFollowerValue,
+        // instaJSON.instagramThreadsFollowerValue,
         instaJSON.instagramPostsValue,
         instaJSON.instagramLikesValue,
         instaJSON.instagramCommentsValue,
