@@ -86,7 +86,11 @@
     </div>
 
     <div v-else>
-
+      <div class="px-4 pt-2 pb-4 min-w-0">
+        <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
+          {{ $t('All/Latest Posts') }}
+        </h2>
+      </div>
       <!-- 貼文卡片 -->
       <div class="flex justify-center items-stretch gap-4 sm:gap-6 md:gap-10 xl:gap-16 flex-wrap">
 
