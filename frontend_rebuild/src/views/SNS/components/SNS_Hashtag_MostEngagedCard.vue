@@ -131,13 +131,13 @@
 
 <template>
   <v-card :loading="loadingCard" class="pa-3 ma-2 overflow-hidden">
-    <template v-slot:title>
+   <template v-slot:title>
       <div class="flex items-center w-full min-w-0">
         <v-img :src="props.iconSrc" width="20" height="20" class="mr-2 flex-none"/>
 
-        <span
-            class="font-bold truncate text-sm md:text-lg lg:text-xl text-gray-800 flex-shrink min-w-0 max-w-[180px] sm:max-w-[300px] md:max-w-none">
-          {{ $t(`Most-engaged #`) }}
+       <span
+          class="font-bold truncate text-xs sm:text-sm md:text-lg lg:text-xl text-gray-800 flex-shrink min-w-0 max-w-[220px] sm:max-w-[350px] md:max-w-none">
+          {{ $t('Most-engaged #') }}
         </span>
 
         <v-tooltip location="bottom">
@@ -166,7 +166,7 @@
           @click="fetchHashtag(v)"
           class="flex-none"
         >
-          Latest {{ v }}
+          {{ $t(`Latest ${v}`) }}
         </v-btn>
       </div>
 
