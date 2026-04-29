@@ -7,7 +7,7 @@
     import SNSAllPosts from '@/views/SNS/components/SNS_AllPosts.vue'
     import instaJSON from './json/instagramViewDetails.json'
     import axios from '@/axios';
-    import {computed, ref, watch} from 'vue';
+    import {computed, ref, watch, onMounted, nextTick, onBeforeUnmount} from 'vue';
     import { useArtistStore } from "@/stores/artist.js";
     import { useUserStore } from "@/stores/user.js";
 
@@ -18,6 +18,19 @@
     const { profile } = defineProps({
         profile: Object
     })
+
+    // adjust hashtag part to horizontal layout in mobile version
+    const hashtagRef = ref(null)
+    const showRotateHint = ref(false)
+
+    let observer = null
+
+    const checkShow = () => {
+      const isMobile = window.innerWidth < 768
+      const isPortrait = window.innerHeight > window.innerWidth
+
+      return isMobile && isPortrait
+    }
 
     const artistStore = useArtistStore()
     const userStore = useUserStore()
@@ -59,14 +72,46 @@
         {immediate: true}
     )
 
-    // const cardValueLists = [
-    //     instaJSON.instagramFollowerValue,
-    //     instaJSON.instagramThreadsFollowerValue,
-    //     instaJSON.instagramPostsValue,
-    //     instaJSON.instagramLikesValue,
-    //     instaJSON.instagramCommentsValue,
-    //     instaJSON.instagramEngagementRateValue,
-    // ]
+    onMounted(async () => {
+      await nextTick()
+
+      observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting && checkShow()) {
+              showRotateHint.value = true
+            } else {
+              showRotateHint.value = false
+            }
+          },
+          {
+            threshold: 0.2,
+            rootMargin: '0px 0px -10% 0px'
+          }
+      )
+
+      if (hashtagRef.value) {
+        observer.observe(hashtagRef.value)
+      }
+
+      setTimeout(() => {
+        const el = hashtagRef.value
+        if (!el) return
+
+        const rect = el.getBoundingClientRect()
+        const inView =
+            rect.top < window.innerHeight && rect.bottom > 0
+
+        if (inView && checkShow()) {
+          showRotateHint.value = true
+        }
+      }, 300)
+    })
+
+    onBeforeUnmount(() => {
+      if (observer && hashtagRef.value) {
+        observer.disconnect()
+      }
+    })
 
 </script>
 
@@ -110,7 +155,8 @@
         </div>
 
         <!-- full-bleed background (content stays centered) -->
-        <div class="section-bleed section-bleed--hashtags">
+        <div ref="hashtagRef"
+            class="section-bleed section-bleed--hashtags">
           <SNSHashtagAnalytics
               :iconSrc="iconSrc"
               :colors="colors"

@@ -23,10 +23,16 @@
 
 
 <template>
-    <div class="max-w-sm xl:w-2/5 w-96 xl:min-w-2/5 xl:max-w-full xl:h-96 xl:flex">
-      <v-img :src="post.thumbnail" cover class="h-48 w-96 xl:h-auto xl:w-64 rounded-t xl:rounded-t-none xl:rounded-l  overflow-hidden" >
+    <div class="w-full max-w-sm sm:max-w-md xl:w-2/5 xl:max-w-full
+            flex flex-col xl:flex-row
+            h-auto xl:h-96
+            overflow-hidden bg-white shadow rounded">
+      <v-img :src="post.thumbnail"
+             cover
+             class="w-full h-48 sm:h-56 xl:w-64 xl:h-full flex-shrink-0" >
       </v-img>
-      <div class="border-r border-b border-l -mt-2 xl:-mt-0 border-gray-300 xl:border-l-0 w-full xl:border-t xl:border-gray-300 shadow bg-white rounded-b xl:rounded-b-none xl:rounded-r p-4 flex flex-col justify-between leading-normal">
+      <div class="border-r border-b border-l -mt-2 xl:-mt-0 border-gray-300 xl:border-l-0 w-full xl:border-t xl:border-gray-300 shadow bg-white rounded-b xl:rounded-b-none xl:rounded-r
+            p-4 flex flex-col justify-between leading-normal min-w-0">
         <div class="mb-2 flex flex-col gap-3">
           <p>{{ title }}</p>
           <div class="flex">
