@@ -64,7 +64,7 @@
   <div class="w-full min-h-screen bg-white">
 
     <!-- ===== Content wrapper ===== -->
-    <div class="mx-auto w-full max-w-7xl px-6 py-10">
+    <div class="mx-auto w-full max-w-7xl px-6 pt-10 pb-0">
 
       <!-- ===== NO BILIBILI ACCOUNT ===== -->
       <div
@@ -99,13 +99,13 @@
         </div>
 
         <!-- full-bleed background (content stays centered) -->
-        <div class="section-bleed section-bleed--hashtags">
-          <SNSHashtagAnalytics
-            :iconSrc="iconSrc"
-            :colors="colors"
-            :value="bilibiliJSON.hashtagAnalyticsValue"
-          />
-        </div>
+<!--        <div class="section-bleed section-bleed&#45;&#45;hashtags">-->
+<!--          <SNSHashtagAnalytics-->
+<!--            :iconSrc="iconSrc"-->
+<!--            :colors="colors"-->
+<!--            :value="bilibiliJSON.hashtagAnalyticsValue"-->
+<!--          />-->
+<!--        </div>-->
 
         <!-- posts -->
         <div class="section-bleed section-bleed--posts">

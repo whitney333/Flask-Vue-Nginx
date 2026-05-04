@@ -38,7 +38,9 @@ const imageUrl = computed(() => {
   <div class="w-full max-w-sm bg-white border border-gray-200 rounded-xl shadow flex flex-col overflow-hidden">
 
     <!-- Thumbnail -->
-    <img :src="imageUrl" alt="thumbnail" class="w-full h-48 object-cover" />
+    <img :src="imageUrl"
+         alt="thumbnail"
+         class="w-full h-48 object-cover" />
 
     <!-- content -->
     <div class="p-4 flex flex-col justify-between flex-1">

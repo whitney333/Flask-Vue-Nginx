@@ -75,7 +75,7 @@
   <div class="w-full min-h-screen bg-white">
 
     <!-- ===== Content wrapper ===== -->
-    <div class="mx-auto w-full max-w-7xl px-6 py-10">
+    <div class="mx-auto w-full max-w-7xl px-6 pt-10 pb-0">
 
       <!-- ===== NO YOUTUBE ACCOUNT ===== -->
       <div

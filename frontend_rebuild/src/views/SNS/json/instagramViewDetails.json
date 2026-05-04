@@ -31,7 +31,7 @@
     },
     "instagramLikesValue": {
         "chart": "instagramLikes",
-        "title": "Instagram Total Posts Likes",
+        "title": "Likes of Latest Posts",
         "type": "Likes",
         "tooltipText": "Number of latest 12 posts likes on Instagram",
         "fetchURL": "/instagram/v1/like",
@@ -47,7 +47,7 @@
     },
     "instagramCommentsValue": {
         "chart": "instagramComments",
-        "title": "Instagram Total Posts Comments",
+        "title": "Comments of Latest Posts",
         "type": "Comments",
         "tooltipText": "Number of latest 12 posts comments on Instagram",
         "fetchURL": "/instagram/v1/comment",
@@ -66,9 +66,9 @@
         "title": "Instagram Engagement Rate",
         "type": "Engagement Rate",
         "tooltipText": "Average engagement rate of the latest 12 posts on Instagram",
-        "fetchURL": "/instagram/chart",
-        "fetchFollowerType": "result",
-        "followerDataType": "eng_rate",
+        "fetchURL": "/instagram/v1/eng-rate",
+        "fetchFollowerType": "data",
+        "followerDataType": "engagement_rate",
         "fetchDateType": "datetime",
         "percentageData": true
     },

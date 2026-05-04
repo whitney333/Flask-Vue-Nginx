@@ -75,7 +75,8 @@
 
 </script>
 <template>
-  <v-container fluid class='bg-gray-100'>
+  <v-container fluid class="bg-gray-100">
+
     <div v-if="loading" class="text-center text-caption text-grey my-4">
       {{ $t('Loading...') }}
     </div>
@@ -85,46 +86,83 @@
     </div>
 
     <div v-else>
-      <!-- 分頁 -->
-      <div class="text-center mt-3 mb-5">
-        <v-pagination
-            v-model="first"
-            :length="posts.length ? Math.ceil(posts.length / 6) : 0"
-            rounded="circle"
-            :total-visible="6"
-        ></v-pagination>
+      <div class="px-4 pt-2 pb-4 min-w-0">
+        <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
+          {{ $t('All/Latest Posts') }}
+        </h2>
       </div>
-
       <!-- 貼文卡片 -->
-      <div class="flex justify-center items-center gap-10 flex-wrap md:gap-16">
+      <div class="flex justify-center items-stretch gap-4 sm:gap-6 md:gap-10 xl:gap-16 flex-wrap">
+
         <template v-if="props.platform === 'tiktok'">
           <SNS_TikTok_PostCard
-              v-for="post in displayPosts"
-              :key="`${post.url}_${first}`"
-              :post="post"
+            v-for="post in displayPosts"
+            :key="`${post.url}_${first}`"
+            :post="post"
           />
         </template>
+
         <template v-else-if="props.platform === 'youtube'">
           <SNS_Youtube_PostCard
-              v-for="post in displayPosts"
-              :key="`${post.url}_${first}`"
-              :post="post"
+            v-for="post in displayPosts"
+            :key="`${post.url}_${first}`"
+            :post="post"
           />
         </template>
+
         <template v-else-if="props.platform === 'instagram'">
           <SNS_Insta_PostCard
-              v-for="post in displayPosts"
-              :key="`${post.url}_${first}`"
-              :post="post"
+            v-for="post in displayPosts"
+            :key="`${post.url}_${first}`"
+            :post="post"
           />
         </template>
+
         <template v-else-if="props.platform === 'bilibili'">
           <SNS_Bilibili_PostCard
-              v-for="post in displayPosts"
-              :key="post.aid"
-              :post="post"
+            v-for="post in displayPosts"
+            :key="post.aid"
+            :post="post"
           />
         </template>
+
+      </div>
+
+      <!-- 分頁 -->
+      <div class="text-center mt-6 mb-3">
+
+        <!-- Desktop -->
+        <v-pagination
+          v-if="$vuetify.display.mdAndUp"
+          v-model="first"
+          :length="Math.ceil(posts.length / 6)"
+          :total-visible="6"
+          rounded="circle"
+        />
+
+        <!-- Mobile -->
+        <div v-else class="flex justify-center items-center gap-3">
+
+          <v-btn
+            icon
+            @click="first = Math.max(1, first - 1)"
+            :disabled="first === 1"
+          >
+            ‹
+          </v-btn>
+
+          <span class="text-sm text-gray-600">
+            {{ first }} / {{ Math.ceil(posts.length / 6) }}
+          </span>
+
+          <v-btn
+            icon
+            @click="first = Math.min(Math.ceil(posts.length / 6), first + 1)"
+            :disabled="first === Math.ceil(posts.length / 6)"
+          >
+            ›
+          </v-btn>
+        </div>
       </div>
     </div>
   </v-container>

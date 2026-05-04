@@ -43,12 +43,17 @@ def get_instagram_like():
     Get Instagram latest 12 posts total likes & likes per post
     :return:
     """
-    artist_id = request.args.get('artist_id', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    likes = InstagramController.get_likes(artist_id, filter)
+    result = InstagramController.get_instagram_like(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return likes
+    return result
 
 @instagram_bp.route('/v1/comment', methods=['GET'])
 @auth_required
@@ -57,12 +62,17 @@ def get_instagram_comment():
     Get Instagram latest 12 posts total comments & comments per post
     :return:
     """
-    artist_id = request.args.get('artist_id', type=str)
-    filter = request.args.get('filter', type=str)
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
 
-    comments = InstagramController.get_comments(artist_id, filter)
+    result = InstagramController.get_instagram_comment(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
 
-    return comments
+    return result
 
 @instagram_bp.route('/v1/posts', methods=['GET'])
 @auth_required
@@ -73,13 +83,24 @@ def get_instagram_latest_posts():
     """
     artist_id = request.args.get('artist_id', type=str)
 
-    posts = InstagramController.get_instagram_latest_twelve_posts(artist_id)
+    posts = InstagramController.get_instagram_latest_12_posts(artist_id)
 
     return posts
 
-@instagram_bp.route('/v1/eng-rate/<string:artist_id>/<string:filter>', methods=['GET'])
+@instagram_bp.route('/v1/eng-rate', methods=['GET'])
+@auth_required
 def get_instagram_engagement_rate():
-    pass
+    artist_id = request.args.get("artist_id")
+    date_end = request.args.get("date_end")
+    range_key = request.args.get("range")
+
+    result = InstagramController.get_instagram_engagement_rate(
+        artist_id=artist_id,
+        date_end=date_end,
+        range=range_key
+    )
+
+    return result
 
 @instagram_bp.route("/v1/follower/growth", methods=["GET"])
 @auth_required

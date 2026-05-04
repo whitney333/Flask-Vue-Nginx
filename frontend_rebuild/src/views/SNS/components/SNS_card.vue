@@ -37,30 +37,40 @@
     const selection = ref("all")
     const chartOptions = ref({})
     const formatNumber = computed(() =>
-        {
-            return formatNumFunc(index_number.value)
-        }
+        formatNumFunc(index_number.value, props.value.percentageData)
     )
-    const formatNumFunc = (value) => {
-        if (String(Math.round(value)).length < 4) {
-            const res = Number(value).toLocaleString();
-            return props.value.percentageData ? res + "%" : res
-        } else if (String(Math.round(value)).length < 7) {
-            const res = Number(value / 1000).toLocaleString() + 'K';
-            return props.value.percentageData ? res + "%" : res
-        } else if (String(Math.round(value)).length < 10) {
-            const res = Number(value / 1000000).toLocaleString() + 'M';
-            return props.value.percentageData ? res + "%" : res
-        } else {
-            const res = Number(value / 1000000000).toLocaleString() + 'B';
-            return props.value.percentageData ? res + "%" : res
-        }
+
+    const formatNumFunc = (value, isPercent = false) => {
+      const num = Number(value || 0)
+
+      const units = [
+        {value: 1e9, suffix: 'B'},
+        {value: 1e6, suffix: 'M'},
+        {value: 1e3, suffix: 'K'},
+      ]
+
+      const unit = units.find(u => Math.abs(num) >= u.value)
+
+      const format = (val, suffix = '') => {
+        const formatted =
+            val % 1 === 0
+                ? val.toString()
+                : val.toFixed(1).replace(/\.0$/, '')
+
+        return `${formatted}${suffix}${isPercent ? '%' : ''}`
+      }
+
+      if (unit) {
+        return format(num / unit.value, unit.suffix)
+      }
+
+      return `${num.toLocaleString()}${isPercent ? '%' : ''}`
     }
 
     chartOptions.value = {
         chart: {
             id: props.value.chart,
-            height: '100%',
+            height: 320,
             width: '100%',
             type: 'line',
             group: props.value.chart,
@@ -81,12 +91,15 @@
         },
         grid: {
             row: {
-            colors: ['#FFFFFF', 'transparent'], // takes an array which will be repeated on columns
-            opacity: 0.5
+              colors: ['#FFFFFF', 'transparent'], // takes an array which will be repeated on columns
+              opacity: 0.5
             },
+            padding: {
+              bottom: 20
+            }
         },
         dataLabels: {
-        enabled: false,
+          enabled: false,
         },
         stroke: {
             curve: 'smooth',
@@ -133,11 +146,50 @@
                         fontWeight: 'bold',
                         fontFamily: 'Cairo, sans-serif',
                     },
-                    formatter: formatNumFunc,
+                    formatter: (val) => formatNumFunc(val, props.value.percentageData)
                 }
             },
         ],
         colors: props.colors,
+      // ✅🔥 mobile fallback
+      responsive: [
+        {
+          breakpoint: 768, // tablet + mobile
+          options: {
+            chart: {
+              height: 280
+            },
+            grid: {
+              padding: {
+                bottom: 30 // 👉 手機多留一點空間
+              }
+            },
+            xaxis: {
+              tickAmount: 3,
+              labels: {
+                rotate: 0, // ❗取消旋轉
+                style: {
+                  fontSize: '10px'
+                },
+                datetimeFormatter: {
+                  day: 'MM/dd' // 👉 手機簡化
+                }
+              }
+            }
+          }
+        },
+        {
+          breakpoint: 480, // 小手機
+          options: {
+            chart: {
+              height: 260
+            },
+            xaxis: {
+              tickAmount: 2
+            }
+          }
+        }
+      ]
     }
 
     if (props.value.secondChat) {
@@ -367,16 +419,16 @@
 </script>
 
 <template>
-    <v-card :loading="loadingBar" width="400" height="500">
+    <v-card :loading="loadingBar" class="w-100" max-width="400">
         <template v-slot:title>
-            <div :class="['d-flex', 'align-center']">
+            <div class="d-flex align-center w-100 min-w-0">
                 <v-img
                 :src="props.iconSrc"
                 max-height="30px"
                 max-width="30px"
-                :class="['mr-3']"
+                class="mr-3 flex-shrink-0"
                 ></v-img>
-                <span>
+                <span class="flex-grow-1 min-w-0 truncate text-base sm:text-lg md:text-xl">
                     {{ $t(props.value.title) }}
                 </span>
                 <v-tooltip
@@ -385,7 +437,7 @@
                     <template v-slot:activator="{ props }">
                         <v-icon
                         size="20"
-                        :class="['mx-1']"
+                        class="mx-1 flex-shrink-0"
                         v-bind="props"
                         icon="mdi-information-outline"
                         ></v-icon>
@@ -479,17 +531,18 @@
             1Y
             </v-btn> -->
             <!-- <br /> -->
-    
-            <apexchart
-                :id="props.value.chart"
-                :class="['mt-2']"
-                ref="chart"
-                width="100%"
-                height="142%"
-                type="line" 
-                :options="chartOptions" 
-                :series="series">
-            </apexchart>
+            <div class="w-full h-56 sm:h-64 md:h-72">
+              <apexchart
+                  :id="props.value.chart"
+                  :class="['mt-2']"
+                  ref="chart"
+                  width="100%"
+                  height="100%"
+                  type="line"
+                  :options="chartOptions"
+                  :series="series">
+              </apexchart>
+            </div>
         </template>
     </v-card>
 </template>

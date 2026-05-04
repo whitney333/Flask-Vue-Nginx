@@ -325,20 +325,22 @@ class InstagramService:
         pipeline = [
             # Match artist
             {"$match": {
-                "user_id": instagram_id
+                "user_id": instagram_id,
+                "datetime": {
+                    "$gt": start_date,
+                    "$lte": date_end
+                }
             }},
             # Sort by datetime for consistent results
             {"$sort": {"datetime": 1}},
-            # Limit to specified number of days
-            {"$limit": days},
             # Unwind posts array to work with individual posts
             {"$unwind": "$posts"},
             # Project required fields
             {"$project": {
                 "_id": 0,
                 "datetime": "$datetime",
-                "code": "$posts.code",
-                "like_count": "$posts.like_count",
+                "code": "$posts.shortCode",
+                "like_count": "$posts.likesCount",
             }},
             # Group by date to calculate daily totals
             {"$group": {
@@ -360,12 +362,221 @@ class InstagramService:
             }}
         ]
 
+        records = list(InstagramLatest.objects.aggregate(*pipeline))
 
+        # ---------- format response ----------
 
+        return {
+            "locked": False,
+            "data": records,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges,
+            }
+        }
 
     @staticmethod
     def get_chart_comment(user, artist_id, date_end, range_key):
-        pass
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get instagram id ----------
+        instagram_id = ArtistService.get_instagram_id(artist_id)
+        # print("ins id: ", instagram_id)
+
+        pipeline = [
+            # Match artist
+            {"$match": {
+                "user_id": instagram_id,
+                "datetime": {
+                    "$gt": start_date,
+                    "$lte": date_end
+                }
+            }},
+            # Sort by datetime for consistent results
+            {"$sort": {"datetime": 1}},
+            # Unwind posts array to work with individual posts
+            {"$unwind": "$posts"},
+            # Project required fields
+            {"$project": {
+                "_id": 0,
+                "datetime": "$datetime",
+                "code": "$posts.shortCode",
+                "comment_count": "$posts.commentsCount",
+            }},
+            # Group by date to calculate daily totals
+            {"$group": {
+                "_id": "$datetime",
+                "total_comment": {"$sum": "$comment_count"},
+                "comments_per_post": {"$avg": "$comment_count"},
+            }},
+            {"$sort": {"_id": 1}},
+            {"$project": {
+                "_id": 0,
+                "datetime": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$_id"
+                    }
+                },
+                "total_comments": "$total_comment",
+                "comments_per_post": "$comments_per_post",
+            }}
+        ]
+
+        records = list(InstagramLatest.objects.aggregate(*pipeline))
+
+        # ---------- format response ----------
+
+        return {
+            "locked": False,
+            "data": records,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges,
+            }
+        }
+
+    @staticmethod
+    def get_chart_engagement(user, artist_id, date_end, range_key):
+
+        # ---------- check premium ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- date range ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        instagram_id = ArtistService.get_instagram_id(artist_id)
+
+        # ---------- get posts (daily snapshot) ----------
+        ins_docs = (
+            InstagramLatest.objects(
+                user_id=instagram_id,
+                datetime__gte=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only(
+                "datetime",
+                "posts.likesCount",
+                "posts.commentsCount"
+            )
+        )
+
+        # ---------- get follower snapshots ----------
+        profiles = (
+            Instagram.objects(
+                user_id=instagram_id,
+                datetime__gte=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("follower_count", "datetime")
+        )
+
+        # ---------- build follower map ----------
+        follower_map = {}
+        for p in profiles:
+            date_str = p.datetime.strftime("%Y-%m-%d")
+            follower_map[date_str] = int(p.follower_count or 0)
+        # print(follower_map)
+        # ---------- no data ----------
+        if not ins_docs:
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": days,
+                    "allowed_ranges": allowed_ranges,
+                }
+            }
+
+        # ---------- calculate daily engagement ----------
+        result = []
+        last_follower = 0  # optional: fallback 用
+
+        for doc in ins_docs:
+            date_str = doc.datetime.strftime("%Y-%m-%d")
+
+            # 取當天 follower（若沒有就用前一天）
+            follower_count = follower_map.get(date_str, last_follower)
+            if follower_count:
+                last_follower = follower_count
+
+            total_likes = 0
+            total_comments = 0
+
+            for post in doc.posts:
+                total_likes += int(getattr(post, "like_count", 0) or 0)
+                total_comments += int(getattr(post, "comment_count", 0) or 0)
+
+            total_eng = total_likes + total_comments
+
+            eng_rate = (
+                (total_eng / follower_count) * 100
+                if follower_count > 0 else 0
+            )
+
+            result.append({
+                "datetime": date_str,
+                "engagement_rate": round(eng_rate, 4),
+            })
+
+        return {
+            "locked": False,
+            "data": result,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges,
+            }
+        }
 
     @staticmethod
     def get_chart_most_used_hashtag(user, artist_id, range_key="5"):
@@ -523,5 +734,94 @@ class InstagramService:
             "meta": {
                 "post_count": len(ins_doc.posts),
                 "follower": follower
+            }
+        }
+
+    @staticmethod
+    def get_latest_posts(user, artist_id):
+        if not artist_id:
+            raise ValueError("Missing artist_id parameter")
+
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+        plan = "premium" if is_premium else "free"
+
+        # ----------get instagram id ----------
+        instagram_id = ArtistService.get_instagram_id(artist_id)
+
+        if not instagram_id:
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "source": "instagram",
+                    "reason": "no instagram id"
+                }
+            }
+
+        ins_doc = (
+            InstagramLatest.objects(user_id=instagram_id)
+                .order_by("-datetime")
+                .only("posts")
+                .first()
+        )
+
+        profile = (Instagram.objects(user_id=instagram_id)
+                   .only("follower_count").first()
+        )
+
+        follower_count = int(profile.follower_count or 0) \
+            if profile else 0
+
+        # ---------- no data ----------
+        if not ins_doc or not ins_doc.posts:
+            return {
+                "locked": False,
+                "data": [],
+                "meta": {
+                    "is_premium": is_premium,
+                    "source": "instagram",
+                    "reason": "no post data"
+                }
+            }
+
+        # ---------- return all posts ----------
+        result = []
+        for post in ins_doc.posts:
+            like_count = int(getattr(post, "like_count", 0) or 0)
+            comment_count = int(getattr(post, "comment_count", 0) or 0)
+            total_eng = like_count + comment_count
+            eng_rate = (
+                (total_eng / follower_count) * 100
+                if follower_count > 0 else 0
+            )
+
+            result.append({
+                "id": getattr(post, "id", None),
+                "type": getattr(post, "type", None),
+                "caption_text": getattr(post, "caption_text", None),
+                "hashtags": getattr(post, "hashtag", None),
+                "like_count": getattr(post, "like_count", None),
+                "comment_count": getattr(post, "comment_count", None),
+                "eng_rate": round(eng_rate, 4),
+                "thumbnail": getattr(post, "thumbnail", None),
+                "post_url": getattr(post, "post_url", None),
+                "taken_at": getattr(post, "taken_at", None),
+            })
+
+        sorted_posts = sorted(
+            result,
+            key=lambda x: getattr(x, "taken_at", 0),
+            reverse=True
+        )
+
+        return {
+            "locked": False,
+            "data": sorted_posts,
+            "meta": {
+                "is_premium": is_premium,
+                "source": "instagram",
+                "latest_datetime": ins_doc.datetime
             }
         }
