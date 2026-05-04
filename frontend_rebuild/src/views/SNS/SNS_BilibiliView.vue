@@ -99,13 +99,13 @@
         </div>
 
         <!-- full-bleed background (content stays centered) -->
-        <div class="section-bleed section-bleed--hashtags">
-          <SNSHashtagAnalytics
-            :iconSrc="iconSrc"
-            :colors="colors"
-            :value="bilibiliJSON.hashtagAnalyticsValue"
-          />
-        </div>
+<!--        <div class="section-bleed section-bleed&#45;&#45;hashtags">-->
+<!--          <SNSHashtagAnalytics-->
+<!--            :iconSrc="iconSrc"-->
+<!--            :colors="colors"-->
+<!--            :value="bilibiliJSON.hashtagAnalyticsValue"-->
+<!--          />-->
+<!--        </div>-->
 
         <!-- posts -->
         <div class="section-bleed section-bleed--posts">
