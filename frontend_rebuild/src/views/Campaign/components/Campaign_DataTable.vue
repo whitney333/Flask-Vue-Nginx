@@ -54,7 +54,6 @@ const buildSafeProfileUrl = (platform, rawAccount) => {
 
 const kolAccountRenderer = (params) => {
   const account = params.value || "";
-<<<<<<< HEAD
   const platform = params.data.platform || "Instagram"; // fallback Instagram
   const safeUrl = buildSafeProfileUrl(platform, account);
 
