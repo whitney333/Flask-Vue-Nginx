@@ -143,8 +143,9 @@ const fetchDramas = async () => {
           params: {
             page: page.value,
             limit: limit.value,
-            name: filters.value.name,
+            name: filters.value.name.trim(),
             type: filters.value.type,
+            status: filters.value.status,
             broadcast_year: filters.value.broadcast_year
           }
         }
@@ -180,6 +181,25 @@ const typeClass = (t) => {
     default:
       return "bg-gray-100 text-gray-700"
   }
+}
+
+const isDramaCompleted = (finale) => {
+  if (!finale) return false
+  const finaleTime = new Date(finale).getTime()
+  return !Number.isNaN(finaleTime) && finaleTime < Date.now()
+}
+
+const dramaStatus = (finale) => {
+  if (!finale) {
+    return {
+      label: "Unknown",
+      color: "grey"
+    }
+  }
+
+  return isDramaCompleted(finale)
+    ? { label: "Completed", color: "success" }
+    : { label: "On Air", color: "warning" }
 }
 
 const addDrama = async () => {
@@ -405,6 +425,7 @@ const formattedOnAirDate = computed({
 const filters = ref({
   name: "",
   type: "",
+  status: "",
   broadcast_year: ""
 });
 
@@ -416,6 +437,7 @@ const onFilterChange = () => {
 const resetFilters = () => {
   filters.value.name = "";
   filters.value.type = "";
+  filters.value.status = "";
   filters.value.broadcast_year = "";
   page.value = 1
   fetchDramas()
@@ -748,7 +770,7 @@ watch([page, limit], () => {
           <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
             <i class="mdi mdi-magnify"></i>
           </span>
-          <input v-model="filters.name" type="text" class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Search drama..." />
+          <input v-model="filters.name" type="text" class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Search drama..." @keyup.enter="onFilterChange" />
         </div>
       </div>
       <div class="w-32 flex flex-col">
@@ -756,6 +778,15 @@ watch([page, limit], () => {
         <select v-model="filters.type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <option value="">All</option>
           <option v-for="opt in typeOptions" :key="opt" :value="opt">{{ opt }}</option>
+        </select>
+      </div>
+      <div class="w-36 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select v-model="filters.status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="">All</option>
+          <option value="on_air">On Air</option>
+          <option value="completed">Completed</option>
+          <option value="unknown">Unknown</option>
         </select>
       </div>
       <div class="w-32 flex flex-col">
@@ -788,7 +819,10 @@ watch([page, limit], () => {
           <tr v-for="d in dramas" :key="d.drama_id" class="border-t hover:bg-gray-50 transition">
             <td class="px-4 py-2 font-mono">{{ d.drama_id }}</td>
             <td class="px-4 py-2">
-              <img v-if="d.thumbnail" :src="d.thumbnail" class="h-10 w-16 object-cover rounded" />
+              <img
+                  v-if="d.thumbnail"
+                  :src="d.thumbnail"
+                  class="w-12 aspect-[9/16] object-cover rounded" />
               <span v-else>-</span>
             </td>
             <td class="px-4 py-2">{{ d.name }}</td>
@@ -798,11 +832,11 @@ watch([page, limit], () => {
               <span class="px-2 py-1 rounded text-xs font-medium" :class="typeClass(d.type || '')">{{ d.type }}</span>
             </td>
             <td class="px-4 py-2">
-              <v-chip size="x-small" :color="d.finale ? 'success' : 'warning'" variant="flat">
-                {{ d.finale ? 'Completed' : 'On Air' }}
+              <v-chip size="x-small" :color="dramaStatus(d.finale).color" variant="flat">
+                {{ dramaStatus(d.finale).label }}
               </v-chip>
             </td>
-            <td class="px-4 py-2 flex gap-2">
+            <td class="px-4 py-2">
               <button @click="viewDramaDetail(d.id)" class="px-2 py-1 rounded text-xs font-medium border border-green-600 text-green-600 hover:bg-green-50">Update</button>
             </td>
           </tr>
