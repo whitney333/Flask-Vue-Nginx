@@ -7,6 +7,7 @@ melon_bp = Blueprint('melon', __name__)
 melon_api = Api(melon_bp)
 
 @melon_bp.route('/v1/follower', methods=['GET'])
+@auth_required
 def get_melon_follower():
     artist_id = request.args.get("artist_id")
     date_end = request.args.get("date_end")

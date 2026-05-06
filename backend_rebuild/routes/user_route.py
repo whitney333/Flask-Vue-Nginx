@@ -41,12 +41,14 @@ def check_is_admin():
     return UserController.check_is_admin()
 
 @user_bp.route("/v1/company", methods=["GET"])
+@auth_required
 def get_all_tenant_company():
     result = UserController.get_all_tenant_company()
 
     return result
 
 @user_bp.route("/v1/artists/<string:tenant_id>", methods=["GET"])
+@auth_required
 def get_all_artists_of_per_tenant(tenant_id):
     result = UserController.get_all_artist_by_tenant(tenant_id)
 

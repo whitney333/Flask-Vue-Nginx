@@ -3,7 +3,6 @@
     import {computed, onMounted, ref, watch} from 'vue';
     import { useArtistStore } from '@/stores/artist'
     import { useUserStore } from "@/stores/user.js";
-    import {useAuthStore} from "@/stores/auth.js";
 
 
     const props = defineProps({
@@ -21,7 +20,6 @@
     })
     const artistStore = useArtistStore()
     const userStore = useUserStore()
-    const authStore = useAuthStore()
     const citiesData = ref([])
     const cities = ref([])
     const lastUpdate = ref("")
@@ -55,9 +53,7 @@
             loadingCard.value = true
 
             const res = await axios.get(`/spotify/v1/top-city`,
-                {headers: {
-                  Authorization: `Bearer ${authStore.idToken}`
-                },
+                {
                 params: {
                   artist_id: artistStore.artistId
                 }}

@@ -53,8 +53,8 @@ const buildSafeProfileUrl = (platform, rawAccount) => {
 };
 
 const kolAccountRenderer = (params) => {
-  // add link to account
   const account = params.value || "";
+<<<<<<< HEAD
   const platform = params.data.platform || "Instagram"; // fallback Instagram
   const safeUrl = buildSafeProfileUrl(platform, account);
 
@@ -75,7 +75,7 @@ const kolAccountRenderer = (params) => {
 };
 
 const platformRenderer = (params) => {
-   const platform = params.value?.toLowerCase();
+  const platform = params.value?.toLowerCase();
   let iconPath = "";
   let name = "";
 

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class UserController:
 
-    def get_user_info(firebase_id):
+    def get_user_info():
        try:
            request_uid = getattr(g, "firebase_id", None)
            if not request_uid:
@@ -262,6 +262,7 @@ class UserController:
             return jsonify({"error": "Forbidden"}), 403
 
         firebase_uid = request_uid
+
         user = Users.objects(firebase_id=firebase_uid).first()
 
         if user:

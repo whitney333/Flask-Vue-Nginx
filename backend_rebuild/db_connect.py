@@ -54,7 +54,7 @@ def connect_docdb():
                 username=os.getenv(key='DB_USER'),
                 password=os.getenv(key='DB_PASS'),
                 authMechanism="SCRAM-SHA-1",
-                tlsAllowInvalidHostnames=True,
+                tlsAllowInvalidHostnames=False,
                 tls=True,
                 tlsCAFile=os.fspath(
                     pathlib.Path(__file__).parent / 'cert' / 'global-bundle.pem'),
@@ -77,7 +77,7 @@ def connect_docdb():
             username=os.getenv(key='DB_USER'),
             password=os.getenv(key='DB_PASS'),
             authMechanism="SCRAM-SHA-1",
-            tlsAllowInvalidHostnames=True,
+            tlsAllowInvalidHostnames=False,
             tls=True,
             tlsCAFile=os.fspath(
                 pathlib.Path(__file__).parent / 'cert' / 'global-bundle.pem'),

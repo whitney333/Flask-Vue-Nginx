@@ -1,4 +1,5 @@
 from controllers.sns.instagram_controller import InstagramController
+from libs.utils import auth_required
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
 from libs.utils import auth_required
@@ -87,6 +88,7 @@ def get_instagram_latest_posts():
 
     return posts
 
+
 @instagram_bp.route('/v1/eng-rate', methods=['GET'])
 @auth_required
 def get_instagram_engagement_rate():
@@ -101,6 +103,54 @@ def get_instagram_engagement_rate():
     )
 
     return result
+
+@instagram_bp.route('/v1/hashtag/most-used-five', methods=['GET'])
+@auth_required
+def get_most_used_recent_five_hashtags():
+    artist_id = request.args.get('artist_id', type=str)
+    most_used_hashtags = InstagramController.get_hashtags_most_used_recent_five(artist_id)
+
+    return most_used_hashtags
+
+@instagram_bp.route('/v1/hashtag/most-used-eight', methods=['GET'])
+@auth_required
+def get_most_used_recent_eight_hashtags():
+    artist_id = request.args.get('artist_id', type=str)
+    most_used_hashtags = InstagramController.get_hashtags_most_used_recent_eight(artist_id)
+
+    return most_used_hashtags
+
+@instagram_bp.route('/v1/hashtag/most-used-twelve', methods=['GET'])
+@auth_required
+def get_most_used_recent_twelve_hashtags():
+    artist_id = request.args.get('artist_id', type=str)
+    most_used_hashtags = InstagramController.get_hashtags_most_used_recent_twelve(artist_id)
+
+    return most_used_hashtags
+
+@instagram_bp.route('/v1/hashtag/most-engaged-five', methods=['GET'])
+@auth_required
+def get_most_engaged_recent_five_hashtags():
+    artist_id = request.args.get('artist_id', type=str)
+    most_engaged_hashtags = InstagramController.get_hashtags_most_engaged_recent_five(artist_id)
+
+    return most_engaged_hashtags
+
+@instagram_bp.route('/v1/hashtag/most-engaged-eight', methods=['GET'])
+@auth_required
+def get_most_engaged_recent_eight_hashtags():
+    artist_id = request.args.get('artist_id', type=str)
+    most_engaged_hashtags = InstagramController.get_hashtags_most_engaged_recent_eight(artist_id)
+
+    return most_engaged_hashtags
+
+@instagram_bp.route('/v1/hashtag/most-engaged-twelve', methods=['GET'])
+@auth_required
+def get_most_engaged_recent_twelve_hashtags():
+    artist_id = request.args.get('artist_id', type=str)
+    most_engaged_hashtags = InstagramController.get_hashtags_most_engaged_recent_twelve(artist_id)
+
+    return most_engaged_hashtags
 
 @instagram_bp.route("/v1/follower/growth", methods=["GET"])
 @auth_required
