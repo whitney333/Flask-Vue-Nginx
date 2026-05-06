@@ -2,6 +2,7 @@ from models.drama_model import Drama
 from bson import ObjectId
 from models.tenant_model import Tenant
 from flask import jsonify, request
+from datetime import datetime
 
 
 class AdminDramaController:
@@ -19,6 +20,7 @@ class AdminDramaController:
             name = request.args.get("name")
             order = request.args.get("order", "asc")
             type = request.args.get("type")
+            status = request.args.get("status")
 
             broadcast_year = request.args.get("broadcast_year")
 
@@ -30,11 +32,25 @@ class AdminDramaController:
 
             # Query
             query = {}
+            match_conditions = []
             if drama_id:
                 query["drama_id"] = drama_id
 
             if type:
                 query["type"] = {"$in": type.split(",")}
+
+            now = datetime.utcnow()
+            if status == "completed":
+                match_conditions.append({"finale": {"$lt": now}})
+            elif status == "on_air":
+                match_conditions.append({"finale": {"$gte": now}})
+            elif status == "unknown":
+                match_conditions.append({
+                    "$or": [
+                        {"finale": {"$exists": False}},
+                        {"finale": None}
+                    ]
+                })
 
             if broadcast_year:
                 try:
@@ -44,10 +60,20 @@ class AdminDramaController:
                     pass
 
             if name:
-                query["$or"] = [
-                    {"name": {"$regex": name, "$options": "i"}},
-                    {"name_in_korean": {"$regex": name, "$options": "i"}}
-                ]
+                match_conditions.append({
+                    "$or": [
+                        {"name": {"$regex": name, "$options": "i"}},
+                        {"name_in_korean": {"$regex": name, "$options": "i"}}
+                    ]
+                })
+
+            if match_conditions:
+                if query:
+                    query = {"$and": [query, *match_conditions]}
+                elif len(match_conditions) == 1:
+                    query = match_conditions[0]
+                else:
+                    query = {"$and": match_conditions}
 
             if query:
                 pipeline.append({"$match": query})
@@ -58,7 +84,13 @@ class AdminDramaController:
             pipeline.append({"$limit": limit})
             
             dramas = list(Drama.objects.aggregate(pipeline))
-            total = Drama.objects(**query).count()
+
+            count_pipeline = []
+            if query:
+                count_pipeline.append({"$match": query})
+            count_pipeline.append({"$count": "total"})
+            count_result = list(Drama.objects.aggregate(count_pipeline))
+            total = count_result[0]["total"] if count_result else 0
             
             import math
             last_page = math.ceil(total / limit) if total > 0 else 1
