@@ -9,9 +9,14 @@ export const currentProfile = async () => {
   if (!user) return null
 
   try {
+    const idToken = await user.getIdToken()
     // check if database has this user
     const res = await axios.post("/user/v1/auth/check", {
       firebase_id: user.uid
+    }, {
+      headers: {
+        Authorization: `Bearer ${idToken}`
+      }
     })
 
     return res.data.exists

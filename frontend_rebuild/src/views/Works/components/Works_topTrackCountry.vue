@@ -3,7 +3,6 @@
   import { onMounted, ref, watch } from 'vue';
   import getUnicodeFlagIcon from 'country-flag-icons/unicode'
   import { useArtistStore } from "@/stores/artist.js";
-  import {useAuthStore} from "@/stores/auth.js";
 
 
     const props = defineProps({
@@ -12,7 +11,6 @@
     const tracks = ref({})
 
     const artistStore = useArtistStore()
-    const authStore = useAuthStore()
     const selected = ref('South Korea')
     const trackList = ref([])
     const country = ref('KR')

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class UserController:
 
-    def get_user_info(firebase_id):
+    def get_user_info():
        try:
            request_uid = getattr(g, "firebase_id", None)
            if not request_uid:
