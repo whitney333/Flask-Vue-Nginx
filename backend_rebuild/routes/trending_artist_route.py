@@ -74,10 +74,10 @@ def total_music_score():
 
     return music_score
 
-@trending_artist_bp.route("/new-music-score", methods=["GET"])
+@trending_artist_bp.route("/new-sns-score", methods=["GET"])
 @auth_required
-def new_total_music_score():
-    result = TrendingArtistController.new_music_score()
+def new_total_sns_score():
+    result = TrendingArtistController.get_new_sns_score()
 
     return result
 
@@ -270,3 +270,10 @@ def overall_popularity():
     popularity = TrendingArtistController.calculate_overall_popularity(country, year, week, type)
 
     return popularity
+
+########## New Endpoint ##########
+@trending_artist_bp.route("/new-music-score", methods=["GET"])
+def new_total_music_score():
+    result = TrendingArtistController.new_music_score()
+
+    return result
