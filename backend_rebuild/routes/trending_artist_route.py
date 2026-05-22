@@ -242,3 +242,17 @@ def get_artist_sns_score():
     results = TrendingArtistController.get_trending_artist_sns_score(year, week)
 
     return results
+
+@trending_artist_bp.route("/v2/popularity", methods=['GET'])
+def get_artist_overall_popularity():
+    country = request.args.get('country', default='GLOBAL')
+    year = request.args.get('year', type=int)
+    week = request.args.get('week', type=int)
+    category = request.args.get('type', type=str)
+
+    return TrendingArtistController.calculate_overall_popularity(
+        country,
+        year,
+        week,
+        category
+    )
