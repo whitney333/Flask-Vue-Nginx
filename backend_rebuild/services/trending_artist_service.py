@@ -1,5 +1,6 @@
 from models.trending_artist_music_model import TrendingArtistMusicScore
 from models.trending_artist_sns_model import TrendingArtistSnsScore
+from models.trending_artist_score_model import TrendingArtistScore
 
 
 class TrendingArtistService:
@@ -19,3 +20,11 @@ class TrendingArtistService:
             year=int(year),
             week=int(week)
         ).order_by('-sns_score')
+
+    @staticmethod
+    def get_artist_popularity(year, week, country):
+        return TrendingArtistScore.objects(
+            year=int(year),
+            week=int(week),
+            country=country.upper()
+        ).order_by('-popularity_score')
