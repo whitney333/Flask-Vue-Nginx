@@ -1,6 +1,6 @@
 from models.trending_artist_music_model import TrendingArtistMusicScore
 from models.trending_artist_sns_model import TrendingArtistSnsScore
-from models.trending_artist_score_model import TrendingArtistScore
+from models.trending_artist_score_model import ArtistPopularity
 
 
 class TrendingArtistService:
@@ -29,50 +29,33 @@ class TrendingArtistService:
         ).order_by('-sns_score')
 
     @staticmethod
-    def get_trending_artists(
-            category="overall",
-            country="GLOBAL",
-            year=None,
-            week=None,
-            artist_type=None,
-            limit=100
-    ):
+    def get_trending_artists(country, year, week, limit=100):
         country = country.upper()
 
-        # =========================
-        # sort field
-        # =========================
-
-        order_field = TrendingArtistService.SCORE_FIELD_MAP.get(
-            category,
-            "-popularity_score"
-        )
-
-        # =========================
-        # base query
-        # =========================
-
-        queryset = TrendingArtistScore.objects(
+        queryset = ArtistPopularity.objects(
             country=country,
             year=int(year),
             week=int(week)
-        )
+        ).order_by("-popularity_score")
 
-        # =========================
-        # artist type filter
-        # =========================
+        return queryset[:limit]
 
-        if artist_type:
-            queryset = queryset.filter(
-                type=artist_type
-            )
+    @staticmethod
+    def get_country_rank_map(artist_id, year, week):
+        rows = ArtistPopularity.objects(
+            artist_id=artist_id,
+            year=int(year),
+            week=int(week)
+        ).only("country", "rank")
 
-        # =========================
-        # sorting
-        # =========================
+        rank_map = {}
 
-        queryset = queryset.order_by(
-            order_field
-        )[:limit]
+        for row in rows:
+            rank_map[row.country] = row.rank
 
-        return queryset
+        return {
+            "artist_id": str(artist_id),
+            "year": year,
+            "week": week,
+            "rank": rank_map
+        }
