@@ -3,7 +3,9 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '@/axios';
 import AVCard from '@/views/TrendingArtists/components/AV_card.vue';
+import { useI18n } from 'vue-i18n'
 
+const i18n = useI18n()
 const route = useRoute();
 const router = useRouter();
 
@@ -109,7 +111,7 @@ const artistTypeColor = computed(() => {
     Musician: 'deep-purple',
   };
 
-  return colors[artistDetails.value.type] || 'grey';
+  return colors[artistDetails.value.type] || 'green';
 });
 
 const socialLinks = computed(() => [
@@ -161,44 +163,39 @@ const rankedCountryCount = computed(() => {
   return countryRankItems.value.filter((country) => country.hasRank).length;
 });
 
-const scoreCards = computed(() => [
+const scoreCardKeys = [
   {
-    mode: 'metric',
-    title: 'Popularity',
-    type: 'Popularity',
+    key: 'popularity',
     icon: 'mdi-fire',
     color: 'orange',
-    value: artistDetails.value.popularity,
-    tooltipText: 'Trending artist overall popularity score',
+    valueKey: 'popularity'
   },
-  {
-    mode: 'metric',
-    title: 'SNS',
-    type: 'SNS',
+  { key: 'sns',
     icon: 'mdi-account-group-outline',
     color: 'teal',
-    value: artistDetails.value.sns,
-    tooltipText: 'Trending artist SNS score',
+    valueKey: 'sns'
   },
   {
-    mode: 'metric',
-    title: 'Music',
-    type: 'Music',
+    key: 'music',
     icon: 'mdi-music-note',
     color: 'deep-purple',
-    value: artistDetails.value.music,
-    tooltipText: 'Trending artist music score',
+    valueKey: 'music'
   },
   {
-    mode: 'metric',
-    title: 'Drama',
-    type: 'Drama',
+    key: 'drama',
     icon: 'mdi-television',
     color: 'blue',
-    value: artistDetails.value.drama,
-    tooltipText: 'Trending artist drama score',
-  },
-]);
+    valueKey: 'drama'
+  }
+]
+
+const scoreCards = computed(() =>
+  scoreCardKeys.map(c => ({
+    ...c,
+    title: i18n.t(`trending_artist.${c.key}`),
+    value: artistDetails.value[c.valueKey],
+  }))
+)
 
 const handleBackBtn = () => {
   router.go(-1);
@@ -251,18 +248,31 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+      <!-- back button -->
       <v-btn
         icon="mdi-arrow-left"
         @click="handleBackBtn"
         variant="text"
-        class="mb-4"
+        class="transition hover:scale-105 active:scale-95"
       />
 
+      <!-- ROW 1 -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <section class="lg:col-span-5 bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
-          <div class="flex flex-col sm:flex-row gap-5">
-            <div class="w-32 h-32 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
+
+        <!-- ARTIST -->
+        <section
+          class="lg:col-span-5
+                 bg-transparent lg:bg-white
+                 lg:border lg:border-gray-200
+                 lg:rounded-3xl lg:shadow-sm
+                 lg:p-6"
+        >
+          <div class="flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-left">
+
+            <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-gray-100 shrink-0
+                        transition duration-300 hover:scale-105">
               <img
                 :src="artistDetails.image"
                 :alt="artistDisplayName"
@@ -270,66 +280,75 @@ onMounted(() => {
               />
             </div>
 
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2 mb-3">
-                <v-chip
-                  :color="artistTypeColor"
-                  size="small"
-                  variant="tonal"
-                  rounded="lg"
-                >
-                  {{ artistDetails.type }}
-                </v-chip>
-                <v-chip
-                  size="small"
-                  variant="tonal"
-                  rounded="lg"
-                >
-                  Week {{ rankMeta.week || currentWeek }}
-                </v-chip>
-              </div>
+            <div class="flex-1 min-w-0">
 
-              <h1 class="text-2xl font-bold text-gray-900 leading-tight">
+              <v-chip :color="artistTypeColor"
+                      size="small"
+                      variant="tonal"
+                      v-for="type in artistDetails.type"
+                      :key="type"
+              >
+                {{ type }}
+              </v-chip>
+
+              <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mt-2">
                 {{ artistDisplayName }}
               </h1>
 
               <div
                 v-if="socialLinks.length"
-                class="flex flex-wrap gap-3 mt-5"
+                class="flex gap-3 mt-4 justify-center sm:justify-start flex-wrap"
               >
                 <a
                   v-for="link in socialLinks"
                   :key="link.key"
                   :href="link.href"
                   target="_blank"
-                  rel="noopener noreferrer"
-                  class="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition"
+                  class="w-9 h-9 flex items-center justify-center rounded-lg border
+                         border-gray-200 hover:bg-gray-50 transition
+                         hover:scale-105 active:scale-95"
                 >
-                  <img
-                    :src="link.icon"
-                    :alt="link.key"
-                    class="max-w-5 max-h-5"
-                  />
+                  <img :src="link.icon" class="w-5 h-5" />
                 </a>
               </div>
+
             </div>
           </div>
         </section>
 
-        <section class="lg:col-span-7 bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
-          <div class="flex items-start justify-between gap-4 mb-5">
+        <!-- COUNTRY RANKING -->
+        <section
+          class="lg:col-span-7
+                 bg-transparent lg:bg-white
+                 lg:border lg:border-gray-200
+                 lg:rounded-3xl lg:shadow-sm
+                 lg:p-6
+                 p-4"
+        >
+
+          <!-- header -->
+          <div class="flex items-start justify-between mb-4">
             <div>
-              <div class="flex items-center gap-2 text-gray-900 font-semibold">
-                <v-icon icon="mdi-trophy" color="amber" size="20" />
-                Country Ranking
+              <div class="flex items-center gap-2 font-semibold text-gray-900">
+                <v-icon icon="mdi-trophy" color="amber" size="20"/>
+                {{ $t('trending_artist.country_ranking') }}
               </div>
-              <div class="text-sm text-gray-500 mt-1">
-                {{ rankMeta.year || currentYear }} Week {{ rankMeta.week || currentWeek }} · {{ rankedCountryCount }} ranked markets
+
+              <div class="text-xs sm:text-sm text-gray-500 mt-1">
+                {{ rankMeta.year || currentYear }} W{{ rankMeta.week || currentWeek }}
+                · {{ rankedCountryCount }} markets
               </div>
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-3">
+          <!-- flags (FIXED SCOPE) -->
+          <div
+            class="
+              flex gap-3 pb-2 scrollbar-hide
+              flex-nowrap overflow-x-auto
+              lg:flex-wrap lg:overflow-visible
+            "
+          >
             <v-tooltip
               v-for="country in countryRankItems"
               :key="country.value"
@@ -338,43 +357,51 @@ onMounted(() => {
               <template #activator="{ props }">
                 <div
                   v-bind="props"
-                  class="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center cursor-default"
-                  :class="{ 'ranked-country': country.hasRank, 'unranked-country': !country.hasRank }"
+                  class="
+                    w-10 h-10 flex-shrink-0
+                    rounded-xl border
+                    flex items-center justify-center
+                    transition duration-200 hover:scale-110
+                  "
+                  :class="country.hasRank
+                    ? 'bg-white border-gray-200'
+                    : 'bg-gray-50 border-gray-200 opacity-40'"
                 >
+
                   <v-icon
                     v-if="country.type === 'icon'"
                     :icon="country.icon"
-                    size="24"
+                    size="22"
                     :color="country.hasRank ? 'primary' : 'grey'"
                   />
-                  <span
-                    v-else
-                    :class="['fi', `fi-${country.flag}`, { 'flag-muted': !country.hasRank }]"
-                  />
+
+                  <span v-else :class="['fi', `fi-${country.flag}`]" />
                 </div>
               </template>
+
               <span v-if="country.hasRank">
-                {{ country.title }} #{{ country.rank }}
+                {{ $t(`country.${country.title}`) }} #{{ country.rank }}
               </span>
+
               <span v-else>
-                {{ country.title }} no ranking
+                {{ $t(`country.${country.title}`) }} no ranking
               </span>
             </v-tooltip>
           </div>
+
         </section>
+
       </div>
 
-      <v-row class="mt-6">
-        <v-col
+      <!-- SCORE ROW -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <AVCard
           v-for="card in scoreCards"
           :key="card.type"
-          cols="12"
-          md="6"
-          lg="3"
-        >
-          <AVCard :value="card" />
-        </v-col>
-      </v-row>
+          :value="card"
+        />
+      </section>
+
     </div>
   </div>
 </template>
