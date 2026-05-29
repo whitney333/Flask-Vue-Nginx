@@ -1,5 +1,3 @@
-from models.trending_artist_music_model import TrendingArtistMusicScore
-from models.trending_artist_sns_model import TrendingArtistSnsScore
 from models.trending_artist_score_model import ArtistPopularity
 
 

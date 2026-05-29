@@ -3,7 +3,6 @@ from models.artist_model import Artists
 from models.trending_artist_score_model import ArtistPopularity
 from services.trending_artist_service import TrendingArtistService
 
-from services.trending_artist_service import TrendingArtistService
 
 class TrendingArtistController:
     @staticmethod
