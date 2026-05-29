@@ -55,3 +55,6 @@ class Artists(Document):
     image_url = StringField()
     instagram_user = StringField(required=False, null=True)
     is_active = BooleanField(default=True)
+    aliases = ListField(StringField(), default=list)
+    normalized_aliases = ListField(StringField(), default=list)
+    tmdb_person_id = IntField(required=False)
