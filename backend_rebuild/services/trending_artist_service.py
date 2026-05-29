@@ -12,23 +12,6 @@ class TrendingArtistService:
     }
 
     @staticmethod
-    def get_music_score(country, year, week):
-        country = country.upper() if country else None
-
-        return TrendingArtistMusicScore.objects(
-            country=country,
-            year=str(year),
-            week=int(week)
-        ).order_by('-music_score')
-
-    @staticmethod
-    def get_sns_score(year, week):
-        return TrendingArtistSnsScore.objects(
-            year=int(year),
-            week=int(week)
-        ).order_by('-sns_score')
-
-    @staticmethod
     def get_trending_artists(country, year, week, limit=100):
         country = country.upper()
 
@@ -51,7 +34,7 @@ class TrendingArtistService:
         rank_map = {}
 
         for row in rows:
-            rank_map[row.country] = row.rank
+            rank_map[row.country.lower()] = row.rank
 
         return {
             "artist_id": str(artist_id),
