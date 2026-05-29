@@ -1,189 +1,227 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import axios from '@/axios';
-import AreaCharts from '@/components/AreaCharts.vue'
-import { useRoute, useRouter } from 'vue-router';
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 
     const props = defineProps({
         value: Object,
+        year: Number,
+        week: Number,
     })
     const router = useRouter()
-    const loadingBar = ref(false)
-    const index_number =  ref("")
-    const selection = ref('one_month')
-    const series = ref([])
-    const chartOptions = ref({})
-    const follower = ref({})
-    const formatNumber = computed(() => formatNumFunc(index_number.value))
 
-    const formatNumFunc = (value) => {
-        if (String(Math.round(value)).length < 4) {
-            const res = Number(value).toLocaleString();
-            return props.value.percentageData ? res + "%" : res
-        } else if (String(Math.round(value)).length < 7) {
-            const res = Number(value / 1000).toLocaleString() + 'K';
-            return props.value.percentageData ? res + "%" : res
-        } else if (String(Math.round(value)).length < 10) {
-            const res = Number(value / 1000000).toLocaleString() + 'M';
-            return props.value.percentageData ? res + "%" : res
-        } else {
-            const res = Number(value / 1000000000).toLocaleString() + 'B';
-            return props.value.percentageData ? res + "%" : res
-        }
-    }
-
-
-    chartOptions.value = {
-            chart: {
-            height: '100%',
-            width: '100%',
-            type: 'area',
-            group: 'homepage',
-            toolbar: {
-                tools: {
-                download: false,
-                selection: false,
-                zoom: false,
-                zoomin: false,
-                zoomout: false,
-                pan: false,
-                reset: false
-                }
-            }
-            },
-            dataLabels: {
-            enabled: false,
-            },
-            stroke: {
-            curve: 'smooth',
-            width: 1.5,
-            dashArray: [0, 2]
-            },
-            xaxis: {
-            // categories: [],
-                type: 'datetime',
-                show: false,
-                labels: {
-                    show: false,
-                    datetimeFormatter: {
-                        year: 'yyyy',
-                        month: 'MMM \'yy',
-                        day: 'dd MMM',
-                        hour: 'HH:mm'
-                    }
-                },
-                axisBorder: {
-                    show: false
-                },
-                axisTicks: {
-                    show: false
-                },
-                tooltip: {
-                    enabled: false
-                }
-
-            },
-            legend: {
-                fontSize: '14px',
-                fontWeight: '500',
-                fontFamily: 'Cairo, sans-serif',
-                position: 'top',
-                horizontalAlign: 'left'
-            },
-            yaxis: [
-            {
-                show: false,
-                labels: {
-                    show: false,
-                    formatter: formatNumFunc,
-                },
-                axisBorder: {
-                    show: false
-                },
-                axisTicks: {
-                    show: false
-                }
-            }
-            ],
-            colors: props.value.colors,
-            grid: {
-            show: false
-            }
-        }
-
-    const fetchChart = async () => {
-        loadingBar.value = true
-        const data = await axios.get(`/instagram/chart/follower`, {setTimeout: 10000})
-        follower.value = data.data['result']
-        index_number.value = follower.value[follower.value.length - 1]['follower_count']
-
-        let formattedData = follower.value.map((e, i) => {
-            return {
-                x: e['datetime'],
-                y: e['follower_count'],
-            };
-        });
-        // update the series with axios data
-        series.value = [
-            {
-                name: 'Popularity',
-                data: formattedData,
-            }
-        ]
-        loadingBar.value = false
-    }
-    const handleToArtist = () => {
-        router.push(`/artist/${props.value.artistId}/${props.value.artistName}`)
-
-    }
-    onMounted(() => {
-        fetchChart()
+    const artistId = computed(() => props.value?.artistId ?? props.value?.artist_id ?? '')
+    const artistName = computed(() => {
+        return props.value?.artistName
+            ?? props.value?.english_name
+            ?? props.value?.korean_name
+            ?? '-'
     })
+    const artistKoreanName = computed(() => props.value?.artistKoreanName ?? props.value?.korean_name ?? '')
+
+    const artistImage = computed(() => props.value?.artistImg ?? props.value?.image ?? '')
+    const artistType = computed(() => props.value?.type || '-')
+    const popularityScore = computed(() => {
+        return props.value?.popularity
+            ?? props.value?.popularity_score
+            ?? 0
+    })
+    const scoreItems = computed(() => [
+        {
+            label: 'Music',
+            value: props.value?.music_score,
+            icon: 'mdi-music-note',
+        },
+        {
+            label: 'SNS',
+            value: props.value?.sns_score,
+            icon: 'mdi-account-group-outline',
+        },
+        {
+            label: 'Drama',
+            value: props.value?.drama_score,
+            icon: 'mdi-television',
+        },
+    ])
+
+    const formatScore = (value) => {
+        const number = Number(value ?? 0)
+
+        if (!Number.isFinite(number) || number === 0) {
+            return '-'
+        }
+
+        return number.toLocaleString('en-US', {
+            maximumFractionDigits: 2,
+        })
+    }
+
+    const handleToArtist = () => {
+        if (!artistId.value) {
+            return
+        }
+
+        router.push({
+            name: 'Artist',
+            params: {
+                artistId: artistId.value,
+                artistName: artistName.value,
+            },
+            query: {
+                rank: props.value?.rank,
+                image: artistImage.value,
+                koreanName: artistKoreanName.value,
+                type: artistType.value,
+                popularityScore: popularityScore.value,
+                musicScore: props.value?.music_score ?? 0,
+                snsScore: props.value?.sns_score ?? 0,
+                dramaScore: props.value?.drama_score ?? 0,
+                year: props.year,
+                week: props.week,
+            },
+        })
+    }
+    const artistTypes = computed(() => {
+      if (Array.isArray(artistType.value)) {
+        return artistType.value
+      }
+
+      if (artistType.value) {
+        return [artistType.value]
+      }
+
+      return []
+    })
+
+    const getArtistTypeColor = (type) => {
+      const colors = {
+        Musician: 'deep-purple',
+        Actor: 'blue',
+      }
+
+      return colors[type] || 'grey'
+    }
 
 </script>
 
 <template>
-    <v-card
-    :loading="loadingBar"
-    hover
-    @click="handleToArtist"
-    :class="['px-3', 'py-1', 'my-3']">
-        <v-row
-        align="center"
-        justify="center">
-            <v-col
-            cols="1">
-            <span>{{ `#${props.value.rank}` }}</span>
-            </v-col>
-            <v-col
-            cols="1">
-            <v-avatar color="info">
-                <v-icon icon="mdi-account-circle"></v-icon>
-            </v-avatar>
+    <div
+        @click="handleToArtist"
+        class="
+            relative
+            bg-white
+            p-4 md:px-6 md:py-4
 
-            </v-col>
-            <v-col
-            cols="2">
-                <span>{{ props.value.artistName}}</span>
-            </v-col>
-            <v-col
-            cols="3">
-                <v-chip :color="props.value.type == 'Actor' ? 'blue' : 'purple'">{{ props.value.type}}</v-chip>
-            </v-col>
-            <v-col
-            cols="1">
-            <span>{{ props.value.popularity.toLocaleString('en-US') }}</span>
-            </v-col>
-            <v-col
-            cols="3">
-            <AreaCharts width="90%" height="60%" :series="series" :chartOptions="chartOptions" ></AreaCharts>
-            </v-col>
-            <v-col
-            cols="1">
-            <v-btn variant="plain" icon="mdi-chevron-right"></v-btn>
-            </v-col>
+            flex flex-col gap-3
+            md:grid md:grid-cols-12 md:items-center
 
-        </v-row>
-    </v-card>
+            hover:bg-gray-50
+            transition cursor-pointer group
+        "
+    >
+        <!-- TOP ROW (Mobile optimized) -->
+        <div class="flex items-center justify-between md:contents">
 
+            <!-- Rank -->
+            <div class="md:col-span-1 flex items-center justify-center">
+                <div class="text-md font-bold text-gray-700">
+                    #{{ props.value.rank }}
+                </div>
+            </div>
+
+            <!-- Arrow (mobile show right side) -->
+            <div class="md:hidden">
+                <v-icon icon="mdi-chevron-right" class="text-gray-400" />
+            </div>
+        </div>
+
+        <!-- Artist -->
+        <div class="md:col-span-4 flex items-center gap-3">
+            <div
+                class="
+                    w-10 h-10 md:w-12 md:h-12
+                    rounded-xl overflow-hidden
+                    bg-gray-100
+                    shrink-0
+                "
+            >
+                <img
+                    v-if="artistImage"
+                    :src="artistImage"
+                    class="w-full h-full object-cover"
+                />
+                <v-icon
+                    v-else
+                    icon="mdi-account-circle"
+                    size="32"
+                    class="text-gray-400"
+                />
+            </div>
+
+            <div class="leading-tight">
+                <div class="font-semibold text-gray-900">
+                    {{ artistName }}
+                </div>
+
+                <div
+                    v-if="artistKoreanName && artistKoreanName !== artistName"
+                    class="text-sm text-gray-400"
+                >
+                    {{ artistKoreanName }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Type -->
+        <div class="md:col-span-2 flex flex-wrap gap-2">
+            <v-chip
+                v-for="type in artistTypes"
+                :key="type"
+                :color="getArtistTypeColor(type)"
+                size="small"
+                variant="tonal"
+                rounded="lg"
+            >
+                {{ type }}
+            </v-chip>
+        </div>
+
+        <!-- Popularity -->
+        <div class="md:col-span-2 flex items-center gap-2">
+          <div class="text-xs text-gray-400 md:hidden inline-flex items-center gap-1">
+            <v-icon size="16" class="text-orange-500">mdi-fire</v-icon>
+            <span>Popularity</span>
+          </div>
+          <div class="text-md font-medium text-gray-700">
+            {{ formatScore(popularityScore) }}
+          </div>
+        </div>
+
+        <!-- Scores -->
+        <div class="md:col-span-3 flex flex-wrap gap-1">
+            <v-chip
+                v-for="item in scoreItems"
+                :key="item.label"
+                size="small"
+                variant="tonal"
+                rounded="lg"
+            >
+                <v-icon :icon="item.icon" size="14" start />
+                {{ formatScore(item.value) }}
+            </v-chip>
+        </div>
+
+        <!-- Desktop arrow -->
+      <div
+          class="
+            hidden md:flex
+            absolute right-6
+            top-1/2 -translate-y-1/2
+          "
+      >
+        <v-icon
+            icon="mdi-chevron-right"
+            class="text-gray-400 group-hover:translate-x-1 transition"
+        />
+      </div>
+    </div>
 </template>

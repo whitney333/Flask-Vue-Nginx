@@ -96,14 +96,15 @@ const routes = [
     {
         path: '/trending-artists',
         name: 'Trending Artists',
-        component: ComingSoonView,
+        component: TrendingArtistsView,
         meta: { requireAuth: true}
     },
     {
         path: '/artist/:artistId/:artistName',
         name: 'Artist',
         component: ArtistView,
-        meta: { requireAuth: true}},
+        meta: { requireAuth: true}
+    },
     {
         path: '/admin',
         name: 'Admin Portal',

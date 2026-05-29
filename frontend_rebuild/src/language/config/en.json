@@ -132,6 +132,7 @@
     "Taiwan": "Taiwan",
     "Vietnam": "Vietnam",
     "Indonesia": "Indonesia",
+    "India": "India",
     "Philippines": "Philippines",
     "Thailand": "Thailand",
     "Singapore": "Singapore",
@@ -153,7 +154,15 @@
     "Asia": "Asia",
     "North America": "North America",
     "South America": "South America",
-    "Oceania": "Oceania"
+    "Oceania": "Oceania",
+    "Global": "Global"
+  },
+  "trending_artist": {
+    "country_ranking": "Country Ranking",
+    "popularity": "Popularity",
+    "sns": "SNS",
+    "music": "Music",
+    "drama": "Drama"
   },
   "sns": {
     "Instagram": "Instagram",
