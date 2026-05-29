@@ -18,6 +18,7 @@ import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import "/node_modules/ag-grid-community/styles/ag-theme-quartz.css";
 // window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
 import { useAuthStore } from "@/stores/auth"
+import 'flag-icons/css/flag-icons.min.css'
 
 const vuetify = createVuetify({
     components,
