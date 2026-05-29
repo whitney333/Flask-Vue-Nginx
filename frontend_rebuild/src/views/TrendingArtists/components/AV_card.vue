@@ -1,4 +1,3 @@
-
 <!-- Artist View Chart card -->
 
 <script setup>
@@ -23,6 +22,7 @@ import { computed, onMounted, ref, watch } from 'vue';
     const last_month_data = ref("")
     const chartOptions = ref({})
     const follower = ref({})
+    const isMetricCard = computed(() => props.value?.mode === 'metric' || !props.value?.fetchURL)
     const formatNumber = computed(() =>
         {
             return formatNumFunc(index_number.value)
@@ -57,17 +57,23 @@ import { computed, onMounted, ref, watch } from 'vue';
         value: "all"
     })
     const formatNumFunc = (value) => {
-        if (String(Math.round(value)).length < 4) {
-            const res = Number(value).toLocaleString();
+        const number = Number(value ?? 0)
+
+        if (!Number.isFinite(number) || number === 0) {
+            return '-'
+        }
+
+        if (String(Math.round(number)).length < 4) {
+            const res = number.toLocaleString('en-US', { maximumFractionDigits: 2 });
             return props.value.percentageData ? res + "%" : res
-        } else if (String(Math.round(value)).length < 7) {
-            const res = Number(value / 1000).toLocaleString() + 'K';
+        } else if (String(Math.round(number)).length < 7) {
+            const res = Number(number / 1000).toLocaleString('en-US', { maximumFractionDigits: 2 }) + 'K';
             return props.value.percentageData ? res + "%" : res
-        } else if (String(Math.round(value)).length < 10) {
-            const res = Number(value / 1000000).toLocaleString() + 'M';
+        } else if (String(Math.round(number)).length < 10) {
+            const res = Number(number / 1000000).toLocaleString('en-US', { maximumFractionDigits: 2 }) + 'M';
             return props.value.percentageData ? res + "%" : res
         } else {
-            const res = Number(value / 1000000000).toLocaleString() + 'B';
+            const res = Number(number / 1000000000).toLocaleString('en-US', { maximumFractionDigits: 2 }) + 'B';
             return props.value.percentageData ? res + "%" : res
         }
     }
@@ -156,6 +162,10 @@ import { computed, onMounted, ref, watch } from 'vue';
             }
         }
     const fetchData = async () => {
+        if (isMetricCard.value) {
+            return
+        }
+
         try {
             loadingBar.value = true
             const res = await axios.get(props.value.fetchURL, {setTimeout: 10000})
@@ -189,6 +199,10 @@ import { computed, onMounted, ref, watch } from 'vue';
     }
 
     const updateData = (timeline) => {
+        if (isMetricCard.value || !chart.value) {
+            return
+        }
+
         selection.value = timeline
 
         switch (timeline) {
@@ -227,57 +241,66 @@ import { computed, onMounted, ref, watch } from 'vue';
         fetchData()
     })
 
-    watch(selectDate, updateData(selectDate.value.title))
+    watch(selectDate, (newValue) => {
+        updateData(newValue.value)
+    })
 </script>
 
 <template>
-    <v-card
-    :loading="loadingBar"
-    flat>
-        <template v-slot:title>
-            <div :class="['d-flex', 'align-center', 'justify-space-between']">
-                <div>
-                    <span :class="['text-h4']">
-                        {{ props.value.title }}
-                        <v-tooltip
-                        :text="props.value.tooltipText">
-                            <template v-slot:activator="{ props }">
-                                <v-icon
-                                size="25"
-                                v-bind="props"
-                                icon="mdi-information-outline"
-                                ></v-icon>
-                            </template>
-                        </v-tooltip>
-                    </span>
-                </div>
-                <v-select
-                    :maxWidth="150"
-                    label="Standard"
-                    :items="selectDates"
-                    background-color="amber-lighten-1"
-                    variant="outlined"
-                    single-line
-                    density="compact"
-                    return-object
-                    v-model="selectDate"
-                    @update:modelValue="updateData(selectDate.value)"
-                    item-title="title"
-                >
-                </v-select>
+  <v-card flat :loading="loadingBar" class="pa-4">
 
-            </div>
-        </template>
-        <template v-slot:text>
-            <apexchart
-                :id="props.value.chart"
-                ref="chart"
-                width="100%"
-                height="200%"
-                type="line"
-                :options="chartOptions" 
-                :series="series">
-            </apexchart>
-        </template>
-    </v-card>
+    <!-- HEADER -->
+    <div class="flex items-center justify-between mb-4">
+
+      <div class="flex items-center gap-3">
+
+        <v-avatar
+          v-if="value.icon"
+          :color="value.color || 'grey'"
+          size="40"
+          variant="tonal"
+        >
+          <v-icon :icon="value.icon" />
+        </v-avatar>
+
+        <div class="text-lg font-semibold">
+          {{ value.title }}
+        </div>
+
+      </div>
+
+      <!-- SELECT -->
+      <v-select
+        v-if="isChartCard"
+        v-model="selectDate"
+        :items="selectDates"
+        item-title="title"
+        return-object
+        density="compact"
+        variant="outlined"
+        hide-details
+        style="max-width: 150px"
+        @update:modelValue="updateData(selectDate.value)"
+      />
+
+    </div>
+
+    <!-- METRIC BLOCK -->
+    <div v-if="isMetricCard" class="text-4xl font-black">
+      {{ formatNumFunc(value.value) }}
+    </div>
+
+    <!-- CHART BLOCK -->
+    <div v-if="isChartCard" class="mt-2">
+      <apexchart
+        ref="chart"
+        width="100%"
+        height="260"
+        type="line"
+        :options="chartOptions"
+        :series="series"
+      />
+    </div>
+
+  </v-card>
 </template>
