@@ -64,12 +64,6 @@ const weekOptions = computed(() => {
   return Array.from({ length: maxWeek }, (_, i) => i + 1)
 })
 
-const artistPresentList = computed(() => {
-  if (selectType.value === 'Actor') return artistList.value.filter(x => x.type === 'Actor')
-  if (selectType.value === 'Musician') return artistList.value.filter(x => x.type === 'Musician')
-  return artistList.value
-})
-
 const normalizeArtists = (payload) => {
   const artists = payload?.artists || payload?.data || payload || []
   if (!Array.isArray(artists)) return []
@@ -92,6 +86,7 @@ const fetchArtistList = async () => {
         year: currentYear.value,
         week: currentWeek.value,
         country: selectCountry.value.value,
+        artist_type: selectType.value
       },
     })
 
@@ -104,7 +99,7 @@ const fetchArtistList = async () => {
   }
 }
 
-watch([selectCountry, currentYear, currentWeek], fetchArtistList)
+watch([selectCountry, currentYear, currentWeek, selectType], fetchArtistList)
 
 onMounted(fetchArtistList)
 
@@ -272,7 +267,7 @@ onMounted(fetchArtistList)
           </div>
           <!--  DATA -->
           <div v-else key="data">
-            <TACard v-for="(artist, i) in artistPresentList"
+            <TACard v-for="(artist, i) in artistList"
                     :key="i"
                     :value="artist"
                     :year="currentYear"
