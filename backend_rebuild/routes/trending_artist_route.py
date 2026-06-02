@@ -12,11 +12,13 @@ def get_artist_overall_popularity():
     country = request.args.get('country', default='GLOBAL')
     year = request.args.get('year', type=int)
     week = request.args.get('week', type=int)
+    artist_type = request.args.get('artist_type', default='all')
 
     return TrendingArtistController.get_trending_artist_popularity_score(
         country,
         year,
-        week
+        week,
+        artist_type
     )
 
 @trending_artist_bp.route("/v2/ranks", methods=['GET'])

@@ -178,7 +178,6 @@ router.beforeEach(async (to, from, next) => {
             resolve(u)
         })
     })
-    // console.log("[Router Guard] resolved user:", user ? user.uid : 'null')
 
     // if not login
     if (!user) {
