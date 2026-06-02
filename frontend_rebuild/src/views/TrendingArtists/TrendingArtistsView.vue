@@ -102,9 +102,9 @@ const fetchArtistList = async () => {
 
     const normalizedData = normalizeArtists(response.data)
 
-    // if specific year, week has no data, try to fetch the previous week
+    // if the specific year, week has no data, try to fetch the previous week
     if (normalizedData.length === 0 && currentYear.value === thisYear && !hasCalibrated.value && currentWeek.value > 1) {
-      console.warn(`Week ${currentWeek.value} data not available...`)
+      // console.warn(`Week ${currentWeek.value} data not available...`)
 
       isCalibrating = true
       currentWeek.value -= 1

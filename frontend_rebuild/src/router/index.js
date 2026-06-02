@@ -169,7 +169,7 @@ router.beforeEach(async (to, from, next) => {
             resolve(u)
         })
     })
-    console.log("resolved user:", user)
+    // console.log("resolved user:", user)
 
     // if not login
     if (!user) {
