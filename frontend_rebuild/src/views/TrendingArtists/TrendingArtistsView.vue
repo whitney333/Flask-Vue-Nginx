@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import axios from '@/axios'
 import TACard from '@/views/TrendingArtists/components/TA_card.vue'
 
@@ -37,7 +37,6 @@ const types = ref(['All', 'Actor', 'Musician'])
 const artistList = ref([])
 
 const thisYear = new Date().getFullYear()
-const currentYear = ref(thisYear)
 
 const getWeekNumber = () => {
   const date = new Date()
@@ -53,21 +52,24 @@ const getWeekNumber = () => {
 }
 
 const thisWeek = getWeekNumber()
+
+const currentYear = ref(thisYear)
 const currentWeek = ref(thisWeek)
+
+// max week for this year
+const maxAvailableWeekForThisYear = ref(thisWeek)
+
+// check if this week has been calibrated
+const hasCalibrated = ref(false)
 
 const yearOptions = computed(() =>
   Array.from({ length: thisYear - 2020 + 1 }, (_, i) => thisYear - i)
 )
 
+// selectable week options
 const weekOptions = computed(() => {
-  const maxWeek = currentYear.value === thisYear ? thisWeek : 53
+  const maxWeek = currentYear.value === thisYear ? maxAvailableWeekForThisYear.value : 53
   return Array.from({ length: maxWeek }, (_, i) => i + 1)
-})
-
-const artistPresentList = computed(() => {
-  if (selectType.value === 'Actor') return artistList.value.filter(x => x.type === 'Actor')
-  if (selectType.value === 'Musician') return artistList.value.filter(x => x.type === 'Musician')
-  return artistList.value
 })
 
 const normalizeArtists = (payload) => {
@@ -84,6 +86,8 @@ const normalizeArtists = (payload) => {
   }))
 }
 
+let isCalibrating = false
+
 const fetchArtistList = async () => {
   loading.value = true
   try {
@@ -92,10 +96,33 @@ const fetchArtistList = async () => {
         year: currentYear.value,
         week: currentWeek.value,
         country: selectCountry.value.value,
+        artist_type: selectType.value
       },
     })
 
-    artistList.value = normalizeArtists(response.data)
+    const normalizedData = normalizeArtists(response.data)
+
+    // if the specific year, week has no data, try to fetch the previous week
+    if (normalizedData.length === 0 && currentYear.value === thisYear && !hasCalibrated.value && currentWeek.value > 1) {
+      // console.warn(`Week ${currentWeek.value} data not available...`)
+
+      isCalibrating = true
+      currentWeek.value -= 1
+      await nextTick()
+      isCalibrating = false
+
+      await fetchArtistList()
+      return
+    }
+
+    artistList.value = normalizedData
+
+    // fetch the max available week for this year
+    if (currentYear.value === thisYear && !hasCalibrated.value) {
+      maxAvailableWeekForThisYear.value = currentWeek.value
+      hasCalibrated.value = true
+    }
+
   } catch (e) {
     console.error(e)
     artistList.value = []
@@ -104,10 +131,24 @@ const fetchArtistList = async () => {
   }
 }
 
-watch([selectCountry, currentYear, currentWeek], fetchArtistList)
+// clear filters
+const resetFilters = () => {
+  selectCountry.value = { title: 'Global', value: 'global', type: 'icon', icon: 'mdi-earth' }
+  selectType.value = 'All'
+  currentYear.value = thisYear
+  currentWeek.value = maxAvailableWeekForThisYear.value
+}
+
+watch([selectCountry, currentYear, currentWeek, selectType], () => {
+  if (!isCalibrating) {
+    if (currentYear.value !== thisYear) {
+      hasCalibrated.value = false
+    }
+    fetchArtistList()
+  }
+})
 
 onMounted(fetchArtistList)
-
 </script>
 
 <template>
@@ -272,7 +313,7 @@ onMounted(fetchArtistList)
           </div>
           <!--  DATA -->
           <div v-else key="data">
-            <TACard v-for="(artist, i) in artistPresentList"
+            <TACard v-for="(artist, i) in artistList"
                     :key="i"
                     :value="artist"
                     :year="currentYear"

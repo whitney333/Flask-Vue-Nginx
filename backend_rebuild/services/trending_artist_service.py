@@ -10,16 +10,21 @@ class TrendingArtistService:
     }
 
     @staticmethod
-    def get_trending_artists(country, year, week, limit=100):
+    def get_trending_artists(country, year, week, artist_type="all", limit=100):
         country = country.upper()
 
         queryset = ArtistPopularity.objects(
             country=country,
             year=int(year),
             week=int(week)
-        ).order_by("-popularity_score")
+        )
 
-        return queryset[:limit]
+        artist_type = (artist_type or "all").strip().title()
+
+        if artist_type != "All":
+            queryset = queryset.filter(type=artist_type)
+
+        return queryset.order_by("-popularity_score")[:limit]
 
     @staticmethod
     def get_country_rank_map(artist_id, year, week):
