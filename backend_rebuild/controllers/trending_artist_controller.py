@@ -6,7 +6,7 @@ from services.trending_artist_service import TrendingArtistService
 
 class TrendingArtistController:
     @staticmethod
-    def get_trending_artist_popularity_score(country, year, week):
+    def get_trending_artist_popularity_score(country, year, week, artist_type="all"):
 
         if not all([year, week]):
             return jsonify({
@@ -23,7 +23,8 @@ class TrendingArtistController:
             results = TrendingArtistService.get_trending_artists(
                 country=country,
                 year=year,
-                week=week
+                week=week,
+                artist_type=artist_type
             )
 
             artists = []
@@ -51,6 +52,7 @@ class TrendingArtistController:
                 "year": year,
                 "week": week,
                 "total": len(artists),
+                "artist_type": artist_type,
                 "artists": artists
             }), 200
 
