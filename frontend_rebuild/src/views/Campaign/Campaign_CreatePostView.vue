@@ -35,11 +35,11 @@
     })
 
     const platforms = [
-      { name: "Instagram", icon: instagramIcon, color: "#FF0069", blackIcon: instagramBlackIcon },
-      { name: "Tiktok", icon: tiktokIcon, color: "#000000", blackIcon: tiktokBlackIcon },
-      { name: "YouTube", icon: youtubeIcon, color: "#FF0000", blackIcon: youtubeBlackIcon },
-      { name: "Rednote", icon: xiaohongshuIcon, color: "#FF2442", blackIcon: xiaohongshuBlackIcon},
-      { name: "Bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
+      { name: "sns.instagram", icon: instagramIcon, color: "#FF0069", blackIcon: instagramBlackIcon },
+      { name: "sns.tiktok", icon: tiktokIcon, color: "#000000", blackIcon: tiktokBlackIcon },
+      { name: "sns.youtube", icon: youtubeIcon, color: "#FF0000", blackIcon: youtubeBlackIcon },
+      { name: "sns.rednote", icon: xiaohongshuIcon, color: "#FF2442", blackIcon: xiaohongshuBlackIcon},
+      { name: "sns.bilibili", icon: bilibiliIcon, color: "#00A1D6", blackIcon: bilibiliBlackIcon },
       // { name: "Overseas fan meeting", icon: fanMeetIcon, color: "#00A1D6", blackIcon: fanMeetBlackIcon }
     ]
 
@@ -401,7 +401,7 @@
                                 height="30"
                               ></v-img>
                               <div className="text-xs font-normal mt-2">
-                                {{ p.name }}
+                                {{ $t(p.name) }}
                               </div>
                             </div>
                             
