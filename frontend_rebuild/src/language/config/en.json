@@ -164,17 +164,33 @@
     "music": "Music",
     "drama": "Drama"
   },
+  "menu": {
+    "dashboard": "Dashboard",
+    "sns": "SNS",
+    "works": "Works",
+    "music": "Music",
+    "campaign": "Campaign",
+    "analytics": "Analytics",
+    "posts": "Posts",
+    "trending_artist": "Trending Artists",
+    "admin_manage": "Admin Manage",
+    "tenants": "Tenants",
+    "users": "Users",
+    "artists": "Artists",
+    "campaigns": "Campaigns",
+    "dramas": "Dramas"
+  },
   "sns": {
-    "Instagram": "Instagram",
-    "Youtube": "YouTube",
-    "Bilibili": "Bilibili",
-    "Tiktok": "Tiktok",
-    "Rednote": "Rednote",
-    "Spotify": "Spotify",
-    "Threads": "Threads",
-    "Weibo": "Weibo",
-    "Overseas fan meeting": "Overseas Fan Meeting",
-    "Magazine": "Magazine"
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "bilibili": "Bilibili",
+    "tiktok": "Tiktok",
+    "rednote": "Rednote",
+    "spotify": "Spotify",
+    "threads": "Threads",
+    "weibo": "Weibo",
+    "overseas_fan_meeting": "Overseas Fan Meeting",
+    "magazine": "Magazine"
   },
   "campaign": {
     "campaign": "Campaign",

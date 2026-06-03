@@ -158,24 +158,40 @@
     "Oceania": "오세아니아",
     "Global": "글로벌"
   },
-   "trending_artist": {
+  "trending_artist": {
     "country_ranking": "나라랭킹",
     "popularity": "인기",
     "sns": "소셜미디어",
     "music": "음악",
     "drama": "드라마"
   },
+  "menu": {
+    "dashboard": "대시보드",
+    "sns": "소셜 미디어",
+    "works": "작품",
+    "music": "음악",
+    "campaign": "캠페인",
+    "analytics": "캠페인 분석",
+    "posts": "캠페인 만들기",
+    "trending_artist": "트렌딩 아티스트",
+    "admin_manage": "관리자 관리",
+    "tenants": "테넌트 관리",
+    "users": "사용자 관리",
+    "artists": "연예인 관리",
+    "campaigns": "캠페인 관리",
+    "dramas": "드라마 관리"
+  },
   "sns": {
-    "Instagram": "인스타그램",
-    "Youtube": "유튜브",
-    "Bilibili": "빌리빌리",
-    "Tiktok": "틱톡",
-    "Rednote": "레드노트",
-    "Spotify": "스포티파이",
-    "Threads": "스레드",
-    "Weibo": "웨이보",
-    "Overseas fan meeting": "해외 팬미팅",
-    "Magazine": "매거진"
+    "instagram": "인스타그램",
+    "youtube": "유튜브",
+    "bilibili": "빌리빌리",
+    "tiktok": "틱톡",
+    "rednote": "레드노트",
+    "spotify": "스포티파이",
+    "threads": "스레드",
+    "weibo": "웨이보",
+    "overseas_fan_meeting": "해외 팬미팅",
+    "magazine": "매거진"
   },
   "campaign": {
     "campaign": "캠페인",
