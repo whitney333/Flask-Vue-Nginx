@@ -1,58 +1,84 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import getUnicodeFlagIcon from 'country-flag-icons/unicode'
-import {ref, onMounted} from "vue";
+import { computed, onMounted } from "vue"
 
 const { locale } = useI18n()
+
 const languages = [
     {
-        lang: 'English',
         value: 'en',
-        title: `${getUnicodeFlagIcon(countriesFlag['United Kingdom'])} English`
+        title: 'English',
+        flagClass: 'fi fi-gb'
     },
     {
-        lang: '한국어',
         value: 'kr',
-        title: `${getUnicodeFlagIcon(countriesFlag['South Korea'])} 한국어`,
-    }]
+        title: '한국어',
+        flagClass: 'fi fi-kr'
+    }
+]
 
-const lang = ref('en')
-
-const currentFlag = computed(() => {
-  const lang = languages.find(l => l.code === locale.value)
-  return lang ? lang.flag : '🌐'
+const currentLanguage = computed(() => {
+  return languages.find(l => l.value === locale.value) || languages[0]
 })
 
-function setLang(code) {
-  locale.value = code
+function setLang(value) {
+  locale.value = value
+  localStorage.setItem('locale', value)
 }
 
 onMounted(() => {
   const saved = localStorage.getItem('locale')
-  if (saved) locale.value = saved
+  if (saved) {
+    locale.value = saved
+  }
 })
-
 </script>
 
 <template>
-  <v-menu>
+  <v-menu location="top center">
     <template v-slot:activator="{ props }">
-      <v-btn v-bind="props" icon>
-        {{ currentFlag }}
+      <v-btn
+        v-bind="props"
+        block
+        variant="outlined"
+        color="grey-lighten-1"
+        class="text-none justify-space-between px-4"
+        prepend-icon="mdi-translate"
+      >
+        <span>{{ currentLanguage.title }}</span>
+        <span :class="[currentLanguage.flagClass, 'rounded-sm']"></span>
       </v-btn>
     </template>
 
-    <v-list>
+    <v-list bg-color="#2a2a2a" theme="dark">
       <v-list-item
           v-for="lang in languages"
-          :key="lang.name"
-          @click="setLang(lang.name)"
+          :key="lang.value"
+          :active="locale === lang.value"
+          @click="setLang(lang.value)"
       >
-        <v-list-item-title>{{ lang.show }} {{ lang.flag }}</v-list-item-title>
+        <template #prepend>
+          <span :class="[lang.flagClass, 'mr-3 rounded-sm']"></span>
+        </template>
+        <v-list-item-title>{{ lang.title }}</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-menu>
 </template>
 
 <style scoped>
+:deep(.v-btn__content) {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fi {
+  width: 20px;
+  line-height: 1em;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 </style>
