@@ -4,17 +4,17 @@ import { computed, onMounted } from "vue"
 
 const { locale } = useI18n()
 
+// 定義 Props，讓外部決定要不要只顯示 Icon 樣式
+defineProps({
+  iconOnly: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const languages = [
-    {
-        value: 'en',
-        title: 'English',
-        flagClass: 'fi fi-gb'
-    },
-    {
-        value: 'kr',
-        title: '한국어',
-        flagClass: 'fi fi-kr'
-    }
+    { value: 'en', title: 'English', flagClass: 'fi fi-gb' },
+    { value: 'kr', title: '한국어', flagClass: 'fi fi-kr' }
 ]
 
 const currentLanguage = computed(() => {
@@ -28,16 +28,22 @@ function setLang(value) {
 
 onMounted(() => {
   const saved = localStorage.getItem('locale')
-  if (saved) {
-    locale.value = saved
-  }
+  if (saved) locale.value = saved
 })
 </script>
 
 <template>
-  <v-menu location="top center">
+  <v-menu :location="iconOnly ? 'bottom center' : 'top center'">
     <template v-slot:activator="{ props }">
+
       <v-btn
+        v-if="iconOnly"
+        v-bind="props"
+        icon="mdi-translate"
+      />
+
+      <v-btn
+        v-else
         v-bind="props"
         block
         variant="outlined"
@@ -46,8 +52,9 @@ onMounted(() => {
         prepend-icon="mdi-translate"
       >
         <span>{{ currentLanguage.title }}</span>
-        <span :class="[currentLanguage.flagClass, 'rounded-sm']"></span>
+        <span :class="[currentLanguage.flagClass, 'rounded-sm flag-size']"></span>
       </v-btn>
+
     </template>
 
     <v-list bg-color="#2a2a2a" theme="dark">
@@ -58,7 +65,7 @@ onMounted(() => {
           @click="setLang(lang.value)"
       >
         <template #prepend>
-          <span :class="[lang.flagClass, 'mr-3 rounded-sm']"></span>
+          <span :class="[lang.flagClass, 'mr-3 rounded-sm flag-size']"></span>
         </template>
         <v-list-item-title>{{ lang.title }}</v-list-item-title>
       </v-list-item>
@@ -74,7 +81,7 @@ onMounted(() => {
   align-items: center;
 }
 
-.fi {
+.flag-size {
   width: 20px;
   line-height: 1em;
   background-size: contain;
