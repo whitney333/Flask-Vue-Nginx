@@ -8,6 +8,7 @@ trending_artist_api = Api(trending_artist_bp)
 
 #################### v2 Endpoint ####################
 @trending_artist_bp.route("/v2/popularity", methods=['GET'])
+@auth_required
 def get_artist_overall_popularity():
     country = request.args.get('country', default='GLOBAL')
     year = request.args.get('year', type=int)
@@ -22,6 +23,7 @@ def get_artist_overall_popularity():
     )
 
 @trending_artist_bp.route("/v2/ranks", methods=['GET'])
+@auth_required
 def get_artist_rank_map():
     artist_id = request.args.get('artist_id', type=str)
     year = request.args.get('year', type=str)
