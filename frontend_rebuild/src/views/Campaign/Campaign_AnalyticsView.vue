@@ -9,7 +9,7 @@ import CampaignLineChart from "@/views/Campaign/components/Campaign_LineChart.vu
 import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
 import MiniKpiCard from "@/views/Campaign/components/Campaign_MiniKpiCard.vue"
-import * as XLSX from "xlsx"
+import * as XLSX from "@e965/xlsx"
 
 
 const auth = getAuth()
