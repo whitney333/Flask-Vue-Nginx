@@ -1,7 +1,6 @@
 from models.user_model import Users
 from models.tenant_model import Tenant
 from models.artist_model import Artists
-from services.user_service import UserService
 import datetime
 from mongoengine import ValidationError, DoesNotExist
 from flask import request, jsonify, g
@@ -397,3 +396,26 @@ class UserController:
             return jsonify({"error": error}), 400
 
         return jsonify({"data": result}), 200
+
+    @staticmethod
+    def get_all_artists():
+        try:
+            limit = request.args.get("limit", type=int)
+            offset = request.args.get("offset", type=int)
+
+            result = UserService.get_all_artists(
+                limit=limit,
+                offset=offset
+            )
+
+            return {
+                "success": True,
+                "data": result["data"],
+                "meta": result["meta"]
+            }, 200
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": str(e)
+            }, 500

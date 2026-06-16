@@ -1,4 +1,5 @@
 from controllers.user_controller import UserController
+from services.user_service import UserService
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
 from libs.utils import auth_required
@@ -68,5 +69,12 @@ def update_followed_artists():
 @auth_required
 def get_user_followed_artists():
     result = UserController.get_user_followed_artist()
+
+    return result
+
+@user_bp.route("/v1/all-artists", methods=["GET"])
+@auth_required
+def get_all_artists():
+    result = UserController.get_all_artists()
 
     return result

@@ -178,3 +178,37 @@ class UserService:
                        for a in final_artists
                    ]
                }, None
+
+    @staticmethod
+    def get_all_artists(limit=None, offset=None):
+        queryset = Artists.objects()
+
+        total = queryset.count()
+
+        if offset is not None:
+            queryset = queryset.skip(offset)
+        if limit is not None:
+            queryset = queryset.limit(limit)
+
+        artists_list = []
+        for artist in queryset:
+            tenant = getattr(artist, "tenant_id", None)
+            artists_list.append({
+                "id": str(artist.id) if artist.id else None,
+                "artist_id": getattr(artist, "artist_id", None),
+                "english_name": getattr(artist, "english_name", None),
+                "korean_name": getattr(artist, "korean_name", None),
+                "birth": getattr(artist, "birth", None),
+                "image": getattr(artist, "image_url", None),
+                "tenant_id": str(tenant.id) if tenant and hasattr(tenant, "id") else None,
+            })
+
+        return {
+            "data": artists_list,
+            "meta": {
+                "total": total,
+                "count": len(artists_list),
+                "limit": limit,
+                "offset": offset
+            }
+        }
