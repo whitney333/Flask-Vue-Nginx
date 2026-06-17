@@ -7,7 +7,6 @@ import datetime
 import uuid
 from bson import ObjectId, Decimal128
 from services.campaign_service import CampaignService
-from libs.utils import get_current_user
 
 
 def convert_value(v):
@@ -242,11 +241,22 @@ class CampaignController:
                 "err": "Missing required parameters"
             }), 400
 
-        # get user
-        user = get_current_user(optional=True)
+        firebase_id = getattr(g, "firebase_id", None)
+        if not firebase_id:
+            return jsonify({"error": "Unauthorized"}), 401
+
+        user = Users.objects(firebase_id=firebase_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
 
         try:
-            campaign = Campaign.objects.get(campaign_id=campaign_id)
+            campaign = Campaign.objects(campaign_id=campaign_id).first()
+            if not campaign:
+                return jsonify({"error": "Campaign not found"}), 404
+
+            if campaign.user_id != user:
+                return jsonify({"error": "Forbidden"}), 403
+
             result = CampaignService.get_campaign_follower_growth(campaign, user)
 
             if result is None:
