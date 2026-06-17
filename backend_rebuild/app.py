@@ -70,7 +70,15 @@ def create_app():
 
     # app.config.from_object(Config)
     # Initialize Firebase Admin SDK
-    cred = credentials.Certificate('./firebase/venv/serviceAccountKey.json')
+    # cred = credentials.Certificate('./firebase/venv/serviceAccountKey.json')
+    # firebase_admin.initialize_app(cred)
+
+    firebase_cred_path = os.getenv(
+        "FIREBASE_SERVICE_ACCOUNT_PATH",
+        "/run/secrets/firebase_service_account"
+    )
+
+    cred = credentials.Certificate(firebase_cred_path)
     firebase_admin.initialize_app(cred)
 
     # register blueprints
