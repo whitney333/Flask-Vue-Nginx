@@ -9,7 +9,7 @@ import CampaignLineChart from "@/views/Campaign/components/Campaign_LineChart.vu
 import CampaignKpiCard from "@/views/Campaign/components/Campaign_KpiCard.vue"
 import CampaignPlatformGrowthCard from "@/views/Campaign/components/Campaign_PlatformGrowthCard.vue"
 import MiniKpiCard from "@/views/Campaign/components/Campaign_MiniKpiCard.vue"
-import * as XLSX from "xlsx"
+import { exportWorkbook } from "@/libs/xlsx-export.js"
 
 
 const auth = getAuth()
@@ -180,7 +180,7 @@ const flattenObject = (obj, parentKey = "", result = {}) => {
   return result
 }
 
-const exportData = () => {
+const exportData = async () => {
   if (!data.value || !audienceData.value?.cities?.length) return
 
   const {campaign_id, period, followers_growth} = data.value
@@ -191,7 +191,6 @@ const exportData = () => {
   const artistSheetData = [
     {artist: artistName.value}
   ]
-  const artistSheet = XLSX.utils.json_to_sheet(artistSheetData)
 
   /* =========================
    * Sheet 2：Campaign Follower Growth
@@ -218,7 +217,6 @@ const exportData = () => {
     })
   })
 
-  const campaignSheet = XLSX.utils.json_to_sheet(campaignGrowthData)
 
   /* =========================
    * Sheet 3：Audience Cities Growth
@@ -231,21 +229,12 @@ const exportData = () => {
     growth_pct: city.growth_pct ?? ""
   }))
 
-  const audienceSheet = XLSX.utils.json_to_sheet(audienceCitiesData)
-
-  /* =========================
-   * combine to one workbook
-   * ========================= */
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, artistSheet, "Artist")
-  XLSX.utils.book_append_sheet(workbook, campaignSheet, "Follower Growth")
-  XLSX.utils.book_append_sheet(workbook, audienceSheet, "Audience Cities")
-
-  /* =========================
-   * Download Excel
-   * ========================= */
-  XLSX.writeFile(
-      workbook,
+  await exportWorkbook(
+      [
+        { name: "Artist", rows: artistSheetData },
+        { name: "Follower Growth", rows: campaignGrowthData },
+        { name: "Audience Cities", rows: audienceCitiesData }
+      ],
       `Campaign_${campaign_id}_Report.xlsx`
   )
 }
