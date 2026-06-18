@@ -11,7 +11,7 @@ aws_login=$(aws ecr get-login-password --region ap-northeast-1)
 docker login -u AWS -p "${aws_login}" 417696335634.dkr.ecr.ap-northeast-1.amazonaws.com
 
 # 標記Docker映像
-docker tag mishkan-frontend:$version 417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:$version
+docker tag mishkan-backend:$version 417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:$version
 
 # 推送映像到ECR
 docker push 417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:$version
