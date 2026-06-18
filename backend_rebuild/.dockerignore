@@ -1,0 +1,25 @@
+.env
+.env*
+firebase/venv/
+*.json
+*.pem
+secrets/
+
+# 忽略 Python 暫存與虛擬環境
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 忽略 Git 與 IDE 設定
+.git
+.github
+.gitignore
+.vscode
+.idea

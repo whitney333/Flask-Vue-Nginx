@@ -12,16 +12,11 @@ RUN pip install "setuptools<81" wheel
 RUN pip install pandas
 RUN pip install -i https://mirrors.aliyun.com/pypi/simple gunicorn
 RUN pip install gevent>=22.10.2
-COPY requirements.txt .
 
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY . .
-#COPY models.py .
-COPY .env.development .
-COPY db_connect.py .
-COPY main.py .
-
 
 EXPOSE 5001
 

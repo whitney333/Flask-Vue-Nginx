@@ -9,7 +9,7 @@ import CampaignPercentCard from "@/views/Campaign/components/Campaign_PercentCar
 import campaignJSON from './json/campaignViewDetails.json'
 import CampaignDataTable from "@/views/Campaign/components/Campaign_DataTable.vue";
 import CampaignColumnCard from "@/views/Campaign/components/Campaign_ColumnCard.vue";
-import * as XLSX from 'xlsx'
+import { exportWorkbook } from "@/libs/xlsx-export.js"
 
 const infoOpen = ref(false)
 const router = useRouter()
@@ -234,7 +234,7 @@ const calculateSummary = (posts) => {
   }
 }
 
-const exportDialogData = () => {
+const exportDialogData = async () => {
   const campaign =
       dialogData.value?.data ?? dialogData.value
 
@@ -288,18 +288,6 @@ const exportDialogData = () => {
     }))
   ]
 
-  const summarySheet = XLSX.utils.json_to_sheet(summarySheetData)
-
-  // bold headers
-  const range = XLSX.utils.decode_range(summarySheet['!ref'])
-  for (let C = range.s.c; C <= range.e.c; ++C) {
-    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C })
-    if (!summarySheet[cellAddress]) continue
-    summarySheet[cellAddress].s = {
-      font: { bold: true }
-    }
-  }
-
   /* =========================
    * Sheet 2：POSTS
    * ========================= */
@@ -336,20 +324,11 @@ const exportDialogData = () => {
     }
   })
 
-  const postSheet = XLSX.utils.json_to_sheet(postSheetData)
-
-  /* =========================
-   * combine sheets to workbook
-   * ========================= */
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
-  XLSX.utils.book_append_sheet(workbook, postSheet, 'Posts')
-
-  /* =========================
-   * Download
-   * ========================= */
-  XLSX.writeFile(
-      workbook,
+  await exportWorkbook(
+      [
+        { name: 'Summary', rows: summarySheetData },
+        { name: 'Posts', rows: postSheetData }
+      ],
       `Campaign_${campaign.campaign_id}_SummaryReport.xlsx`
   )
 }

@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 # Global variables for shared state
-ssh_tunnel = None
 mongo_client = None
 
 def connect_docdb():
@@ -93,10 +92,14 @@ def connect_db():
 
     load_dotenv(dotenv_path=env_file)
 
+    # get ssh-tunnel:27999 from docker-compose
+    db_uri = os.getenv(key='DB_URI')
+
+    logger.info(f"Connecting to MongoDB via URI: {db_uri}")
+
     # Connect to DocumentDB
     mongo_client = connect(
-        host =  os.getenv(key='DB_URI'),
-        port = 27017,
+        host =  db_uri,
         db = "general",
         username = os.getenv(key='DB_USER'),
         password = os.getenv(key='DB_PASS')
