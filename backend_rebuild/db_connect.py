@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 # Global variables for shared state
-ssh_tunnel = None
 mongo_client = None
 
 def connect_docdb():

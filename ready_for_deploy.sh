@@ -8,14 +8,12 @@ read -p "Enter the version number for the mishkan-backend deployment: " backend_
 
 # 使用cat命令創建docker-compose-deploy.yml
 cat > docker-compose-deploy.yml <<EOF
-version: '3'
 
 services:
 
   # Proxies requests to internal services
   nginx:
-    #1.17.10
-    image: nginx:1.17.10
+    image: nginx:1.24.0
     container_name: t024-nginx
     depends_on:
         - frontend
@@ -24,6 +22,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 80:80
+    networks:
+      - app-network
 
   # generates frontend
   frontend:
@@ -32,20 +32,39 @@ services:
         - backend
     ports:
       - 8080:80
-    restart: on-failure
+    restart: always
+    networks:
+      - app-network
 
   backend:
     image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-backend:$backend_version"
     ports:
       - 5001:5001
-    restart: on-failure
+    environment:
+      - FLASK_ENV=production
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/run/secrets/firebase_service_account
+    secrets:
+      - firebase_service_account
+    env_file:
+      - ./backend_rebuild/.env.production
+    restart: always
+    networks:
+      - app-network
+  networks:
+    app-network:
+      driver: bridge
+
+  secrets:
+    firebase_service_account:
+      file: backend_rebuild/secrets/firebase_service_account.json
+
 EOF
 
 echo "docker-compose-deploy.yml has been created with frontend version $frontend_version and backend version $backend_version."
 
 # 執行子目錄中的腳本並傳遞後端版本號作為參數
 echo "Executing build_and_push.sh in the backend directory with version $backend_version..."
-(cd backend && ./build_and_push.sh "$backend_version")
+(cd backend_rebuild && ./build_and_push.sh "$backend_version")
 
 # 執行子目錄中的腳本並傳遞後端版本號作為參數
 echo "Executing build_and_push.sh in the backend directory with version $frontend_version..."
