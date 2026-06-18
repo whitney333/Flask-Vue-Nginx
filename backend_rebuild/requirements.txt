@@ -14,3 +14,4 @@ sshtunnel==0.4.0
 boto3==1.43.31
 Pillow==11.3.0
 stripe==14.2.0
+setuptools>=65.0.0

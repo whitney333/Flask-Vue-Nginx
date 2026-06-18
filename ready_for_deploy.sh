@@ -33,7 +33,7 @@ services:
         - backend
     ports:
       - 8080:80
-    restart: always
+    restart: on-failure
     networks:
       - app-network
 
@@ -49,7 +49,7 @@ services:
       - firebase_service_account
     env_file:
       - ./backend_rebuild/.env.production
-    restart: always
+    restart: on-failure
     networks:
       - app-network
 
