@@ -164,6 +164,22 @@
     "music": "Music",
     "drama": "Drama"
   },
+  "menu": {
+    "dashboard": "Dashboard",
+    "sns": "SNS",
+    "works": "Works",
+    "music": "Music",
+    "campaign": "Campaign",
+    "analytics": "Analytics",
+    "posts": "Posts",
+    "trending_artist": "Trending Artists",
+    "admin_manage": "Admin Manage",
+    "tenants": "Tenants",
+    "users": "Users",
+    "artists": "Artists",
+    "campaigns": "Campaigns",
+    "dramas": "Dramas"
+  },
   "sns": {
     "Instagram": "Instagram",
     "Youtube": "YouTube",

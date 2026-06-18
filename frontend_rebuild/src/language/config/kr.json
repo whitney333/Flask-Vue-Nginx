@@ -165,6 +165,22 @@
     "music": "음악",
     "drama": "드라마"
   },
+  "menu": {
+    "dashboard": "대시보드",
+    "sns": "소셜 미디어",
+    "works": "작품",
+    "music": "음악",
+    "campaign": "캠페인",
+    "analytics": "캠페인 분석",
+    "posts": "캠페인 만들기",
+    "trending_artist": "트렌딩 아티스트",
+    "admin_manage": "관리자 관리",
+    "tenants": "테넌트 관리",
+    "users": "사용자 관리",
+    "artists": "연예인 관리",
+    "campaigns": "캠페인 관리",
+    "dramas": "드라마 관리"
+  },
   "sns": {
     "Instagram": "인스타그램",
     "Youtube": "유튜브",
