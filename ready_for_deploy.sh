@@ -50,13 +50,14 @@ services:
     restart: always
     networks:
       - app-network
-  networks:
-    app-network:
-      driver: bridge
 
-  secrets:
-    firebase_service_account:
-      file: backend_rebuild/secrets/firebase_service_account.json
+networks:
+  app-network:
+    driver: bridge
+
+secrets:
+  firebase_service_account:
+    file: backend_rebuild/secrets/firebase_service_account.json
 
 EOF
 
