@@ -67,7 +67,7 @@ echo "docker-compose-deploy.yml has been created with frontend version $frontend
 
 # 執行子目錄中的腳本並傳遞後端版本號作為參數
 echo "Executing build_and_push.sh in the backend directory with version $backend_version..."
-(cd backend_rebuild && ./build_and_push.sh "$backend_version")
+(cd backend && ./build_and_push.sh "$backend_version")
 
 # 執行子目錄中的腳本並傳遞後端版本號作為參數
 echo "Executing build_and_push.sh in the backend directory with version $frontend_version..."
