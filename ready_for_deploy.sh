@@ -28,6 +28,7 @@ services:
   # generates frontend
   frontend:
     image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:$frontend_version"
+    container_name: t024-frontend
     depends_on:
         - backend
     ports:
@@ -38,6 +39,7 @@ services:
 
   backend:
     image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-backend:$backend_version"
+    container_name: t024-backend
     ports:
       - 5001:5001
     environment:
