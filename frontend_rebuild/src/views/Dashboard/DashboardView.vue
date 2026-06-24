@@ -332,7 +332,7 @@
           >
           <template v-slot:title>
             <span :class="['text-h5']">
-              {{ $t("Summary") }}
+              {{ $t("dashboard.summary") }}
             </span>
           </template>
           <template v-slot:text>
@@ -367,7 +367,7 @@
                 <v-col>
                   <v-card  class="pa-2 ma-2" variant="text" >
                     <span style="color: #757575;">
-                      {{ $t("Artist") }}
+                      {{ $t("dashboard.artist") }}
                     </span>
                     <br />
                     <span :class="['text-body-1']">
@@ -378,7 +378,7 @@
                 <v-col>
                   <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                    {{ $t("Debut Year") }}
+                    {{ $t("dashboard.debut_year") }}
                     </span>
                     <br />
                     <span :class="['text-body-1']">
@@ -390,7 +390,7 @@
                 <v-col>
                   <v-card class="pa-2 ma-2" variant="text">
                     <span style="color: #757575;">
-                      {{ $t("Country")}}
+                      {{ $t("dashboard.country")}}
                     </span>
                     <br />
                     <span :class="['text-body-1']">
@@ -407,7 +407,7 @@
                 <v-col>
                   <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                    {{ $t("Birth")}}
+                    {{ $t("dashboard.birth")}}
                     </span>
                     <br />
                     <span :class="['text-body-1']">
@@ -423,7 +423,7 @@
             <v-col>
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                {{ $t("Type") }}
+                {{ $t("dashboard.type") }}
                 </span>
                 <br />
                 <span :class="['text-body-1']">
@@ -436,7 +436,7 @@
             <v-col>
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                {{ $t("Members")}}
+                {{ $t("dashboard.members")}}
                 </span>
                 <br />
                     <span :class="['text-body-1']">
@@ -452,7 +452,7 @@
             sm="4">
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                {{ $t("Pronouns")}}
+                {{ $t("dashboard.pronouns")}}
                 </span>
                 <v-tooltip location="bottom">
                   <template v-slot:activator="{ props: activatorProps }">
@@ -480,7 +480,7 @@
             sm="3">
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                {{ $t("Fandom")}}
+                {{ $t("dashboard.fandom")}}
                 </span>
                 <br />
                 <span :class="['text-body-1']">
@@ -493,7 +493,7 @@
             sm="4">
               <v-card class="pa-2 ma-2" variant="text">
                 <span style="color: #757575;">
-                {{ $t("Color")}}
+                {{ $t("dashboard.color")}}
                 </span>
                 <br />
                 <span :class="['text-body-1']">
@@ -515,7 +515,7 @@
           >
           <template v-slot:title>
             <span :class="['text-h5']">
-              {{  $t('Following Artists') }}
+              {{  $t('dashboard.following_artists') }}
             </span>
           </template>
           <template v-slot:text>

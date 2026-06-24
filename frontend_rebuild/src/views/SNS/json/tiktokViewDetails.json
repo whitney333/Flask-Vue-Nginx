@@ -1,9 +1,9 @@
 {
     "tiktokFollowerValue": {
         "chart": "tiktokFollower",
-        "title": "Tiktok Followers",
+        "title": "metrics.tiktok_total_followers",
         "type": "Followers",
-        "tooltipText": "Number of followers on Tiktok",
+        "tooltipText": "tooltips.tiktok_total_followers",
         "fetchURL": "/tiktok/v1/follower",
         "fetchFollowerType": "data",
         "followerDataType": "follower",
@@ -11,9 +11,9 @@
     },
     "tiktokHashtagValue": {
         "chart": "tiktokHashtag",
-        "title": "Tiktok Hashtags",
+        "title": "metrics.tiktok_total_hashtags",
         "type": "Hashtags",
-        "tooltipText": "Number of hashtags on Tiktok",
+        "tooltipText": "tooltips.tiktok_total_hashtags",
         "fetchURL": "/tiktok/v1/hashtag",
         "fetchFollowerType": "data",
         "followerDataType": "hashtag",
@@ -21,9 +21,9 @@
     },
     "tiktokTotalLikesValue": {
         "chart": "tiktokTotalLikes",
-        "title": "Tiktok Total Likes",
+        "title": "metrics.tiktok_total_likes",
         "type": "Likes",
-        "tooltipText": "Number of likes on Tiktok",
+        "tooltipText": "tooltips.tiktok_total_likes",
         "fetchURL": "/tiktok/v1/like",
         "fetchFollowerType": "data",
         "followerDataType": "like",
@@ -31,7 +31,7 @@
     },
     "tiktokTotalViewsValue": {
         "chart": "tiktokTotalViews",
-        "title": "Tiktok Total Posts Views",
+        "title": "metrics.tiktok_total_views",
         "type": "Views",
         "tooltipText": "Number of latest 12 posts views on Tiktok",
         "fetchURL": "/tiktok/chart",
@@ -47,7 +47,7 @@
     },
     "tiktokTotalCommentsValue": {
         "chart": "tiktokTotalComments",
-        "title": "Tiktok Total Posts Comments",
+        "title": "metrics.tiktok_total_comments",
         "type": "Comments",
         "tooltipText": "Number of latest 12 posts comments on TikTok",
         "fetchURL": "/tiktok/chart",
@@ -63,7 +63,7 @@
     },
     "tiktokTotalSharesValue": {
         "chart": "tiktokTotalShares",
-        "title": "Tiktok Total Posts Shares",
+        "title": "metrics.tiktok_total_shares",
         "type": "Shares",
         "tooltipText": "Number of latest 12 posts shares on TikTok",
         "fetchURL": "/tiktok/chart",
@@ -95,9 +95,9 @@
     },
     "tiktokEngagementRateValue": {
         "chart": "tiktokEngagementRate",
-        "title": "Tiktok Engagement Rate",
+        "title": "metrics.tiktok_average_engagement_rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagement rate on Tiktok",
+        "tooltipText": "tooltips.tiktok_average_engagement_rate",
         "fetchURL": "/tiktok/chart",
         "fetchFollowerType": "result",
         "followerDataType": "eng_rate",

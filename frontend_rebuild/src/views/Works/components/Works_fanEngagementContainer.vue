@@ -147,7 +147,7 @@
             >
             <template v-slot:title>
                 <span :class="['text-h4']">
-                    {{ $t('Fan Engagement') }}
+                    {{ $t('music.fan_engagement') }}
                 </span>
             </template >
             <template v-slot:text>

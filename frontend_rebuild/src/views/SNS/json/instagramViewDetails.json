@@ -1,9 +1,9 @@
 {
     "instagramFollowerValue": {
         "chart": "instagramFollower",
-        "title": "Instagram Follower",
+        "title": "metrics.instagram_total_followers",
         "type": "Followers",
-        "tooltipText": "Number of followers on Instagram",
+        "tooltipText": "tooltips.instagram_total_followers",
         "fetchURL": "/instagram/v1/follower",
         "fetchFollowerType": "data",
         "followerDataType": "follower",
@@ -11,9 +11,9 @@
     },
     "instagramThreadsFollowerValue": {
         "chart": "instagramThreadsFollower",
-        "title": "Instagram Threads Follower",
+        "title": "metrics.instagram_threads_follower",
         "type": "Threads Followers",
-        "tooltipText": "Number of followers on Instagram Threads",
+        "tooltipText": "tooltips.instagram_threads_follower",
         "fetchURL": "/instagram/v1/threads-follower",
         "fetchFollowerType": "data",
         "followerDataType": "threads_follower",
@@ -21,9 +21,9 @@
     },
     "instagramPostsValue": {
         "chart": "instagramPosts",
-        "title": "Instagram Posts",
+        "title": "metrics.instagram_total_posts",
         "type": "Posts",
-        "tooltipText": "Number of posts on Instagram",
+        "tooltipText": "tooltips.instagram_total_posts",
         "fetchURL": "/instagram/v1/post-count",
         "fetchFollowerType": "data",
         "followerDataType": "post_count",
@@ -31,9 +31,9 @@
     },
     "instagramLikesValue": {
         "chart": "instagramLikes",
-        "title": "Likes of Latest Posts",
+        "title": "metrics.instagram_total_likes",
         "type": "Likes",
-        "tooltipText": "Number of latest 12 posts likes on Instagram",
+        "tooltipText": "tooltips.instagram_total_likes",
         "fetchURL": "/instagram/v1/like",
         "fetchFollowerType": "data",
         "followerDataType": "total_likes",
@@ -47,9 +47,9 @@
     },
     "instagramCommentsValue": {
         "chart": "instagramComments",
-        "title": "Comments of Latest Posts",
+        "title": "metrics.instagram_total_comments",
         "type": "Comments",
-        "tooltipText": "Number of latest 12 posts comments on Instagram",
+        "tooltipText": "tooltips.instagram_total_comments",
         "fetchURL": "/instagram/v1/comment",
         "fetchFollowerType": "data",
         "followerDataType": "total_comments",
@@ -63,9 +63,9 @@
     },
     "instagramEngagementRateValue": {
         "chart": "instagramEngagementRate",
-        "title": "Instagram Engagement Rate",
+        "title": "metrics.instagram_average_engagement_rate",
         "type": "Engagement Rate",
-        "tooltipText": "Average engagement rate of the latest 12 posts on Instagram",
+        "tooltipText": "tooltips.instagram_total_average_engagement_rate",
         "fetchURL": "/instagram/v1/eng-rate",
         "fetchFollowerType": "data",
         "followerDataType": "engagement_rate",
@@ -77,10 +77,10 @@
     "hashtagAnalyticsValue": {
         "apiType": "instagram",
         "usedCol": {
-            "tooltipText": "Daily trend of Instagram Hashtags"
+            "tooltipText": "tooltips.most_used_hashtags"
         },
         "engagedCol": {
-            "tooltipText": "Daily trend of Instagram Hashtags"
+            "tooltipText": "tooltips.most_engaged_hashtags"
         }
         
     },

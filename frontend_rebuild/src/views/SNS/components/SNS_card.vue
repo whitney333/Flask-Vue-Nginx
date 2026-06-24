@@ -433,7 +433,7 @@
                 </span>
                 <v-tooltip
                 location="bottom"
-                :text="props.value.tooltipText">
+                :text="$t(props.value.tooltipText)">
                     <template v-slot:activator="{ props }">
                         <v-icon
                         size="20"
@@ -519,10 +519,10 @@
                         {{ ` ${indexDifference() > 0 ? "+" : ""}${(indexDifference()).toFixed(2).toLocaleString()}%` }}
                     </span>
                     </v-btn>
-                    <span :class="['text-caption', 'mx-1']"> {{ ` ${$t('Past Month')}` }}</span>
+                    <span :class="['text-caption', 'mx-1']"> {{ ` ${$t('metrics.past_month')}` }}</span>
                 </div>
                 <div>
-                    <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${latest_date}` }}</span>
+                    <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('metrics.last_updated')}: ${latest_date}` }}</span>
                 </div>
             </div>
             <!-- <v-btn variant="outlined" rounded="pill" id="one_year" 
