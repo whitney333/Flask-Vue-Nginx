@@ -93,10 +93,12 @@ def connect_db():
 
     load_dotenv(dotenv_path=env_file)
 
+    db_uri = os.getenv(key="DB_URI"),
+    logger.info(f"Connecting to MongoDB: {db_uri}")
+
     # Connect to DocumentDB
     mongo_client = connect(
-        host =  os.getenv(key='DB_URI'),
-        port = 27017,
+        host =  db_uri,
         db = "general",
         username = os.getenv(key='DB_USER'),
         password = os.getenv(key='DB_PASS')
