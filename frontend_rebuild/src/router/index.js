@@ -169,7 +169,7 @@ const getCurrentUser = () => {
 
 router.beforeEach(async (to, from, next) => {
     const auth = getAuth()
-    console.log(">>> [Router Guard] navigating to:", to.path, "from:", from.path)
+    // console.log(">>> [Router Guard] navigating to:", to.path, "from:", from.path)
 
     // wait Firebase to initialize
     const user = await new Promise(resolve => {

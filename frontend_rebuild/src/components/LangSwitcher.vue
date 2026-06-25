@@ -21,7 +21,13 @@ const languages = [
       flagClass: 'fi fi-kr' },
     { value: 'cn',
       title: '简体中文',
-      flagClass: 'fi fi-cn' }
+      flagClass: 'fi fi-cn' },
+    { value: 'hk',
+      title: '繁體中文(香港)',
+      flagClass: 'fi fi-hk' },
+    { value: 'tw',
+      title: '繁體中文(台灣)',
+      flagClass: 'fi fi-tw' },
 ]
 
 const currentLanguage = computed(() => {
