@@ -18,7 +18,7 @@
         >
             <template v-slot:title>
                 <span :class="['text-h4']">
-                    {{ $t('Popularity of Spotify Top Tracks') }}
+                    {{ $t('music.popularity_of_spotify_top_tracks') }}
                 </span>
             </template >
             <template v-slot:text>

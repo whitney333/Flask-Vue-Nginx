@@ -175,7 +175,7 @@
         </span>
         <v-tooltip
             location="bottom"
-            :text="props.value.tooltipText">
+            :text="$t(props.value.tooltipText)">
           <template v-slot:activator="{ props }">
             <v-icon
                 size="20"
@@ -198,11 +198,11 @@
             {{ monthlyListeners }}
           </span>
           <span style="font-size: 12px;">
-            {{ ` ${$t('Monthly Listeners')}` }}
+            {{ ` ${$t('music.monthly_listeners')}: ${monthlyListeners.toLocaleString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}` }}
           </span>
         </div>
 
-        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
+        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('metrics.last_updated')}: ${lastUpdate}` }}</span>
       </div>
       <apexchart
           type="bar"

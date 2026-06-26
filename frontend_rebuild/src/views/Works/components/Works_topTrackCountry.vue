@@ -277,14 +277,12 @@
             :class="['mr-3']"
         ></v-img>
         <span>
-                    {{ $t('By Country') }}
-                </span>
-        <v-tooltip
-            location="bottom">
-                    <span>
-                        {{ $t('Popularity of top tracks by different country') }}
-                    </span>
-
+          {{ $t('music.by_country') }}
+        </span>
+        <v-tooltip location="bottom">
+          <span>
+            {{ $t('tooltips.spotify_by_country') }}
+          </span>
           <template v-slot:activator="{ props }">
             <v-icon
                 size="20"
@@ -300,7 +298,7 @@
       <v-divider></v-divider>
       <br/>
       <div :class="['d-flex', 'justify-space-between', 'align-center']">
-        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
+        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('metrics.last_updated')}: ${lastUpdate}` }}</span>
         <v-select
             :items="countries"
             variant="outlined"

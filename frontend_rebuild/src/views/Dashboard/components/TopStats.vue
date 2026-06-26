@@ -19,7 +19,7 @@ const { smAndDown } = useDisplay()
     <!-- Title -->
     <template #title>
       <h2 class="text-2xl font-semibold tracking-tight">
-        {{ $t('Top Statistics') }}
+        {{ $t('dashboard.top_statistics') }}
       </h2>
     </template>
 
