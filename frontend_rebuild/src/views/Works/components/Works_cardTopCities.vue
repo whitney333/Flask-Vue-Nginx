@@ -58,15 +58,15 @@
                   artist_id: artistStore.artistId
                 }}
             )
-            
+
             citiesData.value = res.data.data[0].top_city
             // console.log("city: ", citiesData.value)
             lastUpdate.value = res.data.data[0].datetime
             monthlyListeners.value = res.data.data[0].listener
 
             // console.log(res.data.result[0]);
-            
-            
+
+
             const formattedData = citiesData.value.map((e, i) => {
                 return {
                     x: e.city,
@@ -87,7 +87,7 @@
           loadingCard.value = false
         }
     }
-        
+
         chartOptions.value = {
             chart: {
                 type: 'bar',
@@ -105,7 +105,7 @@
             },
             colors: [
                 function ({ value, seriesIndex, dataPointIndex, w }) {
-                    
+
                     if (dataPointIndex % 2) {
                         return '#191414';
                     } else {
@@ -198,7 +198,7 @@
             {{ monthlyListeners }}
           </span>
           <span style="font-size: 12px;">
-            {{ ` ${$t('music.monthly_listeners')}: ${monthlyListeners.toLocaleString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}` }}
+            {{ ` ${$t('music.monthly_listeners')}` }}
           </span>
         </div>
 
