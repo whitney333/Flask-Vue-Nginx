@@ -40,10 +40,15 @@ class AdminDramaController:
                 query["type"] = {"$in": type.split(",")}
 
             now = datetime.utcnow()
-            if status == "completed":
-                match_conditions.append({"finale": {"$lt": now}})
+            if status == "upcoming":
+                match_conditions.append({"onair_date": {"$gt": now}})
             elif status == "on_air":
-                match_conditions.append({"finale": {"$gte": now}})
+                match_conditions.append({
+                    "onair_date": {"$lte": now},
+                    "finale": {"$gte": now}
+                })
+            elif status == "completed":
+                match_conditions.append({"finale": {"$lt": now}})
             elif status == "unknown":
                 match_conditions.append({
                     "$or": [
