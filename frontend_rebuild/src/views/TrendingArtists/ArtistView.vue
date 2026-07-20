@@ -380,11 +380,11 @@ onMounted(() => {
               </template>
 
               <span v-if="country.hasRank">
-                {{ $t(`country.${country.title}`) }} #{{ country.rank }}
+                {{ $t(`country.${country.title.toLowerCase().replace(/\s+/g, '_')}`) }} #{{ country.rank }}
               </span>
 
               <span v-else>
-                {{ $t(`country.${country.title}`) }} no ranking
+                {{ $t(`country.${country.title.toLowerCase().replace(/\s+/g, '_')}`) }} no ranking
               </span>
             </v-tooltip>
           </div>
