@@ -279,7 +279,7 @@
                       key="1"
                       class="text-lg font-medium capitalize"
                     >
-                      {{ region == '' ? '' :  region.map((r) => $t(`\country.${indexToCountry[r]}`)).join(' | ')}}
+                      {{ region == '' ? '' : region.map((r) => $t(`country.${indexToCountry[r]?.toLowerCase().replace(/\s+/g, '_')}`)).join(' | ') }}
                     </span>
                   </v-fade-transition>
                 </v-col>
@@ -293,7 +293,7 @@
                     <v-row v-for="(reg, i) in Object.keys(regions)" :key="i" class="mb-5">
                       <v-col md="2" cols="12">
                         <span class="text-xl font-medium">
-                          {{ $t(`country.${reg}`) }}
+                          {{ $t(`country.${reg.toLowerCase().replace(/\s+/g, '_')}`) }}
                         </span>
                       </v-col>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -314,7 +314,7 @@
                                   <div
                                     class="flex-grow-1 text-center text-md font-medium"
                                   >
-                                    {{ $t(`country.${_country}`) }}
+                                    {{ $t(`country.${_country.toLowerCase().replace(/\s+/g, '_')}`) }}
                                   </div>
                                 </v-scroll-y-transition>
                               </v-card>
@@ -368,7 +368,7 @@
                       key="1"
                       class="text-lg font-medium capitalize"
                     >
-                      {{ platform == '' ? '' : platform.map((i) => $t(`sns.${platforms[i].name}`)).join(' | ') }}
+                      {{ platform == '' ? '' : platform.map((i) => $t(`sns.${platforms[i]?.name?.toLowerCase().replace(/\s+/g, '_')}`)).join(' | ') }}
                     </span>
                   </v-fade-transition>
                 </v-col>
@@ -401,7 +401,7 @@
                                 height="30"
                               ></v-img>
                               <div className="text-xs font-normal mt-2">
-                                {{ p.name }}
+                                {{ $t(`sns.${p.name?.toLowerCase().replace(/\s+/g, '_')}`) }}
                               </div>
                             </div>
                             
