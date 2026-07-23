@@ -122,6 +122,18 @@ class ArtistService:
         return artist.melon_id
 
     @staticmethod
+    def get_weibo_id(artist_id):
+        """
+        return weibo_id（for WeiboService）
+        """
+        artist = ArtistService.get_artist(artist_id)
+
+        if not artist.weibo_id:
+            raise ValueError("Missing weibo_id")
+
+        return artist.weibo_id
+
+    @staticmethod
     def get_db_artist():
         """
         Get all artists' necessary info for trending calculation
