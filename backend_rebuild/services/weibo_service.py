@@ -1,5 +1,15 @@
 from datetime import datetime, timedelta
 from models.sns.weibo_model import Weibo
+from rules.weibo_chart import FOLLOWER_RANGE_RULES, RANGE_DAYS
+from .artist_service import ArtistService
+from .user_service import UserService
+
+
+def to_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 class WeiboService:
 
@@ -282,4 +292,352 @@ class WeiboService:
             },
             "growth": after - before,
             "percentage": growth_percentage
+        }
+
+    @staticmethod
+    def get_chart_follower(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get weibo id ----------
+        weibo_id = ArtistService.get_weibo_id(artist_id)
+
+        records = (
+            Weibo.objects(
+                weibo_id=weibo_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("datetime", "follower")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "follower": to_int(r.follower),
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }
+
+    @staticmethod
+    def get_chart_status(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get weibo id ----------
+        weibo_id = ArtistService.get_weibo_id(artist_id)
+
+        records = (
+            Weibo.objects(
+                weibo_id=weibo_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("datetime", "statuses_count")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "status": to_int(r.statuses_count),
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }
+
+    @staticmethod
+    def get_chart_share(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get weibo id ----------
+        weibo_id = ArtistService.get_weibo_id(artist_id)
+
+        records = (
+            Weibo.objects(
+                weibo_id=weibo_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("datetime", "share_count")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "share": to_int(r.share_count),
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }
+
+    @staticmethod
+    def get_chart_like(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get weibo id ----------
+        weibo_id = ArtistService.get_weibo_id(artist_id)
+
+        records = (
+            Weibo.objects(
+                weibo_id=weibo_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("datetime", "like_count")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "like": to_int(r.like_count),
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }
+
+    @staticmethod
+    def get_chart_comment(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get weibo id ----------
+        weibo_id = ArtistService.get_weibo_id(artist_id)
+
+        records = (
+            Weibo.objects(
+                weibo_id=weibo_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("datetime", "comment_count")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "comment": to_int(r.comment_count),
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
+        }
+
+    @staticmethod
+    def get_chart_engagement(user, artist_id, date_end, range_key):
+        # ---------- check if user is premium or not ----------
+        is_premium = UserService.is_active_premium(user)
+
+        allowed_ranges = (
+            FOLLOWER_RANGE_RULES["premium"]
+            if is_premium
+            else FOLLOWER_RANGE_RULES["free"]
+        )
+
+        if range_key not in allowed_ranges:
+            return {
+                "locked": True,
+                "meta": {
+                    "is_premium": is_premium,
+                    "range": range_key,
+                    "days": None,
+                    "allowed_ranges": allowed_ranges
+                }
+            }
+
+        # ---------- calculate date ----------
+        days = RANGE_DAYS[range_key]
+        start_date = date_end - timedelta(days=days)
+
+        # ----------get weibo id ----------
+        weibo_id = ArtistService.get_weibo_id(artist_id)
+
+        records = (
+            Weibo.objects(
+                weibo_id=weibo_id,
+                datetime__gt=start_date,
+                datetime__lte=date_end
+            )
+            .order_by("datetime")
+            .only("datetime", "total_eng_count")
+        )
+        # ---------- format response ----------
+        data = [
+            {
+                "datetime": r.datetime.strftime("%Y-%m-%d"),
+                "engagement": to_int(r.total_eng_count),
+            }
+            for r in records
+        ]
+
+        return {
+            "locked": False,
+            "data": data,
+            "meta": {
+                "is_premium": is_premium,
+                "range": range_key,
+                "days": days,
+                "allowed_ranges": allowed_ranges
+            }
         }
