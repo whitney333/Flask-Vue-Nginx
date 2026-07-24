@@ -8,6 +8,7 @@ import SNS_InstaView from '@/views/SNS/SNS_InstaView.vue'
 import SNS_TiktokView from '@/views/SNS/SNS_TiktokView.vue'
 import SNS_YoutubeView from '@/views/SNS/SNS_YoutubeView.vue'
 import SNS_BilibiliView from '@/views/SNS/SNS_BilibiliView.vue'
+import SNS_WeiboView from '@/views/SNS/SNS_WeiboView.vue'
 import SNS_Layout from '@/layouts/SNS_Layout.vue'
 import Auth_Layout from '@/layouts/Auth_Layout.vue'
 import Work_MusicView from '@/views/Works/Work_MusicView.vue'
@@ -70,7 +71,8 @@ const routes = [
             { path: 'instagram', name: 'Instagram', component: SNS_InstaView, meta: { requireAuth: true,}},
             { path: 'youtube', name: 'Youtube', component: SNS_YoutubeView, meta: { requireAuth: true,}},
             { path: 'tiktok', name: 'TikTok', component: SNS_TiktokView, meta: { requireAuth: true, }},
-            { path: 'bilibili', name: 'Bilibili', component: SNS_BilibiliView, meta: { requireAuth: true,}}
+            { path: 'bilibili', name: 'Bilibili', component: SNS_BilibiliView, meta: { requireAuth: true,}},
+            { path: 'weibo', name: 'Weibo', component: SNS_WeiboView, meta: { requireAuth: true,}},
         ],
     },
     {
