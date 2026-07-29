@@ -13,6 +13,7 @@ const typeOptions = ["Actor", "Musician"]
 const nationOptions = ["Canada", "Hong Kong", "Japan", "Mainland China", "South Korea", "Taiwan", "Thailand", "United States"]
 const currentYear = new Date().getFullYear()
 const debutYears = Array.from({ length: currentYear - 1950 + 1 }, (_, i) => 1950 + i)
+const birthYears = Array.from({ length: currentYear - 1950 + 1 }, (_, i) => 1950 + i)
 
 const profileImageFile = ref(null);
 const artists = ref([]);
@@ -192,10 +193,12 @@ const fetchArtists = async () => {
           params: {
             page: page.value,
             limit: limit.value,
+            tenant_id: filters.value.tenant_id,
             name: filters.value.english_name,
+            korean_name: filters.value.korean_name,
             type: filters.value.type,
             pronouns: filters.value.pronouns,
-            debut_year: filters.value.debut_year
+            birth_year: filters.value.birth_year
           }
         }
     )
@@ -493,10 +496,12 @@ const formattedBirth = computed({
 
 // filters
 const filters = ref({
+  tenant_id: "",
   english_name: "",
+  korean_name: "",
   type: "",
   pronouns: "",
-  debut_year: ""
+  birth_year: ""
 });
 
 const onFilterChange = () => {
@@ -505,10 +510,12 @@ const onFilterChange = () => {
 };
 
 const resetFilters = () => {
+  filters.value.tenant_id = "";
   filters.value.english_name = "";
+  filters.value.korean_name = "";
   filters.value.type = "";
   filters.value.pronouns = "";
-  filters.value.debut_year = "";
+  filters.value.birth_year = "";
   page.value = 1
   fetchArtists()
 }
@@ -840,6 +847,31 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
      <!-- Filters -->
     <!--TODO FILTER: COMPANY-->
     <div class="flex flex-wrap gap-4 mb-4 items-end">
+      <!-- Tenant filter -->
+      <div class="w-48 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Tenant</label>
+        <div class="relative">
+          <select
+              v-model="filters.tenant_id"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
+              focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              :class="filters.tenant_id === '' ? 'text-gray-400' : 'text-gray-700'"
+          >
+            <option value="" disabled selected hidden>Select Tenant</option>
+            <option
+                v-for="tenant in tenantOptions"
+                :key="tenant.id"
+                :value="tenant.id"
+            >
+              {{ tenant.tenant_name }}
+            </option>
+          </select>
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            <i class="mdi mdi-menu-down text-xl"></i>
+          </span>
+        </div>
+      </div>
+
       <!-- Search artist name -->
       <div class="w-64 flex flex-col">
         <label class="text-sm font-medium text-gray-700 mb-1">Artist Name</label>
@@ -853,6 +885,23 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
               class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm
                focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Search artist..."
+          />
+        </div>
+      </div>
+
+      <!-- Search Korean artist name -->
+      <div class="w-64 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Korean Name</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+            <i class="mdi mdi-magnify"></i>
+          </span>
+          <input
+              v-model="filters.korean_name"
+              type="text"
+              class="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm
+               focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Search Korean name..."
           />
         </div>
       </div>
@@ -902,20 +951,20 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
         </div>
       </div>
 
-      <!-- Debut year filter -->
+      <!-- Birth year filter -->
       <div class="w-32 flex flex-col">
-        <label class="text-sm font-medium text-gray-700 mb-1">Debut Year</label>
+        <label class="text-sm font-medium text-gray-700 mb-1">Birth Year</label>
         <div class="relative">
           <select
-              v-model="filters.debut_year"
+              v-model="filters.birth_year"
               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
               focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              :class="filters.debut_year === '' ? 'text-gray-400' : 'text-gray-700'"
+              :class="filters.birth_year === '' ? 'text-gray-400' : 'text-gray-700'"
           >
             <!-- placeholder -->
             <option value="" disabled selected hidden>Select Year</option>
             <option
-                v-for="year in debutYears"
+                v-for="year in birthYears"
                 :key="year"
                 :value="year"
             >
