@@ -33,7 +33,7 @@
     "chart": "weiboTotalComments",
     "title": "metrics.weibo_total_comments",
     "type": "Comments",
-    "tooltipText": "tooltips.weibo_total_Comments",
+    "tooltipText": "tooltips.weibo_total_comments",
     "fetchURL": "/weibo/v1/comment",
     "fetchFollowerType": "data",
     "followerDataType": "comment",
