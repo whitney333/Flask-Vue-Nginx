@@ -113,6 +113,7 @@
           melon_id: artistData.melon_id || null,
           genie_id: artistData.genie_id || null,
           apple_id: artistData.apple_id || null,
+          weibo_id: artistData.weibo_id || null,
         })
         artistInfo.value = artistData
       } else {
@@ -153,6 +154,10 @@
       platforms: {
         bilibili: raw.bilibili_id
             ? {id: raw.bilibili_id}
+            : null,
+
+        weibo: raw.weibo_id
+            ? {id: raw.weibo_id}
             : null,
 
         youtube: raw.youtube_id
@@ -203,6 +208,15 @@
   // convert datetime into YYYY-MM-DD
   function formatDate(dateStr) {
     return new Date(dateStr).toISOString().slice(0, 10);
+  }
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case "Musician":
+        return "deep-purple"
+      case "Actor":
+        return "blue"
+    }
   }
 
   watch(() => artistStore.artistId, (newId) => {
@@ -308,6 +322,22 @@
         followerDataType: 'follower',
         fetchDateType: 'datetime',
         colors: ['#ff0000'],
+      },
+      {
+        name: "Weibo Followers",
+        platform: "Weibo",
+        platformKey: "weibo_id",
+        type: "Followers",
+        range: "28d",
+        fetchURL: `/weibo/v1/follower?date_end=${end}&range=28d&artist_id=${artistStore.artistId}`,
+        iconSrc: "https://cdn.revmishkan.com/dist/weibo-logo.svg",
+        iconHref: artistInfo.value?.weibo_id
+            ? `https://www.weibo.com/${artistInfo.value.weibo_id}`
+            : "#",
+        fetchFollowerType: 'data',
+        followerDataType: 'follower',
+        fetchDateType: 'datetime',
+        colors: ['#E6162D'],
       }
     ]
   })
@@ -318,14 +348,9 @@
   <v-container
     :class="['bg-grey-lighten-4']"
     fluid >
-    <v-row
-      class="mb-2"
-      align="stretch"
-    >
+    <v-row class="mb-2" align="stretch">
       <!-- Artist Info -->
-      <v-col
-          cols="12"
-          md="6">
+      <v-col cols="12" md="6">
         <v-card
             :loading="cardLoading.artist"
             class="rounded-3xl shadow-sm border border-gray-200 overflow-hidden"
@@ -359,18 +384,20 @@
               </h1>
               <div class="flex gap-2 mt-3">
                 <v-chip
-                    color="primary"
+                    v-for="type in (artistInfo.type || [])"
+                    :key="type"
+                    :color="getTypeColor(type)"
                     variant="tonal"
                     size="small"
                 >
-                  {{ artistInfo.type?.[0] }}
+                  {{ type }}
                 </v-chip>
               </div>
 
               <!-- SNS -->
               <div class="flex flex-wrap items-center gap-1 mt-6">
                 <a v-if="artistInfo.instagram_id"
-                    :href="`https://instagram.com/${artistInfo.instagram_id}`"
+                    :href="`https://instagram.com/${artistInfo.instagram_user}`"
                     target="_blank"
                 >
                   <v-btn
@@ -549,27 +576,16 @@
           >
 
             <div class="flex items-center justify-between">
-
               <div class="text-lg font-semibold">
                 {{ $t("dashboard.belong_group") }}
               </div>
-
-              <v-chip
-                  v-if="artistInfo.belong_group?.length"
-                  size="small"
-                  color="primary"
-                  variant="tonal"
-              >
-                {{ artistInfo.belong_group.length }}
-              </v-chip>
-
             </div>
 
             <div class="flex flex-wrap gap-3 mt-5">
               <template v-if="artistInfo.belong_group?.length">
                 <v-chip
                     v-for="group in artistInfo.belong_group"
-                    :key="group"
+                    :key="group._id"
                     rounded="xl"
                     color="primary"
                     variant="outlined"
@@ -581,7 +597,10 @@
                   >
                     mdi-account-group
                   </v-icon>
-                  {{ group }}
+                  {{ group.english_name }}
+                  <span class="ml-1 text-gray-400">
+                    ({{ group.korean_name }})
+                  </span>
                 </v-chip>
               </template>
 
@@ -600,10 +619,14 @@
           :loading="cardLoading.artist"
           >
           <template v-slot:title>
-            <span :class="['text-h5']">
-              {{  $t('dashboard.following_artists') }}
-            </span>
+            <!-- Header -->
+          <div class="px-8 py-6 border-b bg-white">
+            <h2 class="text-2xl font-semibold text-gray-900">
+              {{ $t("dashboard.following_artists") }}
+            </h2>
+          </div>
           </template>
+
           <template v-slot:text>
             <v-list class="overflow-y-auto" style="max-height: 250px">
               <v-list-item
