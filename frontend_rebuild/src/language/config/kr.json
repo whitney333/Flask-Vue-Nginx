@@ -13,7 +13,8 @@
     "pronouns": "아티스트 성별",
     "type": "아티스트 유형",
     "following_artists": "팔로잉 아티스트",
-    "top_statistics": "종합 통계"
+    "top_statistics": "종합 통계",
+    "belong_group": "소속 그룹"
   },
   "metrics": {
     "bilibili_total_followers": "빌리빌리 총 팔로워",

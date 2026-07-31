@@ -324,193 +324,279 @@
     >
       <!-- Artist Info -->
       <v-col
-      cols="12"
-      md="6">
-        <v-card 
-          class="fill-height"
-          :loading="cardLoading.artist"
-          >
-          <template v-slot:title>
-            <span :class="['text-h5']">
-              {{ $t("dashboard.summary") }}
-            </span>
-          </template>
-          <template v-slot:text>
-          <v-divider></v-divider>
-          <br />
-          <v-row>
-            <v-col 
-            align="center"
-            justify="center"
-            class="flex-grow-2"
-            cols="12"
-            sm="6">
-              <v-avatar style="height:150px; width:150px;">
-                <v-img
-                    v-if="artistInfo.image"
-                    :src="artistInfo.image || 'https://blocks.astratic.com/img/general-img-square.png'"
-                    class="img-design"
-                    cover
-                ></v-img>
-                <v-img
-                    v-else
-                    src="https://blocks.astratic.com/img/general-img-square.png"
-                    class="img-design"
-                    cover
-                ></v-img>
-              </v-avatar>
-            </v-col>
-            <v-col
-            cols="12"
-            sm="6">
-              <v-row>
-                <v-col>
-                  <v-card  class="pa-2 ma-2" variant="text" >
-                    <span style="color: #757575;">
-                      {{ $t("dashboard.artist") }}
-                    </span>
-                    <br />
-                    <span :class="['text-body-1']">
-                      {{ artistInfo.artist ? artistInfo.artist : '-'}}
-                    </span>
-                  </v-card>
-                </v-col>
-                <v-col>
-                  <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                    {{ $t("dashboard.debut_year") }}
-                    </span>
-                    <br />
-                    <span :class="['text-body-1']">
-                      {{ artistInfo.debut_year ? artistInfo.debut_year : '-' }}
-                    </span>
-                  </v-card>
-                </v-col>
-                <v-responsive width="100%"></v-responsive>
-                <v-col>
-                  <v-card class="pa-2 ma-2" variant="text">
-                    <span style="color: #757575;">
-                      {{ $t("dashboard.country")}}
-                    </span>
-                    <br />
-                    <span :class="['text-body-1']">
-                      {{ artistInfo.nation ? artistInfo.nation : "-" }}
-                    </span>
-<!--                    <img-->
-<!--                            src="https://mishkan-ltd.s3.ap-northeast-2.amazonaws.com/flags/kr.svg"-->
-<!--                            alt="kr-flag"-->
-<!--                            class="h-10 w-10"-->
-<!--                        >-->
-                  </v-card>
-                </v-col>
+          cols="12"
+          md="6">
+        <v-card
+            :loading="cardLoading.artist"
+            class="rounded-3xl shadow-sm border border-gray-200 overflow-hidden"
+        >
 
-                <v-col>
-                  <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                    {{ $t("dashboard.birth")}}
-                    </span>
-                    <br />
-                    <span :class="['text-body-1']">
-                      {{  artistInfo.birth ? formatDate(artistInfo.birth) : "-" }}
-                    </span>
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-          <v-divider></v-divider>
-          <v-row>
-            <v-col>
-              <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                {{ $t("dashboard.type") }}
-                </span>
-                <br />
-                <span :class="['text-body-1']">
-                  <span :class="['text-body-1']">
-                    {{  artistInfo.type ? artistInfo.type[0] : "-" }}
-                  </span>
-                </span>
-              </v-card>
-            </v-col>
-            <v-col>
-              <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                {{ $t("dashboard.members")}}
-                </span>
-                <br />
-                    <span :class="['text-body-1']">
-                {{    memberInfo ? memberInfo : "-" }}
-                </span>
-              </v-card>
-            </v-col>
-          </v-row>
-          <v-divider></v-divider>
-          <v-row>
-            <v-col
-            cols="6"
-            sm="4">
-              <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                {{ $t("dashboard.pronouns")}}
-                </span>
-                <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props: activatorProps }">
-                    <v-icon
-                        size="20"
-                        class="mx-1"
-                        v-bind="activatorProps"
-                        icon="mdi-information-outline"
+          <!-- Header -->
+          <div class="px-8 py-6 border-b bg-white">
+            <h2 class="text-2xl font-semibold text-gray-900">
+              {{ $t("dashboard.summary") }}
+            </h2>
+          </div>
+
+          <!-- Profile -->
+          <div class="flex flex-col md:flex-row gap-8 p-8">
+
+            <!-- Avatar -->
+            <v-avatar
+                size="160"
+                class="ring-4 ring-white shadow-lg"
+            >
+              <v-img
+                  :src="artistInfo.image || defaultImage"
+                  cover
+              />
+            </v-avatar>
+
+            <!-- Artist -->
+            <div class="flex-1">
+              <h1 class="text-3xl font-bold">
+                {{ artistInfo.artist }}
+              </h1>
+              <div class="flex gap-2 mt-3">
+                <v-chip
+                    color="primary"
+                    variant="tonal"
+                    size="small"
+                >
+                  {{ artistInfo.type?.[0] }}
+                </v-chip>
+              </div>
+
+              <!-- SNS -->
+              <div class="flex flex-wrap items-center gap-1 mt-6">
+                <a v-if="artistInfo.instagram_id"
+                    :href="`https://instagram.com/${artistInfo.instagram_id}`"
+                    target="_blank"
+                >
+                  <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                      color="pink"
+                  >
+                    <v-icon>mdi-instagram</v-icon>
+                  </v-btn>
+                </a>
+                <a v-if="artistInfo.youtube_id"
+                    :href="`https://youtube.com/channel/${artistInfo.youtube_id}`"
+                    target="_blank"
+                >
+                  <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                      color="red"
+                  >
+                    <v-icon>mdi-youtube</v-icon>
+                  </v-btn>
+                </a>
+                <a v-if="artistInfo.spotify_id"
+                   :href="`https://open.spotify.com/artist/${artistInfo.spotify_id}`"
+                   target="_blank"
+                >
+                  <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                      color="green"
+                  >
+                    <v-icon>mdi-spotify</v-icon>
+                  </v-btn>
+                </a>
+                <a v-if="artistInfo.tiktok_id"
+                   :href="`https://www.tiktok.com/@${artistInfo.tiktok_id}`"
+                   target="_blank"
+                >
+                  <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                  >
+                    <v-icon>mdi-music-note</v-icon>
+                  </v-btn>
+                </a>
+                <a v-if="artistInfo.weibo_id"
+                   :href="`https://weibo.com/${artistInfo.weibo_id}`"
+                   target="_blank"
+                >
+                  <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                  >
+                    <v-img
+                        src="https://cdn.revmishkan.com/dist/weibo-logo.svg"
+                        width="24"
+                        height="24"
+                        contain
                     />
+                  </v-btn>
+                </a>
+                <a v-if="artistInfo.bilibili_id"
+                   :href="`https://space.bilibili.com/${artistInfo.bilibili_id}`"
+                   target="_blank"
+                >
+                  <v-btn
+                      icon
+                      variant="text"
+                      density="compact"
+                  >
+                    <v-img
+                        src="https://cdn.revmishkan.com/dist/bilibili-logo.svg"
+                        width="24"
+                        height="24"
+                        contain
+                    />
+                  </v-btn>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- Information -->
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-8 p-8 border-t">
+            <div>
+              <div class="text-sm text-slate-400">
+                {{ $t("dashboard.debut_year") }}
+              </div>
+
+              <div class="mt-1 font-semibold">
+                {{ artistInfo.debut_year || "-" }}
+              </div>
+            </div>
+
+            <div>
+              <div class="text-sm text-slate-400">
+                {{ $t("dashboard.birth") }}
+              </div>
+
+              <div class="mt-1 font-semibold">
+                {{ artistInfo.birth ? formatDate(artistInfo.birth) : "-" }}
+              </div>
+            </div>
+
+            <div>
+              <div class="text-sm text-slate-400">
+                {{ $t("dashboard.country") }}
+              </div>
+
+              <div class="mt-1 font-semibold">
+                {{ artistInfo.nation || "-" }}
+              </div>
+            </div>
+
+            <div>
+              <div class="text-sm text-slate-400 flex items-center">
+
+                {{ $t("dashboard.pronouns") }}
+
+                <v-tooltip location="bottom">
+
+                  <template #activator="{ props }">
+
+                    <v-icon
+                        v-bind="props"
+                        size="16"
+                        class="ml-1"
+                    >
+                      mdi-information-outline
+                    </v-icon>
+
                   </template>
-                  <span>
-                    M = Male<br/>
-                    F = Female<br/>
-                    C = Group
-                  </span>
+
+                  M = Male<br>
+                  F = Female<br>
+                  C = Group
+
                 </v-tooltip>
-                <br />
-                <span :class="['text-body-1']">
-                  {{    artistInfo.pronouns ? artistInfo.pronouns : "-" }}
-                </span>
-              </v-card>
-            </v-col>
-            <v-col
-            cols="6"
-            sm="3">
-              <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                {{ $t("dashboard.fandom")}}
-                </span>
-                <br />
-                <span :class="['text-body-1']">
-                  {{    artistInfo.fandom ? artistInfo.fandom : "-" }}
-                </span>
-              </v-card>
-            </v-col>
-            <v-col
-            cols="6"
-            sm="4">
-              <v-card class="pa-2 ma-2" variant="text">
-                <span style="color: #757575;">
-                {{ $t("dashboard.color")}}
-                </span>
-                <br />
-                <span :class="['text-body-1']">
-                  {{    artistInfo.color ? artistInfo.color : "-" }}
-                </span>
-              </v-card>
-            </v-col>
-          </v-row>
-        </template>
+
+              </div>
+
+              <div class="mt-1 font-semibold">
+                {{ artistInfo.pronouns || "-" }}
+              </div>
+            </div>
+
+            <div>
+              <div class="text-sm text-slate-400">
+                {{ $t("dashboard.fandom") }}
+              </div>
+
+              <div class="mt-1 font-semibold">
+                {{ artistInfo.fandom || "-" }}
+              </div>
+            </div>
+
+            <div>
+              <div class="text-sm text-slate-400">
+                {{ $t("dashboard.color") }}
+              </div>
+
+              <div class="mt-1 font-semibold">
+                {{ artistInfo.color || "-" }}
+              </div>
+            </div>
+
+          </div>
+          <!-- Belong Group -->
+          <div
+              v-if="artistInfo.pronouns !== 'C'"
+              class="border-t px-8 py-6"
+          >
+
+            <div class="flex items-center justify-between">
+
+              <div class="text-lg font-semibold">
+                {{ $t("dashboard.belong_group") }}
+              </div>
+
+              <v-chip
+                  v-if="artistInfo.belong_group?.length"
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+              >
+                {{ artistInfo.belong_group.length }}
+              </v-chip>
+
+            </div>
+
+            <div class="flex flex-wrap gap-3 mt-5">
+              <template v-if="artistInfo.belong_group?.length">
+                <v-chip
+                    v-for="group in artistInfo.belong_group"
+                    :key="group"
+                    rounded="xl"
+                    color="primary"
+                    variant="outlined"
+                    class="px-3"
+                >
+                  <v-icon
+                      start
+                      size="18"
+                  >
+                    mdi-account-group
+                  </v-icon>
+                  {{ group }}
+                </v-chip>
+              </template>
+
+              <span v-else
+                    class="text-slate-400">
+                -
+              </span>
+            </div>
+          </div>
         </v-card>
       </v-col>
       <!-- Campaign Overview -->
-      <v-col
-      cols="12"
-      md="6">
-        <v-card 
-          class="fill-height"
+      <v-col cols="12" md="6">
+        <v-card
+          class="fill-height rounded-3xl shadow-sm border border-gray-200 overflow-hidden"
           :loading="cardLoading.artist"
           >
           <template v-slot:title>

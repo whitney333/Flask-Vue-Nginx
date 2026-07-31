@@ -13,7 +13,8 @@
     "pronouns": "性別／團體",
     "type": "類型",
     "following_artists": "追蹤藝人",
-    "top_statistics": "熱門數據"
+    "top_statistics": "熱門數據",
+    "belong_group": "所屬團體"
   },
   "metrics": {
     "bilibili_total_followers": "Bilibili粉絲數",

@@ -13,7 +13,8 @@
       "pronouns": "性别/团体",
       "type": "类型",
       "following_artists": "关注中艺人",
-      "top_statistics": "热门数据"
+      "top_statistics": "热门数据",
+      "belong_group": "所属组合"
     },
   "metrics": {
     "bilibili_total_followers": "哔哩哔哩总粉丝数",

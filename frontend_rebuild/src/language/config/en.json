@@ -13,7 +13,8 @@
     "pronouns": "Pronouns",
     "type": "Type",
     "following_artists": "Following Artists",
-    "top_statistics": "Top Statistics"
+    "top_statistics": "Top Statistics",
+    "belong_group": "Affiliated Group"
   },
   "metrics": {
     "bilibili_total_followers": "Bilibili Total Followers",
