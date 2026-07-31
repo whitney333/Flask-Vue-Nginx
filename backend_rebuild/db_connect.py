@@ -93,7 +93,7 @@ def connect_db():
     load_dotenv(dotenv_path=env_file)
 
     # get ssh-tunnel:27999 from docker-compose
-    db_uri = os.getenv(key="DB_URI"),
+    db_uri = os.getenv(key="DB_URI")
     logger.info(f"Connecting to MongoDB: {db_uri}")
 
     # Connect to DocumentDB
