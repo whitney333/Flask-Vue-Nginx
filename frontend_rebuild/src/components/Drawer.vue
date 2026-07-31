@@ -40,7 +40,8 @@ const items = ref([
       {key: 'instagram', title: 'sns.instagram', icon: 'mdi-instagram', to: '/sns/instagram'},
       {key: 'tiktok', title: 'sns.tiktok', icon: 'mdi-music-box', to: '/sns/tiktok'},
       {key: 'youtube', title: 'sns.youtube', icon: 'mdi-youtube', to: '/sns/youtube'},
-      {key: 'bilibili', title: 'sns.bilibili', icon: 'mdi-movie-filter', to: '/sns/bilibili'}
+      {key: 'bilibili', title: 'sns.bilibili', icon: 'mdi-movie-filter', to: '/sns/bilibili'},
+      {key: 'weibo', title: 'sns.weibo', icon: 'mdi-sina-weibo', to: '/sns/weibo'},
     ]
   },
   {
