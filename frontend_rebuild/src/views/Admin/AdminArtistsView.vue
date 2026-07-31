@@ -31,6 +31,8 @@ const totalPages = computed(() => Math.ceil(total.value / limit.value));
 // edit artist info
 const showEditDialog = ref(false);
 const selectedArtist = ref([]);
+const groupOptions = ref([]);
+const groupLoading = ref(false);
 const detailLoading = ref(false);
 const editSection = ref({
   basic: false,
@@ -302,6 +304,7 @@ const updateArtist = async (section, artistId) => {
         tenant_id: selectedArtist.value.tenant_id,
         english_name: selectedArtist.value.artist_en_name,
         korean_name: selectedArtist.value.artist_kr_name,
+        belong_group: selectedArtist.value.belong_group,
         debut_year: Number(selectedArtist.value.debut ),
         type: selectedArtist.value.type,
         nation: selectedArtist.value.nation,
@@ -455,16 +458,42 @@ const confirmChangeStatus = async () => {
   }
 }
 
-// TODO get belong group list
-const getBelongGroupList = async () => {
+const getGroupOptions = async () => {
   try {
+    groupLoading.value = true
+
+    const response = await axios.get("/admin/v1/artists/groups")
+    groupOptions.value = response.data.data || []
 
   } catch (err) {
+    console.error(
+        "Failed to get group options:",
+        err
+    )
+
+    groupOptions.value = []
 
   } finally {
-
+    groupLoading.value = false
   }
 }
+
+const belongGroupNames = computed(() => {
+  if (!selectedArtist.value?.belong_group?.length) {
+    return "-"
+  }
+
+  return selectedArtist.value.belong_group
+      .map(id => {
+        const group = groupOptions.value.find(
+            item => item.id === id
+        )
+
+        return group?.english_name
+      })
+      .filter(Boolean)
+      .join(", ")
+})
 
 const formatDate = (date) => {
   if (!date) return "-";
@@ -530,9 +559,10 @@ const companyFilter = (item, queryText, itemText) => {
   return text.includes(query);
 };
 
-onMounted(() => {
-  fetchArtists();
-  getTenantDropDownList();
+onMounted(async () => {
+  await getGroupOptions();
+  await fetchArtists();
+  await getTenantDropDownList();
 });
 
 watch([page, limit], () => {
@@ -845,7 +875,6 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
     </v-snackbar>
 
      <!-- Filters -->
-    <!--TODO FILTER: COMPANY-->
     <div class="flex flex-wrap gap-4 mb-4 items-end">
       <!-- Tenant filter -->
       <div class="w-48 flex flex-col">
@@ -1178,6 +1207,31 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                         variant="underlined"
                         :readonly="!editSection.basic"
                     />
+                  </v-col>
+                  <v-col cols="12" md="12">
+                    <template v-if="!editSection.basic">
+                      <!-- View Mode -->
+                      <v-text-field
+                          :model-value="belongGroupNames"
+                          label="Belong Groups"
+                          variant="underlined"
+                          readonly
+                      />
+                    </template>
+                    <template v-else>
+                      <!-- Edit Mode -->
+                      <v-autocomplete
+                          v-model="selectedArtist.belong_group"
+                          :items="groupOptions"
+                          item-title="english_name"
+                          item-value="id"
+                          label="Belong Groups"
+                          multiple
+                          chips
+                          closable-chips
+                          :loading="groupLoading"
+                      />
+                    </template>
                   </v-col>
                   <v-col cols="12" md="3">
                     <v-select
