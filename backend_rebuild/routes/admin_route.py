@@ -104,6 +104,13 @@ def get_artist_dropdownlist():
 
     return result
 
+@admin_bp.route("/v1/artists/groups", methods=["GET"])
+@admin_required
+def get_group_artists():
+    result = AdminArtistController.getGroupArtists()
+
+    return result
+
 ##### Tenant routes #####
 @admin_bp.route("/v1/tenants", methods=["GET"])
 @admin_required

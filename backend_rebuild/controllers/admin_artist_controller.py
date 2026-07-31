@@ -1,6 +1,7 @@
 from models.tenant_model import Tenant
 from models.user_model import Users
 from models.artist_model import Artists
+from services.artist_service import ArtistService
 from flask import jsonify, request
 from datetime import datetime, timezone
 from firebase_admin import auth
@@ -169,6 +170,10 @@ class AdminArtistController:
                 "fandom": artist.fandom,
                 "image": artist.image_url,
                 # TODO BELONG GROUP > REFERENCE FIELD
+                "belong_group": [
+                    str(group.id)
+                    for group in (artist.belong_group or [])
+                ],
                 # sns
                 "instagram_id": artist.instagram_id,
                 "instagram_user": artist.instagram_user,
@@ -356,12 +361,11 @@ class AdminArtistController:
             if not artist:
                 return jsonify({"error": "Artist not found"}), 404
 
-            # TODO MISS BELONG_GROUPS
             basic_fields = [
                 'tenant_id', 'tenant_name', 'artist_id',
                 'english_name', 'korean_name', 'pronouns',
                 'type', 'debut_year', 'birth', 'fandom',
-                'image_url'
+                'image_url', 'belong_group'
             ]
 
             sns_fields = [
@@ -430,6 +434,25 @@ class AdminArtistController:
                             artist.type = []
                         else:
                             return jsonify({"error": "type must be a list"}), 400
+                        continue
+
+                    # belong_group
+                    if key == "belong_group":
+                        if not isinstance(value, list):
+                            return jsonify({
+                                "error": "belong_group must be a list"
+                            }), 400
+
+                        groups = []
+
+                        for group_id in value:
+                            group = Artists.objects(id=group_id).first()
+
+                            if group:
+                                groups.append(group)
+
+                        artist.belong_group = groups
+
                         continue
 
                     if key == 'image_url':
@@ -617,4 +640,19 @@ class AdminArtistController:
         except Exception as e:
             return jsonify({
                 "err": str(e)
+            }), 500
+
+    @classmethod
+    def getGroupArtists(cls):
+        try:
+            groups = ArtistService.get_group_artists()
+
+            return jsonify({
+                "message": "success",
+                "data": groups
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
             }), 500
