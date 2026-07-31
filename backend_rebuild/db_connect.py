@@ -111,6 +111,7 @@ def connect_db():
     else:
         # for production environment
         connect_kwargs["tls"] = True
+        connect_kwargs["tlsAllowInvalidHostnames"] = True
 
     mongo_client = connect(**connect_kwargs)
     return mongo_client
