@@ -221,7 +221,7 @@
                 <div class='flex-col flex justify-center align-center'>
 
                     <img :src='mishkanLogo' alt="Mishkan"/>
-                    <span class='text-h5'>{{ $t('Log in')}}</span>
+                    <span class='text-h5'>{{ $t('auth.login.title')}}</span>
                     <br />
                     <v-form ref="form" v-model="valid" @submit.prevent="handleLogin" class="w-full px-4">
                         <div class='flex-col flex justify-center ga-3'>
@@ -230,7 +230,7 @@
                                 v-model="email"
                                 class='mb-1 w-full'
                                 :rules="emailRules"
-                                :label="$t('Email')"
+                                :label="$t('auth.fields.email')"
                                 type="text"
                                 variant="solo-filled"
                                 flat
@@ -242,7 +242,7 @@
                                 class='mb-1 w-full'
                                 :rules="passwordRules"
                                 type="password"
-                                :label="$t('Password')"
+                                :label="$t('auth.fields.password')"
                                 variant="solo-filled"
                                 flat
                                 rounded="lg"
@@ -259,9 +259,9 @@
                             <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
-                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Login') }}</v-btn>
+                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('auth.login.submit') }}</v-btn>
                             <v-divider class='my-4'>
-                                <span style="color: #757575;">{{ $t('or continue with') }}</span>
+                                <span style="color: #757575;">{{ $t('auth.login.or_continue_with') }}</span>
                             </v-divider>
                         </div>
                     </v-form>
@@ -272,9 +272,9 @@
                         </div>
                         <br />
                         <div class="flex flex-row align-center justify-center">
-                            <span class="text-caption inline">{{ $t("Don't have an account?") }}</span>
+                            <span class="text-caption inline">{{ $t("auth.login.dont_have_an_account") }}</span>
                             <v-btn @click="handleRegister" color="#FF6F00" class="text-caption inline" slim density="compact" variant="plain">
-                                <span class="font-weight-bold">Sign up</span>
+                                <span class="font-weight-bold">{{ $t("auth.login.sign_up") }}</span>
                             </v-btn>
                         </div>
                     </div>

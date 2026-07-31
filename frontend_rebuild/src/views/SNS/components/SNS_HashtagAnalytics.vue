@@ -21,7 +21,7 @@
           <!-- Title -->
           <div class="px-4 pt-4 min-w-0">
             <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
-              {{ $t('Hashtags Analytics') }}
+              {{ $t('metrics.hashtags_analytics') }}
             </h2>
           </div>
           <!-- Content -->

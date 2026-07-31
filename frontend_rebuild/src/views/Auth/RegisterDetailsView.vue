@@ -207,7 +207,7 @@
                 <div :class="['flex-column', 'd-flex','justify-center', 'align-center']">
 
                     <img :src='mishkanLogo' alt="Mishkan"/>
-                    <span :class="['text-h5']">{{ $t('Tell us more about you')}}</span>
+                    <span :class="['text-h5']">{{ $t('auth.fields.tell_us_more')}}</span>
                     <br />
                     <v-form ref="form" v-model="valid" @submit.prevent="handleCreateAccount" class="mb-2 w-full">
                         <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
@@ -217,7 +217,7 @@
                                         v-model="name.firstname"
                                         :class="['mb-1', 'w-full']"
                                         :rules="nameRules"
-                                        :label="$t('First Name')"
+                                        :label="$t('auth.fields.first_name')"
                                         type="text"
                                         variant="solo-filled"
                                         flat
@@ -228,7 +228,7 @@
                                         v-model="name.lastname"
                                         :class="['mb-1', 'w-full']"
                                         :rules="nameRules"
-                                        :label="$t('Last Name')"
+                                        :label="$t('auth.fields.last_name')"
                                         type="text"
                                         variant="solo-filled"
                                         flat
@@ -241,7 +241,7 @@
                                     :items="companies"
                                     item-title="tenant_name"
                                     item-value="tenant_id"
-                                    :label="$t('Company Name')"
+                                    :label="$t('auth.fields.company_name')"
                                     variant="solo-filled"
                                     flat
                                     rounded="lg"
@@ -290,7 +290,7 @@
                               </p>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
-                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Register') }}</v-btn>
+                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('auth.register.title') }}</v-btn>
                         </div>
                     </v-form>
                     </div>

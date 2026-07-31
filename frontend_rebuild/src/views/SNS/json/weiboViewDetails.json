@@ -1,0 +1,52 @@
+{
+  "weiboFollowerValue": {
+    "chart": "weiboFollower",
+    "title": "metrics.weibo_total_followers",
+    "type": "Followers",
+    "tooltipText": "tooltips.weibo_total_followers",
+    "fetchURL": "/weibo/v1/follower",
+    "fetchFollowerType": "data",
+    "followerDataType": "follower",
+    "fetchDateType": "datetime"
+  },
+  "weiboTotalStatusValue": {
+    "chart": "weiboTotalStatus",
+    "title": "metrics.weibo_total_status",
+    "type": "Status",
+    "tooltipText": "tooltips.weibo_total_status",
+    "fetchURL": "/weibo/v1/status",
+    "fetchFollowerType": "data",
+    "followerDataType": "status",
+    "fetchDateType": "datetime"
+  },
+  "weiboTotalLikesValue": {
+    "chart": "weiboTotalLikes",
+    "title": "metrics.weibo_total_likes",
+    "type": "Likes",
+    "tooltipText": "tooltips.weibo_total_likes",
+    "fetchURL": "/weibo/v1/like",
+    "fetchFollowerType": "data",
+    "followerDataType": "like",
+    "fetchDateType": "datetime"
+  },
+  "weiboTotalCommentsValue": {
+    "chart": "weiboTotalComments",
+    "title": "metrics.weibo_total_comments",
+    "type": "Comments",
+    "tooltipText": "tooltips.weibo_total_comments",
+    "fetchURL": "/weibo/v1/comment",
+    "fetchFollowerType": "data",
+    "followerDataType": "comment",
+    "fetchDateType": "datetime"
+  },
+  "weiboTotalSharesValue": {
+    "chart": "weiboTotalShares",
+    "title": "metrics.weibo_total_shares",
+    "type": "Shares",
+    "tooltipText": "tooltips.weibo_total_shares",
+    "fetchURL": "/weibo/v1/share",
+    "fetchFollowerType": "data",
+    "followerDataType": "share",
+    "fetchDateType": "datetime"
+  }
+}

@@ -133,14 +133,16 @@
 
        <span
           class="font-bold truncate text-xs sm:text-sm md:text-lg lg:text-xl text-gray-800 flex-shrink min-w-0 max-w-[220px] sm:max-w-[350px] md:max-w-none">
-          {{ $t('Most-used #') }}
+          {{ $t('metrics.most_used_hashtags') }}
         </span>
 
         <v-tooltip location="bottom">
           <template v-slot:activator="{ props: tooltipProps }">
             <v-icon size="14" class="ml-1 flex-none opacity-70" v-bind="tooltipProps" icon="mdi-information-outline"/>
           </template>
-          <span>{{ props.value.usedCol.tooltipText }}</span>
+          <span>
+            {{ $t(props.value.usedCol.tooltipText) }}
+          </span>
         </v-tooltip>
 
         <v-spacer/>

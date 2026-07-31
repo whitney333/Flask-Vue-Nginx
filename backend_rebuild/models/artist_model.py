@@ -41,7 +41,7 @@ class Artists(Document):
     type = ListField(StringField(), required=True)
     birth = DateTimeField()
     fandom = StringField()
-    belong_group = ListField()
+    belong_group = ListField(ReferenceField("Artists"))
     threads = BooleanField()
     instagram_id = StringField(required=False, null=True)
     youtube_id = StringField(required=False, null=True)

@@ -150,7 +150,10 @@ const fetchDramas = async () => {
           }
         }
     )
-    dramas.value = res.data.data;
+    dramas.value = res.data.data.map(d => ({
+      ...d,
+      computedStatus: dramaStatus(d.onair_date, d.finale)
+    }));
     total.value = res.data.total;
   } catch (err) {
     console.error("Error fetching dramas:", err);
@@ -183,23 +186,48 @@ const typeClass = (t) => {
   }
 }
 
-const isDramaCompleted = (finale) => {
-  if (!finale) return false
-  const finaleTime = new Date(finale).getTime()
-  return !Number.isNaN(finaleTime) && finaleTime < Date.now()
+const isDramaCompleted = (premiere, finale) => {
+  const now = Date.now();
+
+  const formatCheck = (dateStr) => {
+    if (!dateStr) return NaN;
+    const normalized = typeof dateStr === 'string' ? dateStr.replace(/-/g, '/') : dateStr;
+    const t = new Date(normalized).getTime();
+    return Number.isNaN(t) ? NaN : t;
+  };
+
+  const premiereTime = formatCheck(premiere);
+  const finaleTime = formatCheck(finale);
+
+  // 1. no onair & finale date > Unknown
+  if (Number.isNaN(premiereTime) && Number.isNaN(finaleTime)) {
+    return { label: "Unknown", color: "grey" };
+  }
+
+  // 2. completed
+  if (!Number.isNaN(finaleTime) && finaleTime < now) {
+    return { label: "Completed", color: "success" };
+  }
+
+  // 3. not yet premiere
+  if (!Number.isNaN(premiereTime) && now < premiereTime) {
+    return { label: "Upcoming", color: "info" };
+  }
+
+  // 4.（now >= premiere && now <= finale） > On Air
+  // or（now >= premiereTime, but still no finale date）
+  return { label: "On Air", color: "warning" };
 }
 
-const dramaStatus = (finale) => {
-  if (!finale) {
+const dramaStatus = (onair_date, finale) => {
+  if (!onair_date && !finale) {
     return {
       label: "Unknown",
       color: "grey"
     }
   }
 
-  return isDramaCompleted(finale)
-    ? { label: "Completed", color: "success" }
-    : { label: "On Air", color: "warning" }
+  return isDramaCompleted(onair_date, finale)
 }
 
 const addDrama = async () => {
@@ -786,6 +814,7 @@ watch([page, limit], () => {
           <option value="">All</option>
           <option value="on_air">On Air</option>
           <option value="completed">Completed</option>
+          <option value="upcoming">Upcoming</option>
           <option value="unknown">Unknown</option>
         </select>
       </div>
@@ -832,8 +861,8 @@ watch([page, limit], () => {
               <span class="px-2 py-1 rounded text-xs font-medium" :class="typeClass(d.type || '')">{{ d.type }}</span>
             </td>
             <td class="px-4 py-2">
-              <v-chip size="x-small" :color="dramaStatus(d.finale).color" variant="flat">
-                {{ dramaStatus(d.finale).label }}
+              <v-chip size="x-small" :color="d.computedStatus.color" variant="flat">
+                {{ d.computedStatus.label }}
               </v-chip>
             </td>
             <td class="px-4 py-2">

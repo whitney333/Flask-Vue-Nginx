@@ -409,7 +409,7 @@
         <v-tooltip
           v-if="props.value.tooltipText"
           location="bottom"
-          :text="props.value.tooltipText"
+          :text="$t(props.value.tooltipText)"
         >
           <template #activator="{ props: tooltipProps }">
             <v-icon
@@ -482,12 +482,12 @@
           </v-btn>
 
           <span class="text-caption mx-1">
-            {{ $t('Past Month') }}
+            {{ $t('metrics.past_month') }}
           </span>
         </div>
 
         <span class="text-caption text-grey">
-          {{ `${$t('Last updated')}: ${latest_date}` }}
+          {{ `${$t('metrics.last_updated')}: ${latest_date}` }}
         </span>
       </div>
 

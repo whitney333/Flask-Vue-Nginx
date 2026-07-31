@@ -34,7 +34,16 @@ class ArtistService:
             "type": artist.type,
             "birth": artist.birth,
             "fandom": artist.fandom,
-            "belong_group": artist.belong_group,
+            "belong_group": [
+                {
+                    "_id": str(group.id),
+                    "artist_id": group.artist_id,
+                    "english_name": group.english_name,
+                    "korean_name": group.korean_name,
+                    "image": group.image_url,
+                }
+                for group in (artist.belong_group or [])
+            ],
             "instagram_id": artist.instagram_id,
             "instagram_user": artist.instagram_user,
             "threads": artist.threads,
@@ -122,6 +131,18 @@ class ArtistService:
         return artist.melon_id
 
     @staticmethod
+    def get_weibo_id(artist_id):
+        """
+        return weibo_id（for WeiboService）
+        """
+        artist = ArtistService.get_artist(artist_id)
+
+        if not artist.weibo_id:
+            raise ValueError("Missing weibo_id")
+
+        return artist.weibo_id
+
+    @staticmethod
     def get_db_artist():
         """
         Get all artists' necessary info for trending calculation
@@ -137,6 +158,9 @@ class ArtistService:
                 "youtube_id",
                 "tiktok_id",
                 "spotify_id",
+                "melon_id",
+                "bilibili_id",
+                "weibo_id"
         ).as_pymongo()
 
         return list(artists)
@@ -159,3 +183,22 @@ class ArtistService:
             })
 
         return artist_data
+
+    @classmethod
+    def get_group_artists(cls):
+        groups = Artists.objects(
+            pronouns="C",
+            is_active=True
+        )
+
+        return sorted(
+            [
+                {
+                    "id": str(group.id),
+                    "english_name": group.english_name.lower() if group.english_name else None,
+                    "korean_name": group.korean_name
+                }
+                for group in groups
+            ],
+            key=lambda x: x["english_name"] or ""
+        )

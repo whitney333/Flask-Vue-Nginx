@@ -58,15 +58,15 @@
                   artist_id: artistStore.artistId
                 }}
             )
-            
+
             citiesData.value = res.data.data[0].top_city
             // console.log("city: ", citiesData.value)
             lastUpdate.value = res.data.data[0].datetime
             monthlyListeners.value = res.data.data[0].listener
 
             // console.log(res.data.result[0]);
-            
-            
+
+
             const formattedData = citiesData.value.map((e, i) => {
                 return {
                     x: e.city,
@@ -87,7 +87,7 @@
           loadingCard.value = false
         }
     }
-        
+
         chartOptions.value = {
             chart: {
                 type: 'bar',
@@ -105,7 +105,7 @@
             },
             colors: [
                 function ({ value, seriesIndex, dataPointIndex, w }) {
-                    
+
                     if (dataPointIndex % 2) {
                         return '#191414';
                     } else {
@@ -175,7 +175,7 @@
         </span>
         <v-tooltip
             location="bottom"
-            :text="props.value.tooltipText">
+            :text="$t(props.value.tooltipText)">
           <template v-slot:activator="{ props }">
             <v-icon
                 size="20"
@@ -198,11 +198,11 @@
             {{ monthlyListeners }}
           </span>
           <span style="font-size: 12px;">
-            {{ ` ${$t('Monthly Listeners')}` }}
+            {{ ` ${$t('music.monthly_listeners')}` }}
           </span>
         </div>
 
-        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('Last updated')}: ${lastUpdate}` }}</span>
+        <span style="color: #757575;" :class="['text-caption']"> {{ `${$t('metrics.last_updated')}: ${lastUpdate}` }}</span>
       </div>
       <apexchart
           type="bar"

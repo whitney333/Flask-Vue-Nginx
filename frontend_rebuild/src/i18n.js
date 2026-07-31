@@ -1,6 +1,9 @@
 import { createI18n } from 'vue-i18n'
 import EN from './language/config/en.json'
 import KR from './language/config/kr.json'
+import CN from './language/config/cn.json'
+import HK from './language/config/hk.json'
+import TW from './language/config/tw.json'
 
 const messages = {
   en: {
@@ -8,6 +11,15 @@ const messages = {
   },
   kr: {
     ...KR
+  },
+  cn: {
+    ...CN
+  },
+  hk: {
+    ...HK
+  },
+  tw: {
+    ...TW
   }
 }
 

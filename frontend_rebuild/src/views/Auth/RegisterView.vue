@@ -189,7 +189,7 @@
                 <div :class="['flex-column', 'd-flex','justify-center', 'align-center']">
 
                     <img :src='mishkanLogo' alt="Mishkan"/>
-                    <span :class="['text-h5']">{{ $t('Create Account')}}</span>
+                    <span :class="['text-h5']">{{ $t('auth.register.create_account')}}</span>
                     <br />
                     <v-form ref="form" v-model="valid" @submit.prevent="handleRegister" class="w-full mb-2">
                         <div :class="['flex-column', 'd-flex','justify-center', 'ga-3']">
@@ -198,7 +198,7 @@
                                     v-model="email"
                                     class="mb-1 w-full"
                                     :rules="emailRules"
-                                    :label="$t('Email')"
+                                    :label="$t('auth.fields.email')"
                                     type="text"
                                     variant="solo-filled"
                                     flat
@@ -212,7 +212,7 @@
                                     :type="showPassword ? 'text' : 'password'"
                                     @click:append="showPassword = !showPassword"
                                     :rules="passwordRules"
-                                    :label="$t('Password')"
+                                    :label="$t('auth.fields.password')"
                                     variant="solo-filled"
                                     flat
                                     rounded="lg"
@@ -225,7 +225,7 @@
                                     :append-icon="showConfirmedPassword ? 'mdi-eye' : 'mdi-eye-off'"
                                     :type="showConfirmedPassword ? 'text' : 'password'"
                                     @click:append="showConfirmedPassword = !showConfirmedPassword"
-                                    :label="$t('Confirm Password')"
+                                    :label="$t('auth.register.confirm_password')"
                                     variant="solo-filled"
                                     flat
                                     rounded="lg"
@@ -234,9 +234,9 @@
                                 <v-alert v-if="errorMsg" type="error" density="compact" variant="tonal"> {{ errorMsg }}</v-alert>
                             </div>
                             <!-- <br v-else="errorMsg"/> -->
-                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('Create Account') }}</v-btn>
+                            <v-btn type="submit" color="warning" block :disabled="loadingBar">{{ $t('auth.register.create_account') }}</v-btn>
                             <v-divider :class="['my-4']">
-                                <span style="color: #757575;">{{ $t('or continue with') }}</span>
+                                <span style="color: #757575;">{{ $t('auth.login.or_continue_with') }}</span>
                             </v-divider>
                         </div>
                     </v-form>
@@ -246,9 +246,9 @@
                         </div>
                         <br />
                         <div class="d-flex flex-row align-center justify-center">
-                            <span class="text-caption inline">{{ $t("Already have an account?") }}</span>
+                            <span class="text-caption inline">{{ $t("auth.register.already_have_an_account") }}</span>
                             <v-btn @click="handleLogin" color="#FF6F00" class="text-caption inline" slim density="compact" variant="plain">
-                                <span class="font-weight-bold">Sign In</span>
+                                <span class="font-weight-bold">{{ $t("auth.login.submit") }}</span>
                                 </v-btn>
                         </div>
                     </div>

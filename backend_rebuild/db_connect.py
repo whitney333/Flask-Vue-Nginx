@@ -93,16 +93,24 @@ def connect_db():
     load_dotenv(dotenv_path=env_file)
 
     # get ssh-tunnel:27999 from docker-compose
-    db_uri = os.getenv(key='DB_URI')
-
-    logger.info(f"Connecting to MongoDB via URI: {db_uri}")
+    db_uri = os.getenv(key="DB_URI"),
+    logger.info(f"Connecting to MongoDB: {db_uri}")
 
     # Connect to DocumentDB
-    mongo_client = connect(
-        host =  db_uri,
-        db = "general",
-        username = os.getenv(key='DB_USER'),
-        password = os.getenv(key='DB_PASS')
-    )
+    # connecting parameters
+    connect_kwargs = {
+        "host": db_uri,
+        "db": "general",
+        "username": os.getenv(key='DB_USER'),
+        "password": os.getenv(key='DB_PASS')
+    }
 
+    if environment == "development":
+        connect_kwargs["tls"] = True
+        connect_kwargs["tlsAllowInvalidHostnames"] = True
+    else:
+        # for production environment
+        connect_kwargs["tls"] = True
+
+    mongo_client = connect(**connect_kwargs)
     return mongo_client

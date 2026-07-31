@@ -12,6 +12,7 @@ from routes.spotify_route import *
 from routes.youtube_route import *
 from routes.instagram_route import *
 from routes.tiktok_route import *
+from routes.weibo_route import *
 from routes.user_route import *
 from routes.trending_artist_route import *
 from routes.artist_route import *
@@ -95,6 +96,7 @@ def create_app():
     app.register_blueprint(campaign_bp, url_prefix="/api/campaign")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(stripe_bp, url_prefix="/api/stripe")
+    app.register_blueprint(weibo_bp, url_prefix="/api/weibo")
 
     # init DB
     try:

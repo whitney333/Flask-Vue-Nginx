@@ -248,19 +248,19 @@ onMounted(fetchArtistList)
       <div class="bg-white rounded-3xl shadow-sm border overflow-hidden"> <!-- Header -->
         <div class="hidden md:grid grid-cols-12 px-6 py-4 bg-gray-50 text-sm font-semibold">
           <div class="col-span-1 text-center">
-            Rank
+            {{ $t('trending_artist.rank')}}
           </div>
           <div class="col-span-4">
-            Artist
+            {{ $t('trending_artist.artist')}}
           </div>
           <div class="col-span-2">
-            Type
+            {{ $t('trending_artist.type')}}
           </div>
           <div class="col-span-2">
-            Popularity
+            {{ $t('trending_artist.popularity')}}
           </div>
           <div class="col-span-3">
-            Scores
+            {{ $t('trending_artist.scores')}}
           </div>
         </div>
         <transition name="fade" mode="out-in">

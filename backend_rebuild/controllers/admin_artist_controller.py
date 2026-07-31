@@ -1,6 +1,7 @@
 from models.tenant_model import Tenant
 from models.user_model import Users
 from models.artist_model import Artists
+from services.artist_service import ArtistService
 from flask import jsonify, request
 from datetime import datetime, timezone
 from firebase_admin import auth
@@ -28,12 +29,14 @@ class AdminArtistController:
         """
         try:
             artist_id = request.args.get("artist_id")
+            tenant_id = request.args.get("tenant_id")
             english_name = request.args.get("name")
+            korean_name = request.args.get("korean_name")
             order = request.args.get("order", "asc")
             type = request.args.get("type")
 
             pronouns = request.args.get("pronouns")
-            debut_year = request.args.get("debut_year")
+            birth_year = request.args.get("birth_year")
 
             page = int(request.args.get("page", 1))
             limit = int(request.args.get("limit", 10))
@@ -46,21 +49,33 @@ class AdminArtistController:
             if artist_id:
                 query["artist_id"] = artist_id
 
+            if tenant_id:
+                try:
+                    query["tenant_id"] = ObjectId(tenant_id)
+                except Exception:
+                    pass
+
             if type:
                 query["type"] = {"$in": type.split(",")}
 
             if pronouns:
                 query["pronouns"] = pronouns
 
-            if debut_year:
+            if birth_year:
                 try:
-                    year = int(debut_year)
-                    query["debut_year"] = year
+                    year = int(birth_year)
+                    query["birth"] = {
+                        "$gte": datetime(year, 1, 1),
+                        "$lt": datetime(year + 1, 1, 1)
+                    }
                 except ValueError:
                     pass
 
             if english_name:
                 query["english_name"] = {"$regex": english_name, "$options": "i"}
+
+            if korean_name:
+                query["korean_name"] = {"$regex": korean_name, "$options": "i"}
 
             if query:
                 pipeline.append({"$match": query})
@@ -155,6 +170,10 @@ class AdminArtistController:
                 "fandom": artist.fandom,
                 "image": artist.image_url,
                 # TODO BELONG GROUP > REFERENCE FIELD
+                "belong_group": [
+                    str(group.id)
+                    for group in (artist.belong_group or [])
+                ],
                 # sns
                 "instagram_id": artist.instagram_id,
                 "instagram_user": artist.instagram_user,
@@ -342,12 +361,11 @@ class AdminArtistController:
             if not artist:
                 return jsonify({"error": "Artist not found"}), 404
 
-            # TODO MISS BELONG_GROUPS
             basic_fields = [
                 'tenant_id', 'tenant_name', 'artist_id',
                 'english_name', 'korean_name', 'pronouns',
                 'type', 'debut_year', 'birth', 'fandom',
-                'image_url'
+                'image_url', 'belong_group'
             ]
 
             sns_fields = [
@@ -416,6 +434,25 @@ class AdminArtistController:
                             artist.type = []
                         else:
                             return jsonify({"error": "type must be a list"}), 400
+                        continue
+
+                    # belong_group
+                    if key == "belong_group":
+                        if not isinstance(value, list):
+                            return jsonify({
+                                "error": "belong_group must be a list"
+                            }), 400
+
+                        groups = []
+
+                        for group_id in value:
+                            group = Artists.objects(id=group_id).first()
+
+                            if group:
+                                groups.append(group)
+
+                        artist.belong_group = groups
+
                         continue
 
                     if key == 'image_url':
@@ -603,4 +640,19 @@ class AdminArtistController:
         except Exception as e:
             return jsonify({
                 "err": str(e)
+            }), 500
+
+    @classmethod
+    def getGroupArtists(cls):
+        try:
+            groups = ArtistService.get_group_artists()
+
+            return jsonify({
+                "message": "success",
+                "data": groups
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
             }), 500

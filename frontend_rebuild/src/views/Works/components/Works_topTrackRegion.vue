@@ -181,14 +181,12 @@
             :class="['mr-3']"
         ></v-img>
         <span>
-                    {{ $t('By Region') }}
-                </span>
-        <v-tooltip
-            location="bottom">
-                    <span>
-                        {{ $t('Popularity of top tracks by different region') }}
-                    </span>
-
+          {{ $t('music.by_region') }}
+        </span>
+        <v-tooltip location="bottom">
+          <span>
+            {{ $t('tooltips.spotify_by_region') }}
+          </span>
           <template v-slot:activator="{ props }">
             <v-icon
                 size="20"

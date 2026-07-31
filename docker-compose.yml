@@ -13,7 +13,7 @@ services:
       mkdir -p /root/.ssh &&
       cp /tmp/MongoDB.pem /root/.ssh/id_rsa &&
       chmod 600 /root/.ssh/id_rsa &&
-      ssh -o StrictHostKeyChecking=no -N -L 0.0.0.0:27999:\$${DB_URI}:27017 \$${SSH_USER}@\$${SSH_HOST} -p 22
+      ssh -o StrictHostKeyChecking=no -N -L 0.0.0.0:27999:127.0.0.1:27017 \$${SSH_USER}@\$${SSH_HOST} -p 22
       "
     restart: always
     networks:
