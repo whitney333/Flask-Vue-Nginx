@@ -1,6 +1,7 @@
 <script setup>
   import axios from '@/axios';
   import { onMounted, ref, watch } from 'vue';
+  import { useDisplay } from 'vuetify'
   import getUnicodeFlagIcon from 'country-flag-icons/unicode'
   import { useArtistStore } from "@/stores/artist.js";
 
@@ -11,6 +12,7 @@
     const tracks = ref({})
 
     const artistStore = useArtistStore()
+    const { smAndDown } = useDisplay()
     const selected = ref('South Korea')
     const trackList = ref([])
     const country = ref('KR')
@@ -26,6 +28,13 @@
     const upperCaseFirstLetter = (word) => {
         return word.charAt(0).toUpperCase() + word.slice(1)
     }
+
+  const shortenTrackName = (name, length = 12) => {
+    if (!name) return ''
+    return name.length > length
+        ? `${name.substring(0, length)}...`
+        : name
+  }
 
     const countriesFlag = {
         'Australia': 'AU',
@@ -148,12 +157,16 @@
     chart: {
       height: 350,
       type: 'bar',
+      toolbar: {
+        show: false
+      }
     },
     plotOptions: {
       bar: {
         borderRadius: 4,
         borderRadiusApplication: 'around',
-        horizontal: true,
+        horizontal: !smAndDown.value,
+        columnWidth: smAndDown.value ? '50%' : undefined,
       }
     },
     colors: [
@@ -170,7 +183,30 @@
       enabled: false
     },
     xaxis: {
-      categories: trackList.value
+      categories: trackList.value.map(track =>
+          smAndDown.value
+              ? shortenTrackName(track, 10)
+              : track
+      ),
+      labels: {
+        rotate: -45,
+        trim: true,
+        style: {
+          fontSize: smAndDown.value ? '10px' : '12px'
+        }
+      }
+    },
+    tooltip: {
+      x: {
+        formatter: function (value, {dataPointIndex}) {
+          return series.value[0]?.data[dataPointIndex]?.fullName || value
+        }
+      }
+    },
+    grid: {
+      padding: {
+        bottom: smAndDown.value ? 40 : 10
+      }
     }
   }
 
@@ -198,12 +234,37 @@
       }
 
       lastUpdate.value = data.datetime || ""
-      trackList.value = data.top_track?.map((val) => val.track) || []
 
-      const formattedData = data.top_track?.map((e) => ({
-        x: e.track,
-        y: e.popularity ?? 0
+      // 手機只顯示 Top 5，桌機維持全部
+      const topTracks = smAndDown.value
+          ? data.top_track?.slice(0, 5)
+          : data.top_track
+
+      trackList.value = topTracks?.map((track) => track.track) || []
+
+      const formattedData = topTracks?.map((track) => ({
+        x: smAndDown.value
+            ? shortenTrackName(track.track, 10)
+            : track.track,
+        fullName: track.track,
+        y: track.popularity ?? 0
       })) || []
+
+      // 根據裝置更新 Chart
+      chartOptions.value = {
+        ...chartOptions.value,
+        chart: {
+          ...chartOptions.value.chart,
+          height: smAndDown.value ? 360 : 320,
+        },
+        plotOptions: {
+          bar: {
+            ...chartOptions.value.plotOptions.bar,
+            horizontal: !smAndDown.value,
+            columnWidth: smAndDown.value ? '50%' : undefined,
+          }
+        }
+      }
 
       series.value = [
         {
@@ -312,7 +373,12 @@
           <template v-slot:label>{{ $t('Country') }}</template>
         </v-select>
       </div>
-      <apexchart type="bar" height="320" :options="chartOptions" :series="series"></apexchart>
+      <apexchart
+          type="bar"
+          :height="smAndDown ? 360 : 320"
+          :options="chartOptions"
+          :series="series">
+      </apexchart>
 
     </template>
   </v-card>

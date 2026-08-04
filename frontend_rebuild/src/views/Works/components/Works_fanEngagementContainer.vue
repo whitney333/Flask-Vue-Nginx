@@ -138,55 +138,68 @@
 </script>
 
 <template>
-    <v-container
-    fluid
-    style="background-color: #f8f7f2;">
-        <v-card 
-            style="background-color: #f8f7f2;"
-            flat
-            >
-            <template v-slot:title>
-                <span :class="['text-h4']">
-                    {{ $t('music.fan_engagement') }}
-                </span>
-            </template >
-            <template v-slot:text>
-                <div
-                :class="['justify-center', 'd-flex', 'align-center']">
-                    <div
-                    :class="['justify-center','ga-4', 'd-flex', 'flex-wrap', 'align-center']">
-                        <WorksCard
-                            :iconSrc="props.iconSrc"
-                            :colors="spotifyHexCode"
-                            :value="spotifyFollowersValue"
-                            :end="end"></WorksCard>
-                        <WorksCard
-                            :iconSrc="props.iconSrc"
-                            :colors="spotifyHexCode"
-                            :value="spotifyMonthlyListenersValue"
-                            :end="end" ></WorksCard>
-                        <WorksCard
-                            :iconSrc="props.iconSrc"
-                            :colors="spotifyHexCode"
-                            :value="spotifyFanConversionRateValue"
-                            :end="end" ></WorksCard>
-                        <WorksCardTopCities
-                            :iconSrc="props.iconSrc"
-                            :colors="spotifyHexCode"
-                            :value="spotifyTopCitiesValue"></WorksCardTopCities>
-                        <WorksCard
-                            :iconSrc="props.iconSrc"
-                            :colors="spotifyHexCode"
-                            :value="spotifyPopularityIndexValue"
-                            :end="end" ></WorksCard>
-                        <WorksCard
-                            :iconSrc="melonIconSrc"
-                            :colors="melonHexCode"
-                            :value="melonFollowerValue"
-                            :end="end" ></WorksCard>
-                    </div>
-                </div>
-            </template>
-        </v-card>
-    </v-container>
+  <!-- Full width background -->
+ <div class="w-full min-h-screen bg-white">
+  <div class="mx-auto w-full max-w-7xl px-6 pt-10 pb-0">
+
+    <div class="section-bleed section-bleed--fan">
+
+      <div class="py-8">
+        <h2 class="text-3xl font-semibold mb-8">
+          {{ $t("music.fan_engagement") }}
+        </h2>
+
+           <div class="flex flex-wrap justify-center gap-4">
+            <WorksCard
+              :iconSrc="props.iconSrc"
+              :colors="spotifyHexCode"
+              :value="spotifyFollowersValue"
+              :end="end"
+            />
+
+            <WorksCard
+              :iconSrc="props.iconSrc"
+              :colors="spotifyHexCode"
+              :value="spotifyMonthlyListenersValue"
+              :end="end"
+            />
+
+            <WorksCard
+              :iconSrc="props.iconSrc"
+              :colors="spotifyHexCode"
+              :value="spotifyFanConversionRateValue"
+              :end="end"
+            />
+
+            <WorksCardTopCities
+              :iconSrc="props.iconSrc"
+              :colors="spotifyHexCode"
+              :value="spotifyTopCitiesValue"
+            />
+
+            <WorksCard
+              :iconSrc="props.iconSrc"
+              :colors="spotifyHexCode"
+              :value="spotifyPopularityIndexValue"
+              :end="end"
+            />
+
+            <WorksCard
+              :iconSrc="melonIconSrc"
+              :colors="melonHexCode"
+              :value="melonFollowerValue"
+              :end="end"
+            />
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
 </template>
+
+<style scoped>
+
+</style>

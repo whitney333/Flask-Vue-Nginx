@@ -72,15 +72,15 @@
     chartOptions.value = {
         chart: {
             id: props.value.chart,
-            height: '100%',
+            height: 320,
             width: '100%',
             type: 'line',
             group: props.value.chart,
             zoom: {
                 autoScaleYaxis: true
-                },
+            },
             toolbar: {
-                    tools: {
+                tools: {
                     download: true,
                     selection: true,
                     zoom: true,
@@ -93,12 +93,15 @@
         },
         grid: {
             row: {
-            colors: ['#FFFFFF', 'transparent'], // takes an array which will be repeated on columns
-            opacity: 0.5
+                colors: ['#FFFFFF', 'transparent'],
+                opacity: 0.5
             },
+            padding: {
+                bottom: 20 // 👈 與下方邊框保持適當距離
+            }
         },
         dataLabels: {
-        enabled: false,
+            enabled: false,
         },
         stroke: {
             curve: 'smooth',
@@ -106,10 +109,8 @@
             dashArray: [0, 2]
         },
         xaxis: {
-            // categories: [],
             type: 'datetime',
             labels: {
-                // format: 'MM/dd',
                 rotate: -45,
                 trim: true,
                 style: {
@@ -123,7 +124,6 @@
                     day: 'dd MMM',
                     hour: 'HH:mm'
                 }
-
             },
             tickAmount: 4,
             tooltip: {
@@ -150,6 +150,44 @@
             },
         ],
         colors: props.colors,
+        responsive: [
+          {
+            breakpoint: 768,
+            options: {
+              chart: {
+                height: 280
+              },
+              grid: {
+                padding: {
+                  bottom: 30
+                }
+              },
+              xaxis: {
+                tickAmount: 3,
+                labels: {
+                  rotate: 0,
+                  style: {
+                    fontSize: '10px'
+                  },
+                  datetimeFormatter: {
+                    day: 'MM/dd'
+                  }
+                }
+              }
+            }
+          },
+          {
+            breakpoint: 480,
+            options: {
+              chart: {
+                height: 260
+              },
+              xaxis: {
+                tickAmount: 2
+              }
+            }
+          }
+        ]
     }
 
     if (props.value.secondChat) {
@@ -192,22 +230,19 @@
                 artist_id: artistStore.artistId
               }})
 
-          // return data
           data.value = res.data[props.value.fetchFollowerType] || []
 
-          // if no data
           if (!Array.isArray(data.value) || data.value.length === 0) {
             series.value = []
             allowedRanges.value = res.data?.meta?.allowed_ranges || ["28d"]
             return
           }
-          // calculation
+
           const lastIndex = data.value.length - 1
           const monthIndex = data.value.length > 30 ? data.value.length - 30 : 0
           const threeMonthIndex = data.value.length > 90 ? data.value.length - 90 : 0
           const sixMonthIndex = data.value.length > 180 ? data.value.length - 180 : 0
           const oneYearIndex = data.value.length > 365 ? data.value.length - 365 : 0
-
 
           index_number.value =
               data.value[lastIndex]?.[props.value.followerDataType] ?? 0
@@ -227,46 +262,42 @@
           latest_date.value = data.value[lastIndex][props.value.fetchDateType]
           one_month.value = data.value[monthIndex][props.value.fetchDateType]
 
-            const formattedData = data.value.map((e, i) => {
-                return {
-                    x: e[props.value.fetchDateType],
-                    y: e[props.value.followerDataType],
-                };
-            });
+          const formattedData = data.value.map((e) => {
+              return {
+                  x: e[props.value.fetchDateType],
+                  y: e[props.value.followerDataType],
+              };
+          });
 
+          if (props.value.secondChat) {
+              const formattedData2 = data.value.map((e) => {
+                  return {
+                      x: e[props.value.secondChat.fetchDateType],
+                      y: e[props.value.secondChat.followerDataType],
+                  };
+              })
 
-            if (props.value.secondChat) {
-                const formattedData2 = data.value.map((e, i) => {
-                    return {
-                        x: e[props.value.secondChat.fetchDateType],
-                        y: e[props.value.secondChat.followerDataType],
-                    };
-                })
+              series.value = [
+                  {
+                      name: props.value.type,
+                      data: formattedData,
+                  },
+                  {
+                      name: props.value.secondChat.type,
+                      data: formattedData2
+                  }
+              ]
+          } else {
+              series.value = [
+                  {
+                      name: props.value.type,
+                      data: formattedData,
+                  }
+              ]
+          }
 
-                series.value = [
-                    {
-                        name: props.value.type,
-                        data: formattedData,
-                    },
-                    {
-                        name: props.value.secondChat.type,
-                        data: formattedData2
-                    }
-                ]
-            } else {
-                series.value = [
-                    {
-                        name: props.value.type,
-                        data: formattedData,
-                    }
-                ]
-            }
-          // set up allowed ranges（UI button enable/disable）
           allowedRanges.value = res.data?.meta?.allowed_ranges || ["28d"]
-          const isPremium = res.data?.meta?.is_premium
-          // console.log("allowedRanges:", allowedRanges.value, "isPremium:", isPremium)
 
-          // set up zoom
           await nextTick()
           if (allowedRanges.value.includes("365d")) {
             selection.value = "one_year"
@@ -281,8 +312,6 @@
             selection.value = "one_month"
             safeZoom(one_month.value)
           }
-
-            // update the series with axios data
 
         } catch (e) {
             console.error(e);
@@ -310,28 +339,24 @@
               new Date(latest_date.value).getTime()
           )
           break
-
         case "three_months":
           chart.value.zoomX(
               new Date(three_months.value).getTime(),
               new Date(latest_date.value).getTime()
           )
           break
-
         case "six_months":
           chart.value.zoomX(
               new Date(six_months.value).getTime(),
               new Date(latest_date.value).getTime()
           )
           break
-
         case "one_year":
           chart.value.zoomX(
               new Date(one_year.value).getTime(),
               new Date(latest_date.value).getTime()
           )
           break
-
       }
     }
 
@@ -347,12 +372,11 @@
         return ((index_number.value - last_month_data.value) / last_month_data.value) * 100
     }
 
-  // check and disable range button
-  const isRangeDisabled = (timeline) => {
-    const range = RANGE_MAP[timeline]
-    if (!range) return true
-    return !allowedRanges.value.includes(range)
-  }
+    const isRangeDisabled = (timeline) => {
+      const range = RANGE_MAP[timeline]
+      if (!range) return true
+      return !allowedRanges.value.includes(range)
+    }
 
     const disabledText = computed(() => {
       switch (props.value?.disabledReason) {
@@ -375,16 +399,10 @@
         },
         {immediate: true}
     )
-
 </script>
 
 <template>
-  <v-card
-    :loading="loadingBar"
-    width="400"
-    height="500"
-    class="relative"
-  >
+  <v-card :loading="loadingBar" class="w-100 relative" max-width="400">
     <!-- ===== Disabled Overlay ===== -->
     <div
       v-if="props.value?.disabled"
@@ -397,14 +415,16 @@
 
     <!-- ===== Title ===== -->
     <template #title>
-      <div class="d-flex align-center">
+      <div class="d-flex align-center w-100 min-w-0">
         <v-img
           :src="props.iconSrc"
-          max-height="30"
-          max-width="30"
-          class="mr-3"
+          max-height="30px"
+          max-width="30px"
+          class="mr-3 flex-shrink-0"
         />
-        <span>{{ $t(props.value.title) }}</span>
+        <span class="flex-grow-1 min-w-0 truncate text-base sm:text-lg md:text-xl">
+          {{ $t(props.value.title) }}
+        </span>
 
         <v-tooltip
           v-if="props.value.tooltipText"
@@ -415,7 +435,7 @@
             <v-icon
               v-bind="tooltipProps"
               size="20"
-              class="mx-1"
+              class="mx-1 flex-shrink-0"
               icon="mdi-information-outline"
             />
           </template>
@@ -425,7 +445,8 @@
 
     <!-- ===== Content ===== -->
     <template #text>
-      <v-divider class="mb-3" />
+      <v-divider />
+      <br />
 
       <!-- ===== Header numbers ===== -->
       <div class="d-flex align-center justify-space-between">
@@ -486,22 +507,29 @@
           </span>
         </div>
 
-        <span class="text-caption text-grey">
-          {{ `${$t('metrics.last_updated')}: ${latest_date}` }}
-        </span>
+        <div>
+          <span style="color: #757575;" class="text-caption">
+            {{ `${$t('metrics.last_updated')}: ${latest_date}` }}
+          </span>
+        </div>
       </div>
 
-      <!-- ===== Chart ===== -->
-      <apexchart
-        :id="props.value.chart"
-        ref="chart"
-        class="mt-2"
-        width="100%"
-        height="142%"
-        type="line"
-        :options="chartOptions"
-        :series="series"
-      />
+      <!-- ===== Chart Container ===== -->
+      <div class="w-full h-56 sm:h-64 md:h-72">
+        <apexchart
+          :id="props.value.chart"
+          ref="chart"
+          class="mt-2"
+          width="100%"
+          height="100%"
+          type="line"
+          :options="chartOptions"
+          :series="series"
+        />
+      </div>
     </template>
   </v-card>
 </template>
+
+<style scoped>
+</style>
