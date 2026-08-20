@@ -140,7 +140,8 @@
     "users": "使用者",
     "artists": "艺人",
     "campaigns": "宣传活动",
-    "dramas": "戏剧"
+    "dramas": "戏剧",
+    "artists_pending": "待审核艺人"
   },
   "sns": {
     "instagram": "Instagram",

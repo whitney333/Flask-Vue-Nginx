@@ -147,7 +147,8 @@
     "users": "Users",
     "artists": "Artists",
     "campaigns": "Campaigns",
-    "dramas": "Dramas"
+    "dramas": "Dramas",
+    "artists_pending": "Artists Pending"
   },
   "sns": {
     "instagram": "Instagram",

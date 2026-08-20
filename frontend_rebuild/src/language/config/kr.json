@@ -130,7 +130,7 @@
     "drama": "드라마",
     "rank": "위계",
     "artist": "아티스트",
-    "type": "",
+    "type": "종류",
     "scores": "점수"
   },
   "menu": {
@@ -147,7 +147,8 @@
     "users": "사용자 관리",
     "artists": "연예인 관리",
     "campaigns": "캠페인 관리",
-    "dramas": "드라마 관리"
+    "dramas": "드라마 관리",
+    "artists_pending": "심사중인 아티스트"
   },
   "sns": {
     "instagram": "인스타그램",

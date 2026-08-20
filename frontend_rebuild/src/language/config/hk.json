@@ -144,7 +144,8 @@
     "users": "用戶",
     "artists": "藝人",
     "campaigns": "宣傳活動",
-    "dramas": "劇集"
+    "dramas": "劇集",
+    "artists_pending": "待審核藝人"
   },
   "sns": {
     "instagram": "Instagram",
