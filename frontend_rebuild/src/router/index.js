@@ -27,6 +27,7 @@ import Admin_UserView from "@/views/Admin/AdminUsersView.vue"
 import Admin_TenantView from "@/views/Admin/AdminTenantsView.vue"
 import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
 import Admin_DramaView from "@/views/Admin/AdminDramasView.vue";
+import Admin_ArtistPendingView from "@/views/Admin/Admin_ArtistPendingView.vue";
 import Payment_SuccessView from "@/views/Payment/Payment_successView.vue"
 
 
@@ -120,6 +121,11 @@ const routes = [
             { path: 'users', name: 'Manage Users', component: Admin_UserView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'tenants', name: 'Manage Tenants', component: Admin_TenantView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }},
+            { path: 'artists/pending',
+              name: 'Pending Artists Review',
+              component: Admin_ArtistPendingView,
+              meta: { requireAuth: true, requireAdmin: true }
+            },
             { path: 'dramas', name: 'Manage Dramas', component: Admin_DramaView, meta: { requireAuth: true, requireAdmin: true }},
         ]
     },
