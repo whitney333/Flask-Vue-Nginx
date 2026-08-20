@@ -91,6 +91,7 @@ watch(
             {key: 'tenants', title: 'menu.tenants', icon: 'mdi-domain', to: '/admin/tenants'},
             {key: 'users', title: 'menu.users', icon: 'mdi-account-cog', to: '/admin/users'},
             {key: 'artists', title: 'menu.artists', icon: 'mdi-star-box', to: '/admin/artists'},
+            {key: 'artists-pending', title: 'menu.artists_pending', icon: 'mdi-clock-check-outline', to: '/admin/artists/pending'},
             {key: 'campaigns', title: 'menu.campaigns', icon: 'mdi-file-table-box-outline', to: '/admin/campaigns'},
             {key: 'dramas', title: 'menu.dramas', icon: 'mdi-movie-open-outline', to: '/admin/dramas'}
           ]
