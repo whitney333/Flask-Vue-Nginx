@@ -21,8 +21,8 @@ class ArtistPopularity(Document):
     popularity_score = FloatField(default=0)
     rank = IntField(min_value=1)
     previous_rank = IntField(min_value=1, default=None)
-    rank_change = IntField(default=0)
-    rank_type = StringField(default="NEW")
+    rank_change = IntField(default=None)
+    change_type = StringField(default="new")
 
     updated_at = DateTimeField(default=datetime.utcnow)
     created_at = DateTimeField(default=datetime.utcnow)
