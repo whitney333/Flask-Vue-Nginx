@@ -214,3 +214,6 @@
     </template>
   </v-card>
 </template>
+<style scoped>
+
+</style>

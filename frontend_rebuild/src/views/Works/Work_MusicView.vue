@@ -16,3 +16,6 @@
 <!--    <WorksWeeklyMusicChartsContainer></WorksWeeklyMusicChartsContainer>-->
 </template>
 
+<style scoped>
+
+</style>
