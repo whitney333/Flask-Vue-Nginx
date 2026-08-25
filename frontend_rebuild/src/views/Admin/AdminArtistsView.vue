@@ -311,7 +311,8 @@ const updateArtist = async (section, artistId) => {
         pronouns: selectedArtist.value.pronouns,
         fandom: selectedArtist.value.fandom,
         birth: formattedBirth.value,
-        image_url: selectedArtist.value.image
+        image_url: selectedArtist.value.image,
+        aliases: selectedArtist.value.aliases,
       }
     }
 
@@ -1230,6 +1231,33 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                           chips
                           closable-chips
                           :loading="groupLoading"
+                      />
+                    </template>
+                  </v-col>
+                  <v-col cols="12" md="12">
+                    <template v-if="!editSection.basic">
+                      <!-- View Mode -->
+                      <v-combobox
+                          v-model="selectedArtist.aliases"
+                          label="Aliases"
+                          multiple
+                          chips
+                          variant="underlined"
+                          readonly
+                      />
+                    </template>
+                    <template v-else>
+                      <!-- Edit Mode -->
+                      <v-combobox
+                          v-model="selectedArtist.aliases"
+                          label="Aliases"
+                          multiple
+                          chips
+                          variant="underlined"
+                          closable-chips
+                          hint="Press Enter to add"
+                          persistent-hint
+                          clearable
                       />
                     </template>
                   </v-col>

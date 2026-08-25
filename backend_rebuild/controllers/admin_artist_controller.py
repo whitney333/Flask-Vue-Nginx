@@ -169,6 +169,7 @@ class AdminArtistController:
                 "is_active": artist.is_active,
                 "fandom": artist.fandom,
                 "image": artist.image_url,
+                "aliases": artist.aliases,
                 # TODO BELONG GROUP > REFERENCE FIELD
                 "belong_group": [
                     str(group.id)
