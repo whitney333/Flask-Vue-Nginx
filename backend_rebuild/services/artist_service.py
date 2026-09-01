@@ -1,4 +1,5 @@
 from models.artist_model import Artists
+from models.tenant_model import Tenant
 from bson import ObjectId
 
 
@@ -175,14 +176,14 @@ class ArtistService:
         artist_data = []
         for a in artists:
             artist_data.append({
-                "artist_name": a.english_name,
+                "artist_name": a.english_name.lower() if a.english_name else None,
                 "korean_name": a.korean_name,
                 "artist_id": a.artist_id,
                 "artist_objId": str(a.id),
                 "imageURL": a.image_url
             })
 
-        return artist_data
+        return sorted(artist_data, key=lambda x: x["artist_name"] or "")
 
     @classmethod
     def get_group_artists(cls):
@@ -202,3 +203,69 @@ class ArtistService:
             ],
             key=lambda x: x["english_name"] or ""
         )
+
+    @staticmethod
+    def get_all_artists_with_tenant(search="", limit=20, page=1):
+        """
+        帶分頁與關鍵字搜尋的全量藝人查詢
+        """
+
+        tenants = Tenant.objects()
+        tenant_map = {str(t.id): t.tenant_name for t in tenants}
+
+        # 1. 建立 Base Query 條件
+        query = Artists.objects()
+        if search:
+            query = query.filter(
+                __raw__={
+                    "$or": [
+                        {"english_name": {"$regex": search, "$options": "i"}},
+                        {"korean_name": {"$regex": search, "$options": "i"}}
+                    ]
+                }
+            )
+
+        # 2. 轉為整型並計算 skip
+        try:
+            page = max(int(page), 1)
+            limit = max(int(limit), 1)
+        except (ValueError, TypeError):
+            page = 1
+            limit = 20
+
+        skip = (page - 1) * limit
+
+        # 3. 確保只選擇需要的欄位，先排序、設定 collation，最後再執行 skip 與 limit
+        artists = (
+            query.only(
+                "english_name",
+                "korean_name",
+                "birth",
+                "artist_id",
+                "id",
+                "image_url",
+                "tenant_id"
+            )
+            .collation({"locale": "en", "strength": 2})
+            .order_by("english_name", "id")
+            .skip(skip)
+            .limit(limit)
+        )
+
+        artist_data = []
+        for a in artists:
+            tenant = a.tenant_id
+            tenant_id = str(tenant.id) if tenant else None
+
+            artist_data.append({
+                "artist_name": a.english_name,
+                "korean_name": a.korean_name,
+                "artist_id": a.artist_id,
+                "artist_objId": str(a.id),
+                "birth": a.birth,
+                "imageURL": a.image_url,
+                "tenant_id": tenant_id,
+                "tenant_name": tenant_map.get(tenant_id, "Unknown")
+            })
+
+        return artist_data

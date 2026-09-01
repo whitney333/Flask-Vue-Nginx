@@ -397,3 +397,27 @@ class UserController:
             return jsonify({"error": error}), 400
 
         return jsonify({"data": result}), 200
+
+    @staticmethod
+    def get_all_artists():
+        try:
+            search = request.args.get("search", default="", type=str)
+            limit = request.args.get("limit", default=20, type=int)
+            page = request.args.get("page", default=1, type=int)
+
+            artist_data = ArtistService.get_all_artists_with_tenant(
+                search=search,
+                limit=limit,
+                page=page
+            )
+
+            return jsonify({
+                "status": "success",
+                "data": artist_data
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500

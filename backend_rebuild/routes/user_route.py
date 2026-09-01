@@ -70,3 +70,8 @@ def get_user_followed_artists():
     result = UserController.get_user_followed_artist()
 
     return result
+
+@user_bp.route("/v1/artists/all", methods=["GET"])
+def get_all_artists_endpoint():
+    result = UserController.get_all_artists()
+    return result
