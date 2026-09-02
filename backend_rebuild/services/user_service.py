@@ -1,6 +1,8 @@
 from models.user_model import Users
 from models.artist_model import Artists
 from datetime import datetime, timezone
+from bson import ObjectId
+from mongoengine import Q
 import logging
 
 logger = logging.getLogger(__name__)
@@ -8,8 +10,8 @@ logger = logging.getLogger(__name__)
 class UserService:
     PLAN_ARTIST_LIMIT = {
         "free": 1,
-        "starter": 1,
-        "standard": 10,
+        "starter": 5,
+        "standard": 20,
     }
 
     @staticmethod
@@ -140,22 +142,72 @@ class UserService:
         if not user:
             return None, "User not found"
 
-        # 1. 確保用戶訂閱狀態與限額同步（這會處理過期自動降級與 enforce_artist_limit）
+        normalized_artist_ids = []
+        seen_artist_ids = set()
+        for artist_id in artist_ids:
+            normalized_artist_id = str(artist_id).strip() if artist_id is not None else ""
+            if normalized_artist_id and normalized_artist_id not in seen_artist_ids:
+                normalized_artist_ids.append(normalized_artist_id)
+                seen_artist_ids.add(normalized_artist_id)
+
+        if not normalized_artist_ids:
+            return None, "artist_ids must include at least one artist"
+
         active_premium = UserService.is_active_premium(user)
         plan = user.plan if active_premium else "free"
         artist_limit = UserService.PLAN_ARTIST_LIMIT.get(plan, 1)
 
+        object_id_candidates = [
+            artist_id
+            for artist_id in normalized_artist_ids
+            if ObjectId.is_valid(artist_id)
+        ]
+        query = Q(artist_id__in=normalized_artist_ids)
+        if object_id_candidates:
+            query = query | Q(id__in=object_id_candidates)
+
+        artists = list(Artists.objects(query))
+        artists_by_lookup_id = {}
+        for artist in artists:
+            artists_by_lookup_id[str(artist.id)] = artist
+            artists_by_lookup_id[str(artist.artist_id)] = artist
+
+        resolved_artists = []
+        resolved_artist_ids = set()
+        for artist_id in normalized_artist_ids:
+            artist = artists_by_lookup_id.get(artist_id)
+            if not artist:
+                return None, "Some artists not found"
+
+            resolved_artist_id = str(artist.id)
+            if resolved_artist_id not in resolved_artist_ids:
+                resolved_artists.append(artist)
+                resolved_artist_ids.add(resolved_artist_id)
+
+        locked_artist = None
+        current_followed_artists = user.followed_artist or []
+        if current_followed_artists:
+            locked_artist = next(
+                (
+                    artist
+                    for artist in current_followed_artists
+                    if user.tenant and artist.tenant_id and str(artist.tenant_id.id) == str(user.tenant.id)
+                ),
+                current_followed_artists[0]
+            )
+
+        if locked_artist and str(locked_artist.id) not in resolved_artist_ids:
+            return None, "Locked artist cannot be removed"
+
+        if not user.tenant or not any(str(artist.tenant_id.id) == str(user.tenant.id) for artist in resolved_artists if artist.tenant_id):
+            return None, "Must follow at least 1 artist from your own company"
+
         # 2. 檢查輸入的清單是否超過目前方案限額
-        if len(artist_ids) > artist_limit:
+        if len(resolved_artists) > artist_limit:
             return None, f"Your current plan allows up to {artist_limit} artist(s)."
 
-        # 3. 檢查藝人是否存在
-        artists = Artists.objects(id__in=artist_ids)
-        if len(artists) != len(artist_ids):
-            return None, "Some artists not found"
-
         # 4. 更新用戶資料
-        user.followed_artist = artists
+        user.followed_artist = resolved_artists
         user.save()
 
         # 5. 再次主動執行限額校驗（作為最後防護機制）
