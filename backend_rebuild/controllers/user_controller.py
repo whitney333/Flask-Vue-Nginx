@@ -376,17 +376,26 @@ class UserController:
         # 1. 使用統一的裝飾器獲取 firebase_id (g.firebase_id 已由 auth_required 設置)
         firebase_id = getattr(g, "firebase_id", None)
         if not firebase_id:
-            return jsonify({"error": "Unauthorized"}), 401
+            return jsonify({
+                "status": "error",
+                "message": "Unauthorized"
+            }), 401
 
         # Parse body
         data = request.get_json(silent=True) or {}
         artist_ids = data.get("artist_ids")
 
         if artist_ids is None:
-            return jsonify({"error": "artist_ids is required"}), 400
+            return jsonify({
+                "status": "error",
+                "message": "artist_ids is required"
+            }), 400
 
         if not isinstance(artist_ids, list):
-            return jsonify({"error": "artist_ids must be a list"}), 400
+            return jsonify({
+                "status": "error",
+                "message": "artist_ids must be a list"
+            }), 400
 
         result, error = UserService.update_followed_artists(
             firebase_id=firebase_id,
@@ -394,9 +403,16 @@ class UserController:
         )
 
         if error:
-            return jsonify({"error": error}), 400
+            status_code = 404 if error == "User not found" else 400
+            return jsonify({
+                "status": "error",
+                "message": error
+            }), status_code
 
-        return jsonify({"data": result}), 200
+        return jsonify({
+            "status": "success",
+            "data": result
+        }), 200
 
     @staticmethod
     def get_all_artists():
