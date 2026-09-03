@@ -13,11 +13,14 @@ class TrendingArtistService:
     def get_trending_artists(country, year, week, artist_type="all", limit=100):
         country = country.upper()
 
+        # no_dereference: callers only need the artist ObjectId (doc.artist_id.id),
+        # which is already stored on the score document. Without this, mongoengine
+        # fetches the full Artists document for every row (N+1 round trips).
         queryset = ArtistPopularity.objects(
             country=country,
             year=int(year),
             week=int(week)
-        )
+        ).no_dereference()
 
         artist_type = (artist_type or "all").strip().title()
 
