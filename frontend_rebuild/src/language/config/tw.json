@@ -133,7 +133,17 @@
     "show_ranks": "顯示排名",
     "title": "熱門藝人",
     "artist_count": "{n} 位藝人",
-    "top_three": "前三名"
+    "top_three": "前三名",
+    "showing_of": "顯示 {shown} / {total}",
+    "updated": "更新於 {date}",
+    "prev_week": "上一週",
+    "next_week": "下一週",
+    "year": "年份",
+    "week": "週",
+    "type_all": "全部",
+    "type_actor": "演員",
+    "type_musician": "音樂人",
+    "empty": "本週尚無排名資料。"
   },
   "menu": {
     "dashboard": "數據儀表板",

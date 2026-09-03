@@ -50,11 +50,21 @@ class TrendingArtistController:
                     "drama_score": doc.drama_score,
                 })
 
+            meta = TrendingArtistService.get_trending_meta(
+                country=country,
+                year=year,
+                week=week,
+                artist_type=artist_type
+            )
+
             return jsonify({
                 "country": country,
                 "year": year,
                 "week": week,
                 "total": len(artists),
+                # rows that exist for this week/country beyond the returned page
+                "total_available": meta["total_available"],
+                "updated_at": meta["updated_at"],
                 "artist_type": artist_type,
                 "artists": artists
             }), 200

@@ -136,7 +136,17 @@
     "show_ranks": "순위 표시",
     "title": "트렌딩 아티스트",
     "artist_count": "아티스트 {n}명",
-    "top_three": "TOP 3"
+    "top_three": "TOP 3",
+    "showing_of": "{total}명 중 {shown}명 표시",
+    "updated": "{date} 업데이트",
+    "prev_week": "이전 주",
+    "next_week": "다음 주",
+    "year": "연도",
+    "week": "주",
+    "type_all": "전체",
+    "type_actor": "배우",
+    "type_musician": "뮤지션",
+    "empty": "이번 주 순위 데이터가 아직 없습니다."
   },
   "menu": {
     "dashboard": "대시보드",

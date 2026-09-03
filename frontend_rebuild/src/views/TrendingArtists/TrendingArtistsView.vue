@@ -1,9 +1,23 @@
 <script setup>
 import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import axios from '@/axios'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const route = useRoute()
+const router = useRouter()
+
+// Filters live in the URL (?country=kr&year=2026&week=34&type=Actor) so a
+// filtered view is shareable and browser back/forward works.
+const queryString = (key) => {
+  const value = route.query[key]
+  return Array.isArray(value) ? value[0] : value
+}
+const queryInt = (key) => {
+  const number = Number.parseInt(queryString(key) ?? '', 10)
+  return Number.isFinite(number) ? number : null
+}
 import TACard from '@/views/TrendingArtists/components/TA_card.vue'
 import TAPodium from '@/views/TrendingArtists/components/TA_podium.vue'
 
@@ -12,7 +26,8 @@ const PODIUM_SIZE = 3
 
 const loading = ref(false)
 
-const selectCountry = ref({ title: 'Global', value: 'global', type: 'icon', icon: 'mdi-earth' })
+const GLOBAL_COUNTRY = { title: 'Global', value: 'global', type: 'icon', icon: 'mdi-earth' }
+const selectCountry = ref(GLOBAL_COUNTRY)
 
 const countries = ref([
   { title: 'Global', value: 'global', type: 'icon', icon: 'mdi-earth' },
@@ -39,9 +54,12 @@ const countries = ref([
   { title: 'Vietnam', value: 'vn', flag: 'vn' },
 ])
 
-const selectType = ref('All')
 const types = ref(['All', 'Actor', 'Musician'])
+const selectType = ref(types.value.includes(queryString('type')) ? queryString('type') : 'All')
 const artistList = ref([])
+
+// footer info from the API: rows available beyond the returned page, last update
+const listMeta = ref({ totalAvailable: null, updatedAt: null })
 
 // rank_change only exists from 2026 W32 onwards; older weeks return null for
 // every row (and change_type defaults to "new"), so key off the number, not the type.
@@ -87,8 +105,12 @@ const getWeekNumber = () => {
 
 const thisWeek = getWeekNumber()
 
-const currentYear = ref(thisYear)
-const currentWeek = ref(thisWeek)
+// initial filters: URL query first, then defaults
+const initialYear = queryInt('year')
+const initialWeek = queryInt('week')
+const currentYear = ref(initialYear && initialYear >= 2020 && initialYear <= thisYear ? initialYear : thisYear)
+const currentWeek = ref(initialWeek && initialWeek >= 1 && initialWeek <= 53 ? initialWeek : thisWeek)
+selectCountry.value = countries.value.find((c) => c.value === queryString('country')) ?? GLOBAL_COUNTRY
 
 // max week for this year
 const maxAvailableWeekForThisYear = ref(thisWeek)
@@ -156,6 +178,12 @@ const fetchArtistList = async () => {
     }
 
     artistList.value = normalizedData
+    listMeta.value = {
+      totalAvailable: Number.isFinite(response.data?.total_available) ? response.data.total_available : null,
+      updatedAt: response.data?.updated_at ?? null,
+    }
+    // the calibration path above bypasses the filter watcher, so re-sync the URL here
+    syncQuery()
 
     // fetch the max available week for this year
     if (currentYear.value === thisYear && !hasCalibrated.value) {
@@ -166,6 +194,7 @@ const fetchArtistList = async () => {
   } catch (e) {
     console.error(e)
     artistList.value = []
+    listMeta.value = { totalAvailable: null, updatedAt: null }
   } finally {
     loading.value = false
   }
@@ -173,22 +202,90 @@ const fetchArtistList = async () => {
 
 // clear filters
 const resetFilters = () => {
-  selectCountry.value = { title: 'Global', value: 'global', type: 'icon', icon: 'mdi-earth' }
+  selectCountry.value = GLOBAL_COUNTRY
   selectType.value = 'All'
   currentYear.value = thisYear
   currentWeek.value = maxAvailableWeekForThisYear.value
 }
+
+// --- week stepper (prev / next, crossing year boundaries) ---
+const MIN_YEAR = 2020
+const LAST_WEEK_OF_YEAR = 53
+
+const lastSelectableWeek = (year) =>
+  year === thisYear ? maxAvailableWeekForThisYear.value : LAST_WEEK_OF_YEAR
+
+const canStepPrev = computed(() => currentWeek.value > 1 || currentYear.value > MIN_YEAR)
+const canStepNext = computed(() =>
+  currentWeek.value < lastSelectableWeek(currentYear.value) || currentYear.value < thisYear
+)
+
+const stepWeek = (delta) => {
+  const target = currentWeek.value + delta
+
+  if (target < 1) {
+    if (currentYear.value <= MIN_YEAR) return
+    currentYear.value -= 1
+    currentWeek.value = LAST_WEEK_OF_YEAR
+    return
+  }
+
+  if (target > lastSelectableWeek(currentYear.value)) {
+    if (currentYear.value >= thisYear) return
+    currentYear.value += 1
+    currentWeek.value = 1
+    return
+  }
+
+  currentWeek.value = target
+}
+
+// keep the URL in sync with the filters (replace, so stepping weeks doesn't spam history)
+const syncQuery = () => {
+  const query = {
+    ...route.query,
+    country: selectCountry.value.value,
+    year: String(currentYear.value),
+    week: String(currentWeek.value),
+    type: selectType.value,
+  }
+  const changed = Object.keys(query).some((key) => query[key] !== queryString(key))
+  if (changed) {
+    router.replace({ query })
+  }
+}
+
+// --- footer ---
+const footerText = computed(() => {
+  const parts = []
+  if (artistList.value.length && Number.isFinite(listMeta.value.totalAvailable)) {
+    parts.push(t('trending_artist.showing_of', { shown: artistList.value.length, total: listMeta.value.totalAvailable }))
+  }
+  if (listMeta.value.updatedAt) {
+    const date = new Date(listMeta.value.updatedAt)
+    if (!Number.isNaN(date.getTime())) {
+      parts.push(t('trending_artist.updated', {
+        date: date.toLocaleDateString(locale.value, { year: 'numeric', month: 'short', day: 'numeric' }),
+      }))
+    }
+  }
+  return parts.join(' · ')
+})
 
 watch([selectCountry, currentYear, currentWeek, selectType], () => {
   if (!isCalibrating) {
     if (currentYear.value !== thisYear) {
       hasCalibrated.value = false
     }
+    syncQuery()
     fetchArtistList()
   }
 })
 
-onMounted(fetchArtistList)
+onMounted(() => {
+  syncQuery()
+  fetchArtistList()
+})
 </script>
 
 <template>
@@ -257,32 +354,75 @@ onMounted(fetchArtistList)
 
           </div>
 
-          <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto md:ml-auto no-scrollbar">
+          <!-- mobile: stepper + clear on one line, segmented control wraps to a full-width line below -->
+          <div class="flex items-center gap-2 flex-wrap md:flex-nowrap w-full md:w-auto md:ml-auto">
 
-            <select
-                v-model="currentYear"
-                class="h-9 md:h-10 px-2.5 md:px-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-transparent transition text-xs md:text-sm font-medium text-gray-700 cursor-pointer flex-1 md:flex-none min-w-[75px] md:min-w-[100px] focus:outline-none"
-            >
-              <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
-            </select>
+            <!-- week stepper: [<] [year ▾][W## ▾] [>] -->
+            <div class="flex items-center h-9 md:h-10 rounded-lg bg-gray-50 border border-transparent overflow-hidden flex-shrink-0">
+              <button
+                  type="button"
+                  @click="stepWeek(-1)"
+                  :disabled="!canStepPrev"
+                  :aria-label="$t('trending_artist.prev_week')"
+                  :title="$t('trending_artist.prev_week')"
+                  class="grid place-items-center h-full w-8 md:w-9 text-gray-500 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-30 disabled:hover:bg-transparent transition"
+              >
+                <v-icon icon="mdi-chevron-left" size="18" />
+              </button>
 
-            <select
-                v-model="currentWeek"
-                class="h-9 md:h-10 px-2.5 md:px-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-transparent transition text-xs md:text-sm font-medium text-gray-700 cursor-pointer flex-1 md:flex-none min-w-[85px] md:min-w-[100px] focus:outline-none"
-            >
-              <option v-for="w in weekOptions" :key="w" :value="w">Week {{ w }}</option>
-            </select>
+              <select
+                  v-model="currentYear"
+                  :aria-label="$t('trending_artist.year')"
+                  class="h-full pl-2 pr-1 bg-transparent text-xs md:text-sm font-medium text-gray-700 tabular-nums cursor-pointer focus:outline-none"
+              >
+                <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}</option>
+              </select>
 
-            <select
-                v-model="selectType"
-                class="h-9 md:h-10 px-2.5 md:px-3 rounded-lg bg-gray-50 hover:bg-gray-100 border border-transparent transition text-xs md:text-sm font-medium text-gray-700 cursor-pointer flex-1 md:flex-none min-w-[95px] md:min-w-[120px] focus:outline-none"
+              <select
+                  v-model="currentWeek"
+                  :aria-label="$t('trending_artist.week')"
+                  class="h-full pl-1 pr-2 bg-transparent text-xs md:text-sm font-semibold text-gray-800 tabular-nums cursor-pointer focus:outline-none"
+              >
+                <option v-for="w in weekOptions" :key="w" :value="w">W{{ w }}</option>
+              </select>
+
+              <button
+                  type="button"
+                  @click="stepWeek(1)"
+                  :disabled="!canStepNext"
+                  :aria-label="$t('trending_artist.next_week')"
+                  :title="$t('trending_artist.next_week')"
+                  class="grid place-items-center h-full w-8 md:w-9 text-gray-500 hover:bg-gray-100 hover:text-gray-800 disabled:opacity-30 disabled:hover:bg-transparent transition"
+              >
+                <v-icon icon="mdi-chevron-right" size="18" />
+              </button>
+            </div>
+
+            <!-- artist type: segmented control -->
+            <div
+                role="radiogroup"
+                :aria-label="$t('trending_artist.type')"
+                class="flex items-center h-9 md:h-10 p-1 rounded-lg bg-gray-50 border border-transparent flex-shrink-0 w-full md:w-auto max-md:order-last"
             >
-              <option v-for="t in types" :key="t" :value="t">{{ t }}</option>
-            </select>
+              <button
+                  v-for="option in types"
+                  :key="option"
+                  type="button"
+                  role="radio"
+                  :aria-checked="selectType === option"
+                  @click="selectType = option"
+                  class="h-full px-3 rounded-md text-xs md:text-sm font-medium transition whitespace-nowrap flex-1 md:flex-none"
+                  :class="selectType === option
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'"
+              >
+                {{ $t(`trending_artist.type_${option.toLowerCase()}`) }}
+              </button>
+            </div>
 
             <button
                 @click="resetFilters"
-                class="grid place-items-center h-9 w-9 md:h-10 md:w-10 rounded-lg bg-gray-50 hover:bg-gray-100 border border-transparent text-gray-400 hover:text-gray-600 transition flex-shrink-0 select-none order-1 md:order-last md:ml-auto"
+                class="grid place-items-center h-9 w-9 md:h-10 md:w-10 rounded-lg bg-gray-50 hover:bg-gray-100 border border-transparent text-gray-400 hover:text-gray-600 transition flex-shrink-0 select-none ml-auto md:ml-0"
                 title="Clear Filters"
             >
               <svg class="w-4 h-4 md:w-4.5 md:h-4.5 flex-shrink-0" fill="none" stroke="currentColor"
@@ -328,8 +468,11 @@ onMounted(fetchArtistList)
       </section>
 
       <!-- TABLE  -->
-      <div class="bg-white rounded-3xl shadow-sm border overflow-hidden"> <!-- Header -->
-        <div class="hidden md:grid grid-cols-12 px-6 py-4 bg-gray-50 text-sm font-semibold">
+      <!-- overflow-clip (not hidden): hidden would make this card the scroll container
+           for the sticky column header below and stop it from sticking to the viewport -->
+      <div class="bg-white rounded-3xl shadow-sm border overflow-clip"> <!-- Header -->
+        <!-- sticky so column labels survive a 100-row scroll; offset = app bar height -->
+        <div class="hidden md:grid grid-cols-12 px-6 py-4 bg-gray-50 text-sm font-semibold sticky top-[64px] z-10 border-b border-gray-100">
           <div class="col-span-1 text-center">
             {{ $t('trending_artist.rank')}}
           </div>
@@ -407,8 +550,24 @@ onMounted(fetchArtistList)
                     :show-rank-change="hasRankChange"
                     :max-popularity="maxPopularity"
                     :index="i + tableIndexOffset"/>
+
+            <!-- empty state -->
+            <div
+              v-if="!artistList.length"
+              class="px-6 py-16 text-center text-sm text-gray-400"
+            >
+              {{ $t('trending_artist.empty') }}
+            </div>
           </div>
         </transition>
+
+        <!-- footer: "Showing 100 of 551 · Updated 1 Sep 2026" -->
+        <div
+          v-if="!loading && footerText"
+          class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 tabular-nums text-center md:text-left"
+        >
+          {{ footerText }}
+        </div>
       </div>
     </div>
   </div>

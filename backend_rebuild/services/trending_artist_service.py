@@ -30,6 +30,33 @@ class TrendingArtistService:
         return queryset.order_by("-popularity_score")[:limit]
 
     @staticmethod
+    def get_trending_meta(country, year, week, artist_type="all"):
+        """Row count and last update time for a week/country, for the list footer.
+
+        Two cheap queries on the (country, year, week, popularity_score) index:
+        a count and a top-1 sort on updated_at over at most a few hundred docs.
+        """
+        country = country.upper()
+
+        queryset = ArtistPopularity.objects(
+            country=country,
+            year=int(year),
+            week=int(week)
+        )
+
+        artist_type = (artist_type or "all").strip().title()
+
+        if artist_type != "All":
+            queryset = queryset.filter(type=artist_type)
+
+        latest = queryset.only("updated_at").order_by("-updated_at").first()
+
+        return {
+            "total_available": queryset.count(),
+            "updated_at": latest.updated_at.isoformat() if latest and latest.updated_at else None,
+        }
+
+    @staticmethod
     def get_country_rank_map(artist_id, year, week):
         rows = ArtistPopularity.objects(
             artist_id=artist_id,

@@ -129,7 +129,17 @@
     "show_ranks": "显示排名",
     "title": "热门艺人",
     "artist_count": "{n} 位艺人",
-    "top_three": "前三名"
+    "top_three": "前三名",
+    "showing_of": "显示 {shown} / {total}",
+    "updated": "更新于 {date}",
+    "prev_week": "上一周",
+    "next_week": "下一周",
+    "year": "年份",
+    "week": "周",
+    "type_all": "全部",
+    "type_actor": "演员",
+    "type_musician": "音乐人",
+    "empty": "本周暂无排名数据。"
   },
   "menu": {
     "dashboard": "数据仪表板",

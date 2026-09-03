@@ -136,7 +136,17 @@
     "show_ranks": "Show ranks",
     "title": "Trending Artists",
     "artist_count": "{n} artists",
-    "top_three": "Top 3"
+    "top_three": "Top 3",
+    "showing_of": "Showing {shown} of {total}",
+    "updated": "Updated {date}",
+    "prev_week": "Previous week",
+    "next_week": "Next week",
+    "year": "Year",
+    "week": "Week",
+    "type_all": "All",
+    "type_actor": "Actor",
+    "type_musician": "Musician",
+    "empty": "No ranking data for this week yet."
   },
   "menu": {
     "dashboard": "Dashboard",
