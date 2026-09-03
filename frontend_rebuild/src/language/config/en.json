@@ -133,7 +133,10 @@
     "type": "Type",
     "scores": "Scores",
     "new": "NEW",
-    "show_ranks": "Show ranks"
+    "show_ranks": "Show ranks",
+    "title": "Trending Artists",
+    "artist_count": "{n} artists",
+    "top_three": "Top 3"
   },
   "menu": {
     "dashboard": "Dashboard",

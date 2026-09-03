@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
+import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute.js';
 
     // rows above this index load their avatar eagerly (visible on first paint);
     // the rest lazy-load as the user scrolls
@@ -65,31 +66,7 @@ import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
 
     // Route for the artist detail page. Rendered as a real <a> via RouterLink so the
     // row is keyboard-focusable, middle/cmd-clickable and has a copyable href.
-    const artistRoute = computed(() => {
-        if (!artistId.value) {
-            return null
-        }
-
-        return {
-            name: 'Artist',
-            params: {
-                artistId: artistId.value,
-                artistName: artistName.value,
-            },
-            query: {
-                rank: props.value?.rank,
-                image: artistImage.value,
-                koreanName: artistKoreanName.value,
-                type: artistType.value,
-                popularityScore: popularityScore.value,
-                musicScore: props.value?.music_score ?? 0,
-                snsScore: props.value?.sns_score ?? 0,
-                dramaScore: props.value?.drama_score ?? 0,
-                year: props.year,
-                week: props.week,
-            },
-        }
-    })
+    const artistRoute = computed(() => buildArtistRoute(props.value, props.year, props.week))
 
     // Falls back to a plain div for the rare row with no artist id.
     const rowTag = computed(() => (artistRoute.value ? RouterLink : 'div'))
@@ -165,8 +142,12 @@ import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
 
             <!-- Rank (+ change vs last week, stacked underneath) -->
             <div class="md:col-span-1 flex flex-col items-center justify-center gap-0.5">
-                <div class="text-md font-bold text-gray-700">
-                    {{ props.value.displayRank ?? props.value.rank }}
+                <!-- top 10 get a heavier numeral so the head of the chart scans while scrolling -->
+                <div
+                    class="font-bold tabular-nums"
+                    :class="displayRank <= 10 ? 'text-lg text-gray-900' : 'text-md text-gray-700'"
+                >
+                    {{ displayRank }}
                 </div>
                 <RankChange
                     v-if="props.showRankChange"

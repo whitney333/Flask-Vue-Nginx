@@ -1,7 +1,14 @@
 <script setup>
 import { computed, onMounted, ref, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import axios from '@/axios'
+
+const { t } = useI18n()
 import TACard from '@/views/TrendingArtists/components/TA_card.vue'
+import TAPodium from '@/views/TrendingArtists/components/TA_podium.vue'
+
+// top 3 get the podium treatment; the table starts at #4
+const PODIUM_SIZE = 3
 
 const loading = ref(false)
 
@@ -41,6 +48,22 @@ const artistList = ref([])
 const hasRankChange = computed(() =>
   artistList.value.some((artist) => Number.isFinite(artist.rank_change))
 )
+
+// Only split out a podium when there are enough rows for it to make sense.
+const showPodium = computed(() => artistList.value.length > PODIUM_SIZE)
+const podiumArtists = computed(() => (showPodium.value ? artistList.value.slice(0, PODIUM_SIZE) : []))
+const tableArtists = computed(() => (showPodium.value ? artistList.value.slice(PODIUM_SIZE) : artistList.value))
+// index offset so eager/lazy avatar loading in TA_card counts from the true row position
+const tableIndexOffset = computed(() => (showPodium.value ? PODIUM_SIZE : 0))
+
+const headerSubtitle = computed(() => {
+  const countryKey = selectCountry.value.title.toLowerCase().replace(/\s+/g, '_')
+  return [
+    t(`country.${countryKey}`),
+    `${currentYear.value} W${currentWeek.value}`,
+    t('trending_artist.artist_count', { n: artistList.value.length }),
+  ].join(' · ')
+})
 
 const thisYear = new Date().getFullYear()
 
@@ -166,6 +189,16 @@ onMounted(fetchArtistList)
 <template>
   <div class="min-h-screen bg-gray-100 w-full">
     <div class="max-w-7xl mx-auto px-4 py-6">
+      <!--  PAGE HEADER  -->
+      <header class="mb-4 md:mb-6">
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight text-gray-900">
+          {{ $t('trending_artist.title') }}
+        </h1>
+        <p class="mt-1 text-sm text-gray-500 tabular-nums">
+          {{ headerSubtitle }}
+        </p>
+      </header>
+
       <!--  FILTER BAR  -->
       <div class="relative mb-4 md:mb-6">
         <div class="flex flex-col md:flex-row md:items-center gap-2 rounded-xl bg-white/80 backdrop-blur-md shadow-sm p-2 md:p-2.5 border border-gray-100">
@@ -256,6 +289,39 @@ onMounted(fetchArtistList)
           </div>
         </div>
       </div>
+      <!--  PODIUM (top 3)  -->
+      <section
+        v-if="loading || showPodium"
+        :aria-label="$t('trending_artist.top_three')"
+        class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6"
+      >
+        <template v-if="loading">
+          <div
+            v-for="i in PODIUM_SIZE"
+            :key="`podium-skeleton-${i}`"
+            class="flex items-center gap-4 rounded-3xl border border-gray-200 bg-white px-5 py-4 skeleton-shimmer"
+          >
+            <div class="w-[72px] h-[72px] rounded-2xl skeleton-box shrink-0"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-4 w-32 skeleton-box"></div>
+              <div class="h-3 w-20 skeleton-box opacity-60"></div>
+              <div class="h-6 w-16 skeleton-box mt-3"></div>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <TAPodium
+            v-for="(artist, i) in podiumArtists"
+            :key="artist.artistId ?? i"
+            :value="artist"
+            :place="i + 1"
+            :year="currentYear"
+            :week="currentWeek"
+            :show-rank-change="hasRankChange"
+          />
+        </template>
+      </section>
+
       <!-- TABLE  -->
       <div class="bg-white rounded-3xl shadow-sm border overflow-hidden"> <!-- Header -->
         <div class="hidden md:grid grid-cols-12 px-6 py-4 bg-gray-50 text-sm font-semibold">
@@ -325,13 +391,13 @@ onMounted(fetchArtistList)
           </div>
           <!--  DATA -->
           <div v-else key="data">
-            <TACard v-for="(artist, i) in artistList"
-                    :key="i"
+            <TACard v-for="(artist, i) in tableArtists"
+                    :key="artist.artistId ?? i"
                     :value="artist"
                     :year="currentYear"
                     :week="currentWeek"
                     :show-rank-change="hasRankChange"
-                    :index="i"/>
+                    :index="i + tableIndexOffset"/>
           </div>
         </transition>
       </div>

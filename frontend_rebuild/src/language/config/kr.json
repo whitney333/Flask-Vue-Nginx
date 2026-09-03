@@ -133,7 +133,10 @@
     "type": "",
     "scores": "점수",
     "new": "신규",
-    "show_ranks": "순위 표시"
+    "show_ranks": "순위 표시",
+    "title": "트렌딩 아티스트",
+    "artist_count": "아티스트 {n}명",
+    "top_three": "TOP 3"
   },
   "menu": {
     "dashboard": "대시보드",

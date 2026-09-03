@@ -130,7 +130,10 @@
     "type": "類型",
     "scores": "分數",
     "new": "新進",
-    "show_ranks": "顯示排名"
+    "show_ranks": "顯示排名",
+    "title": "熱門藝人",
+    "artist_count": "{n} 位藝人",
+    "top_three": "前三名"
   },
   "menu": {
     "dashboard": "數據儀表板",

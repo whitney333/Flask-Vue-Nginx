@@ -126,7 +126,10 @@
     "type": "类型",
     "scores": "分数",
     "new": "新进",
-    "show_ranks": "显示排名"
+    "show_ranks": "显示排名",
+    "title": "热门艺人",
+    "artist_count": "{n} 位艺人",
+    "top_three": "前三名"
   },
   "menu": {
     "dashboard": "数据仪表板",
