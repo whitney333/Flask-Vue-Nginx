@@ -36,6 +36,12 @@ const selectType = ref('All')
 const types = ref(['All', 'Actor', 'Musician'])
 const artistList = ref([])
 
+// rank_change only exists from 2026 W32 onwards; older weeks return null for
+// every row (and change_type defaults to "new"), so key off the number, not the type.
+const hasRankChange = computed(() =>
+  artistList.value.some((artist) => Number.isFinite(artist.rank_change))
+)
+
 const thisYear = new Date().getFullYear()
 
 const getWeekNumber = () => {
@@ -76,13 +82,19 @@ const normalizeArtists = (payload) => {
   const artists = payload?.artists || payload?.data || payload || []
   if (!Array.isArray(artists)) return []
 
-  return artists.map((artist) => ({
+  // The API returns each artist's stored rank across all types. When a type
+  // filter is active, renumber the visible list (1, 2, 3...) while keeping the
+  // original rank on the item for the artist detail page.
+  const isTypeFiltered = selectType.value !== 'All'
+
+  return artists.map((artist, index) => ({
     ...artist,
     artistId: artist.artistId ?? artist.artist_id,
     artistName: artist.artistName ?? artist.english_name ?? '',
     artistKoreanName: artist.artistKoreanName ?? artist.korean_name ?? '',
     artistImg: artist.image ?? artist.image_url ?? '',
     popularity: artist.popularity ?? artist.popularity_score ?? 0,
+    displayRank: isTypeFiltered ? index + 1 : artist.rank,
   }))
 }
 
@@ -317,7 +329,9 @@ onMounted(fetchArtistList)
                     :key="i"
                     :value="artist"
                     :year="currentYear"
-                    :week="currentWeek"/>
+                    :week="currentWeek"
+                    :show-rank-change="hasRankChange"
+                    :index="i"/>
           </div>
         </transition>
       </div>

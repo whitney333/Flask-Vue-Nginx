@@ -1,13 +1,21 @@
 <script setup>
 import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
+import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
+
+    // rows above this index load their avatar eagerly (visible on first paint);
+    // the rest lazy-load as the user scrolls
+    const EAGER_ROWS = 5
 
     const props = defineProps({
         value: Object,
         year: Number,
         week: Number,
+        // parent decides per week whether rank-change data exists; hidden otherwise
+        showRankChange: { type: Boolean, default: false },
+        // position in the list, used for eager vs lazy avatar loading
+        index: { type: Number, default: 0 },
     })
-    const router = useRouter()
 
     const artistId = computed(() => props.value?.artistId ?? props.value?.artist_id ?? '')
     const artistName = computed(() => {
@@ -55,12 +63,14 @@ import { useRouter } from 'vue-router';
         })
     }
 
-    const handleToArtist = () => {
+    // Route for the artist detail page. Rendered as a real <a> via RouterLink so the
+    // row is keyboard-focusable, middle/cmd-clickable and has a copyable href.
+    const artistRoute = computed(() => {
         if (!artistId.value) {
-            return
+            return null
         }
 
-        router.push({
+        return {
             name: 'Artist',
             params: {
                 artistId: artistId.value,
@@ -78,8 +88,36 @@ import { useRouter } from 'vue-router';
                 year: props.year,
                 week: props.week,
             },
-        })
-    }
+        }
+    })
+
+    // Falls back to a plain div for the rare row with no artist id.
+    const rowTag = computed(() => (artistRoute.value ? RouterLink : 'div'))
+    const rowAttrs = computed(() => (artistRoute.value ? { to: artistRoute.value } : {}))
+
+    const avatarLoading = computed(() => (props.index < EAGER_ROWS ? 'eager' : 'lazy'))
+
+    const displayRank = computed(() => props.value?.displayRank ?? props.value?.rank)
+
+    // Screen-reader summary of the row, including the rank change when shown.
+    const rowAriaLabel = computed(() => {
+        const parts = [`Rank ${displayRank.value}`, artistName.value]
+
+        if (props.showRankChange) {
+            const change = props.value?.rank_change
+            if (props.value?.change_type === 'new' || !Number.isFinite(change)) {
+                parts.push('new this week')
+            } else if (change > 0) {
+                parts.push(`up ${change}`)
+            } else if (change < 0) {
+                parts.push(`down ${Math.abs(change)}`)
+            } else {
+                parts.push('no change')
+            }
+        }
+
+        return parts.join(', ')
+    })
     const artistTypes = computed(() => {
       if (Array.isArray(artistType.value)) {
         return artistType.value
@@ -104,8 +142,10 @@ import { useRouter } from 'vue-router';
 </script>
 
 <template>
-    <div
-        @click="handleToArtist"
+    <component
+        :is="rowTag"
+        v-bind="rowAttrs"
+        :aria-label="rowAriaLabel"
         class="
             relative
             bg-white
@@ -114,18 +154,27 @@ import { useRouter } from 'vue-router';
             flex flex-col gap-3
             md:grid md:grid-cols-12 md:items-center
 
+            text-gray-900 no-underline
             hover:bg-gray-50
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400
             transition cursor-pointer group
         "
     >
         <!-- TOP ROW (Mobile optimized) -->
         <div class="flex items-center justify-between md:contents">
 
-            <!-- Rank -->
-            <div class="md:col-span-1 flex items-center justify-center">
+            <!-- Rank (+ change vs last week, stacked underneath) -->
+            <div class="md:col-span-1 flex flex-col items-center justify-center gap-0.5">
                 <div class="text-md font-bold text-gray-700">
-                    #{{ props.value.rank }}
+                    {{ props.value.displayRank ?? props.value.rank }}
                 </div>
+                <RankChange
+                    v-if="props.showRankChange"
+                    :rank-change="props.value.rank_change"
+                    :change-type="props.value.change_type"
+                    :previous-rank="props.value.previous_rank"
+                    icon-size="14"
+                />
             </div>
 
             <!-- Arrow (mobile show right side) -->
@@ -147,6 +196,11 @@ import { useRouter } from 'vue-router';
                 <img
                     v-if="artistImage"
                     :src="artistImage"
+                    :alt="artistName"
+                    :loading="avatarLoading"
+                    decoding="async"
+                    width="48"
+                    height="48"
                     class="w-full h-full object-cover"
                 />
                 <v-icon
@@ -223,5 +277,5 @@ import { useRouter } from 'vue-router';
             class="text-gray-400 group-hover:translate-x-1 transition"
         />
       </div>
-    </div>
+    </component>
 </template>
