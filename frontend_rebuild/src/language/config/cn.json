@@ -124,7 +124,9 @@
     "rank": "排名",
     "artist": "艺人",
     "type": "类型",
-    "scores": "分数"
+    "scores": "分数",
+    "new": "新进",
+    "show_ranks": "显示排名"
   },
   "menu": {
     "dashboard": "数据仪表板",

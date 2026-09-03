@@ -131,7 +131,9 @@
     "rank": "위계",
     "artist": "아티스트",
     "type": "",
-    "scores": "점수"
+    "scores": "점수",
+    "new": "신규",
+    "show_ranks": "순위 표시"
   },
   "menu": {
     "dashboard": "대시보드",

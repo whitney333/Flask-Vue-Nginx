@@ -128,7 +128,9 @@
     "rank": "排名",
     "artist": "藝人",
     "type": "類型",
-    "scores": "分數"
+    "scores": "分數",
+    "new": "新進",
+    "show_ranks": "顯示排名"
   },
   "menu": {
     "dashboard": "數據儀表板",

@@ -32,6 +32,9 @@ class TrendingArtistController:
             for doc in results:
                 artists.append({
                     "rank": doc.rank,
+                    "previous_rank": doc.previous_rank,
+                    "rank_change": doc.rank_change,
+                    "change_type": doc.change_type,
                     "artist_id": str(doc.artist_id.id) if doc.artist_id else None,
                     "english_name": doc.english_name,
                     "korean_name": doc.korean_name,

@@ -131,7 +131,9 @@
     "rank": "Rank",
     "artist": "Artist",
     "type": "Type",
-    "scores": "Scores"
+    "scores": "Scores",
+    "new": "NEW",
+    "show_ranks": "Show ranks"
   },
   "menu": {
     "dashboard": "Dashboard",

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '@/axios';
 import AVCard from '@/views/TrendingArtists/components/AV_card.vue';
+import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
 import { useI18n } from 'vue-i18n'
 
 const i18n = useI18n()
@@ -13,6 +14,10 @@ const artistId = route.params.artistId;
 const artistName = route.params.artistName;
 const artistInfo = ref({});
 const artistRanks = ref({});
+// per-country { previous_rank, rank_change, change_type }, only populated for recent weeks
+const artistChanges = ref({});
+// user toggle: show rank + change underneath each country flag (off by default)
+const showCountryRanks = ref(false);
 const rankMeta = ref({
   artist_id: artistId,
   year: Number(route.query.year) || null,
@@ -155,9 +160,19 @@ const countryRankItems = computed(() => {
       ...country,
       rank,
       hasRank: rank !== undefined && rank !== null,
+      change: artistChanges.value?.[country.value] || null,
     };
   });
 });
+
+const globalRankItem = computed(() =>
+  countryRankItems.value.find((country) => country.value === 'global')
+);
+
+// hide the change indicator for weeks without rank-change data
+const hasRankChange = computed(() =>
+  Object.values(artistChanges.value).some((change) => Number.isFinite(change?.rank_change))
+);
 
 const rankedCountryCount = computed(() => {
   return countryRankItems.value.filter((country) => country.hasRank).length;
@@ -229,6 +244,7 @@ const fetchArtistRankMeta = async () => {
     const data = res.data?.data || {};
 
     artistRanks.value = data.rank || {};
+    artistChanges.value = data.change || {};
     rankMeta.value = {
       artist_id: data.artist_id || artistId,
       year: Number(data.year) || currentYear.value,
@@ -237,6 +253,7 @@ const fetchArtistRankMeta = async () => {
   } catch (err) {
     console.error('Fetch ranks failed:', err);
     artistRanks.value = {};
+    artistChanges.value = {};
   }
 };
 
@@ -295,6 +312,22 @@ onMounted(() => {
                 {{ artistDisplayName }}
               </h1>
 
+              <!-- Global rank + change vs last week -->
+              <div
+                v-if="globalRankItem?.hasRank"
+                class="flex items-center justify-center sm:justify-start gap-2 mt-2"
+              >
+                <v-icon icon="mdi-earth" size="18" class="text-gray-400" />
+                <span class="text-sm text-gray-500">{{ $t('country.global') }}</span>
+                <span class="text-lg font-bold text-gray-800">#{{ globalRankItem.rank }}</span>
+                <RankChange
+                  v-if="hasRankChange"
+                  :rank-change="globalRankItem.change?.rank_change"
+                  :change-type="globalRankItem.change?.change_type"
+                  :previous-rank="globalRankItem.change?.previous_rank"
+                />
+              </div>
+
               <div
                 v-if="socialLinks.length"
                 class="flex gap-3 mt-4 justify-center sm:justify-start flex-wrap"
@@ -339,14 +372,34 @@ onMounted(() => {
                 · {{ rankedCountryCount }} markets
               </div>
             </div>
+
+            <!-- toggle: ranks under flags (plus-box = expand, minus-box = collapse) -->
+            <v-tooltip location="top" :text="$t('trending_artist.show_ranks')">
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  :icon="showCountryRanks ? 'mdi-minus-box' : 'mdi-plus-box'"
+                  :color="showCountryRanks ? 'primary' : 'grey'"
+                  :aria-label="$t('trending_artist.show_ranks')"
+                  :aria-pressed="showCountryRanks"
+                  variant="text"
+                  size="large"
+                  class="shrink-0 -mr-4 -my-1.5"
+                  @click="showCountryRanks = !showCountryRanks"
+                />
+              </template>
+            </v-tooltip>
           </div>
 
-          <!-- flags (FIXED SCOPE) -->
+          <!-- flags: horizontal scroll below lg, wrap at lg+.
+               Use only breakpoint-prefixed classes here: Vuetify ships bare
+               .flex-nowrap / .overflow-x-auto with !important, which would
+               override Tailwind's lg: variants. -->
           <div
             class="
               flex gap-3 pb-2 scrollbar-hide
-              flex-nowrap overflow-x-auto
-              lg:flex-wrap lg:overflow-visible
+              max-lg:flex-nowrap max-lg:overflow-x-auto
+              lg:flex-wrap
             "
           >
             <v-tooltip
@@ -355,32 +408,53 @@ onMounted(() => {
               location="top"
             >
               <template #activator="{ props }">
-                <div
-                  v-bind="props"
-                  class="
-                    w-10 h-10 flex-shrink-0
-                    rounded-xl border
-                    flex items-center justify-center
-                    transition duration-200 hover:scale-110
-                  "
-                  :class="country.hasRank
-                    ? 'bg-white border-gray-200'
-                    : 'bg-gray-50 border-gray-200 opacity-40'"
-                >
+                <div v-bind="props" class="flex flex-col items-center gap-1 flex-shrink-0 w-12">
+                  <div
+                    class="
+                      w-10 h-10
+                      rounded-xl border
+                      flex items-center justify-center
+                      transition duration-200 hover:scale-110
+                    "
+                    :class="country.hasRank
+                      ? 'bg-white border-gray-200'
+                      : 'bg-gray-50 border-gray-200 opacity-40'"
+                  >
 
-                  <v-icon
-                    v-if="country.type === 'icon'"
-                    :icon="country.icon"
-                    size="22"
-                    :color="country.hasRank ? 'primary' : 'grey'"
-                  />
+                    <v-icon
+                      v-if="country.type === 'icon'"
+                      :icon="country.icon"
+                      size="22"
+                      :color="country.hasRank ? 'primary' : 'grey'"
+                    />
 
-                  <span v-else :class="['fi', `fi-${country.flag}`]" />
+                    <span v-else :class="['fi', `fi-${country.flag}`]" />
+                  </div>
+
+                  <!-- rank + change under the flag (user toggle) -->
+                  <template v-if="showCountryRanks">
+                    <div
+                      class="text-[11px] font-semibold leading-none"
+                      :class="country.hasRank ? 'text-gray-700' : 'text-gray-300'"
+                    >
+                      {{ country.hasRank ? `#${country.rank}` : '-' }}
+                    </div>
+                    <RankChange
+                      v-if="hasRankChange && country.hasRank"
+                      :rank-change="country.change?.rank_change"
+                      :change-type="country.change?.change_type"
+                      :previous-rank="country.change?.previous_rank"
+                      icon-size="14"
+                    />
+                  </template>
                 </div>
               </template>
 
               <span v-if="country.hasRank">
                 {{ $t(`country.${country.title.toLowerCase().replace(/\s+/g, '_')}`) }} #{{ country.rank }}
+                <template v-if="hasRankChange && country.change?.previous_rank">
+                  · last week #{{ country.change.previous_rank }}
+                </template>
               </span>
 
               <span v-else>
@@ -407,6 +481,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* hide the horizontal scrollbar on the flag row (mobile) while keeping it scrollable */
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .ranked-country {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }

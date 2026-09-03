@@ -32,16 +32,24 @@ class TrendingArtistService:
             artist_id=artist_id,
             year=int(year),
             week=int(week)
-        ).only("country", "rank")
+        ).only("country", "rank", "previous_rank", "rank_change", "change_type")
 
         rank_map = {}
+        change_map = {}
 
         for row in rows:
-            rank_map[row.country.lower()] = row.rank
+            country = row.country.lower()
+            rank_map[country] = row.rank
+            change_map[country] = {
+                "previous_rank": row.previous_rank,
+                "rank_change": row.rank_change,
+                "change_type": row.change_type,
+            }
 
         return {
             "artist_id": str(artist_id),
             "year": year,
             "week": week,
-            "rank": rank_map
+            "rank": rank_map,
+            "change": change_map
         }
