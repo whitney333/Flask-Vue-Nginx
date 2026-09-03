@@ -29,6 +29,21 @@ const hasPlatform = computed(() =>
     !!platformId.value
 )
 
+const requestURL = computed(() => {
+  if (!props.value.fetchURL || !artistStore.artistId) {
+    return props.value.fetchURL || ''
+  }
+
+  try {
+    const url = new URL(props.value.fetchURL, window.location.origin)
+    url.searchParams.set('artist_id', artistStore.artistId)
+    return `${url.pathname}${url.search}`
+  } catch (err) {
+    const separator = props.value.fetchURL.includes('?') ? '&' : '?'
+    return `${props.value.fetchURL}${separator}artist_id=${encodeURIComponent(artistStore.artistId)}`
+  }
+})
+
 const formatNumFunc = (value) => {
   if (String(Math.round(value)).length < 4) {
     const res = Number(value).toLocaleString();
@@ -124,8 +139,13 @@ chartOptions.value = {
   }
 }
 
+let requestId = 0
+
 const getData = async () => {
-  if (!hasPlatform.value) {
+  const currentRequestId = ++requestId
+  const url = requestURL.value
+
+  if (!hasPlatform.value || !url) {
     series.value = [{
       name: props.value.type,
       data: []
@@ -141,7 +161,9 @@ const getData = async () => {
     index_number.value = 0
 
     try {
-      const data = await axios.get(props.value.fetchURL, { timeout: 10000 })
+      const data = await axios.get(url, { timeout: 10000 })
+      if (currentRequestId !== requestId) return
+
       follower.value = data.data[props.value.fetchFollowerType] || []
 
       if (!follower.value.length) {
@@ -167,14 +189,17 @@ const getData = async () => {
       ]
 
     } catch (err) {
+      if (currentRequestId !== requestId) return
       console.error("Error fetching data:", err)
     } finally {
-      loadingBar.value = false
+      if (currentRequestId === requestId) {
+        loadingBar.value = false
+      }
     }
 }
 
 watch(
-  [platformId, () => props.value.fetchURL, () => artistStore.artistId],
+  [platformId, requestURL],
   () => {
     getData()
   },

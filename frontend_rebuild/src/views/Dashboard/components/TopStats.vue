@@ -32,7 +32,7 @@ const { smAndDown } = useDisplay()
       >
         <DB_TS_card
           v-for="item in graphItems"
-          :key="item.name"
+          :key="`${item.name}-${item.fetchURL}`"
           :value="item"
           class="w-full max-w-md rounded-xl shadow-sm"
         />
@@ -46,7 +46,7 @@ const { smAndDown } = useDisplay()
       >
         <v-slide-group-item
           v-for="item in graphItems"
-          :key="item.name"
+          :key="`${item.name}-${item.fetchURL}`"
         >
           <DB_TS_card
             :value="item"

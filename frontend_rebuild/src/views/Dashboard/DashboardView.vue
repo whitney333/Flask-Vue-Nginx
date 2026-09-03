@@ -55,7 +55,7 @@
       });
       followedArtists.value = res.data.data;
       // console.log(followedArtists.value[0]["artist_id"])
-      if (followedArtists.value.length > 0) {
+      if (followedArtists.value.length > 0 && !artistStore.artistId) {
         // fetch first artist_id
         const firstArtistId = followedArtists.value[0]["id"]
         artistStore.setArtistId(firstArtistId)
@@ -142,6 +142,11 @@
     fetchFollowedArtist();
     // fetchMemberInfo()
     // fetchTheQoo()
+  }
+
+  const selectArtist = (artistId) => {
+    if (!artistId || artistId === artistStore.artistId) return
+    artistStore.setArtistId(artistId)
   }
 
   const normalizeArtist = (raw) => {
@@ -634,7 +639,7 @@
                   :key="artist.id"
                   class="artist-item"
                   :prepend-avatar="artist.image"
-                  @click="fetchArtistInfo(artist.id)"
+                  @click="selectArtist(artist.id)"
               >
                 <v-list-item-title class="text-body-1 font-weight-medium">
                   {{ artist.english_name }}
