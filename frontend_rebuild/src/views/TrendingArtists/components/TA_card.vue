@@ -1,12 +1,15 @@
 <script setup>
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
 import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute.js';
 
     // rows above this index load their avatar eagerly (visible on first paint);
     // the rest lazy-load as the user scrolls
     const EAGER_ROWS = 5
+
+    const { t } = useI18n()
 
     const props = defineProps({
         value: Object,
@@ -16,9 +19,19 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
         showRankChange: { type: Boolean, default: false },
         // position in the list, used for eager vs lazy avatar loading
         index: { type: Number, default: 0 },
+        // highest popularity score in the current list; scales the popularity bar
+        maxPopularity: { type: Number, default: 0 },
     })
 
-    const artistId = computed(() => props.value?.artistId ?? props.value?.artist_id ?? '')
+    // 0-100 width of the popularity bar relative to this week's leader
+    const popularityPercent = computed(() => {
+        const score = Number(props.value?.popularity ?? props.value?.popularity_score ?? 0)
+        if (!props.maxPopularity || !Number.isFinite(score) || score <= 0) {
+            return 0
+        }
+        return Math.max(4, Math.min(100, (score / props.maxPopularity) * 100))
+    })
+
     const artistName = computed(() => {
         return props.value?.artistName
             ?? props.value?.english_name
@@ -36,17 +49,17 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
     })
     const scoreItems = computed(() => [
         {
-            label: 'Music',
+            label: t('trending_artist.music'),
             value: props.value?.music_score,
             icon: 'mdi-music-note',
         },
         {
-            label: 'SNS',
+            label: t('trending_artist.sns'),
             value: props.value?.sns_score,
             icon: 'mdi-account-group-outline',
         },
         {
-            label: 'Drama',
+            label: t('trending_artist.drama'),
             value: props.value?.drama_score,
             icon: 'mdi-television',
         },
@@ -220,29 +233,43 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
             </v-chip>
         </div>
 
-        <!-- Popularity -->
-        <div class="md:col-span-2 flex items-center gap-2">
-          <div class="text-xs text-gray-400 md:hidden inline-flex items-center gap-1">
-            <v-icon size="16" class="text-orange-500">mdi-fire</v-icon>
-            <span>Popularity</span>
+        <!-- Popularity: number with a bar scaled to this week's leader -->
+        <div class="md:col-span-2 flex flex-col gap-1 md:pr-6">
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-xs text-gray-400 md:hidden inline-flex items-center gap-1">
+              <v-icon size="16" class="text-orange-500" aria-hidden="true">mdi-fire</v-icon>
+              <span>{{ $t('trending_artist.popularity') }}</span>
+            </div>
+            <div class="text-md font-semibold tabular-nums text-gray-800">
+              {{ formatScore(popularityScore) }}
+            </div>
           </div>
-          <div class="text-md font-medium text-gray-700">
-            {{ formatScore(popularityScore) }}
+          <div class="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden" aria-hidden="true">
+            <div
+              class="h-full rounded-full bg-orange-400 transition-[width] duration-500"
+              :style="{ width: `${popularityPercent}%` }"
+            />
           </div>
         </div>
 
-        <!-- Scores -->
-        <div class="md:col-span-3 flex flex-wrap gap-1">
-            <v-chip
+        <!-- Scores: three labelled columns (labels hidden on desktop, shown in the table header) -->
+        <div class="md:col-span-3 grid grid-cols-3 gap-2">
+            <div
                 v-for="item in scoreItems"
                 :key="item.label"
-                size="small"
-                variant="tonal"
-                rounded="lg"
+                class="min-w-0 leading-tight"
             >
-                <v-icon :icon="item.icon" size="14" start />
-                {{ formatScore(item.value) }}
-            </v-chip>
+                <div class="text-[11px] text-gray-400 md:hidden inline-flex items-center gap-1">
+                    <v-icon :icon="item.icon" size="12" aria-hidden="true" />
+                    <span>{{ item.label }}</span>
+                </div>
+                <div
+                    class="text-sm tabular-nums"
+                    :class="formatScore(item.value) === '-' ? 'text-gray-300' : 'font-medium text-gray-700'"
+                >
+                    {{ formatScore(item.value) === '-' ? '–' : formatScore(item.value) }}
+                </div>
+            </div>
         </div>
 
         <!-- Desktop arrow -->

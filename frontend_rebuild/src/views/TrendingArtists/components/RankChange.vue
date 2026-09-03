@@ -10,6 +10,9 @@ const props = defineProps({
     iconSize: { type: [Number, String], default: 16 },
 })
 
+// moves of this many places or more get a tinted pill so breakout artists pop
+const BIG_MOVE = 10
+
 const indicator = computed(() => {
     const change = props.rankChange
     const hasChange = Number.isFinite(change)
@@ -17,11 +20,15 @@ const indicator = computed(() => {
     if (props.changeType === 'new' || !hasChange) {
         return { kind: 'new', icon: null, label: '', class: 'text-blue-600 bg-blue-50 rounded-full px-1.5 py-0.5' }
     }
+
+    const isBigMove = Math.abs(change) >= BIG_MOVE
+    const pill = isBigMove ? ' rounded-full px-1.5 py-0.5' : ''
+
     if (change > 0) {
-        return { kind: 'up', icon: 'mdi-menu-up', label: String(change), class: 'text-green-600' }
+        return { kind: 'up', icon: 'mdi-menu-up', label: String(change), class: 'text-green-600' + (isBigMove ? ' bg-green-50' : '') + pill }
     }
     if (change < 0) {
-        return { kind: 'down', icon: 'mdi-menu-down', label: String(Math.abs(change)), class: 'text-red-500' }
+        return { kind: 'down', icon: 'mdi-menu-down', label: String(Math.abs(change)), class: 'text-red-500' + (isBigMove ? ' bg-red-50' : '') + pill }
     }
     return { kind: 'same', icon: 'mdi-minus', label: '', class: 'text-gray-400' }
 })

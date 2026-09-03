@@ -56,6 +56,11 @@ const tableArtists = computed(() => (showPodium.value ? artistList.value.slice(P
 // index offset so eager/lazy avatar loading in TA_card counts from the true row position
 const tableIndexOffset = computed(() => (showPodium.value ? PODIUM_SIZE : 0))
 
+// this week's leader, used to scale every row's popularity bar
+const maxPopularity = computed(() =>
+  artistList.value.reduce((max, artist) => Math.max(max, Number(artist.popularity) || 0), 0)
+)
+
 const headerSubtitle = computed(() => {
   const countryKey = selectCountry.value.title.toLowerCase().replace(/\s+/g, '_')
   return [
@@ -337,8 +342,11 @@ onMounted(fetchArtistList)
           <div class="col-span-2">
             {{ $t('trending_artist.popularity')}}
           </div>
-          <div class="col-span-3">
-            {{ $t('trending_artist.scores')}}
+          <!-- one label per score column, matching the 3-col grid in TA_card -->
+          <div class="col-span-3 grid grid-cols-3 gap-2">
+            <div>{{ $t('trending_artist.music') }}</div>
+            <div>{{ $t('trending_artist.sns') }}</div>
+            <div>{{ $t('trending_artist.drama') }}</div>
           </div>
         </div>
         <transition name="fade" mode="out-in">
@@ -397,6 +405,7 @@ onMounted(fetchArtistList)
                     :year="currentYear"
                     :week="currentWeek"
                     :show-rank-change="hasRankChange"
+                    :max-popularity="maxPopularity"
                     :index="i + tableIndexOffset"/>
           </div>
         </transition>
