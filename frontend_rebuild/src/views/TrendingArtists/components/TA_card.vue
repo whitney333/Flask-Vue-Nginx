@@ -142,7 +142,7 @@ import { medalForRank } from '@/views/TrendingArtists/components/medals.js';
         v-bind="rowAttrs"
         :aria-label="rowAriaLabel"
         class="
-            relative
+            relative isolate
             bg-white
             p-4 md:px-6 md:py-4
 
@@ -156,6 +156,15 @@ import { medalForRank } from '@/views/TrendingArtists/components/medals.js';
             transition cursor-pointer group
         "
     >
+        <!-- medal-tinted wash for the top 3 (same as the podium); -z-10 inside the
+             isolated root paints it above the white background, below the content -->
+        <div
+            v-if="medal"
+            class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br to-transparent opacity-70"
+            :class="medal.glow"
+            aria-hidden="true"
+        />
+
         <!-- TOP ROW (Mobile optimized) -->
         <div class="flex items-center justify-between md:contents">
 
