@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import RankChange from '@/views/TrendingArtists/components/RankChange.vue';
 import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute.js';
+import { medalForRank } from '@/views/TrendingArtists/components/medals.js';
 
     // rows above this index load their avatar eagerly (visible on first paint);
     // the rest lazy-load as the user scrolls
@@ -88,6 +89,10 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
     const avatarLoading = computed(() => (props.index < EAGER_ROWS ? 'eager' : 'lazy'))
 
     const displayRank = computed(() => props.value?.displayRank ?? props.value?.rank)
+
+    // Top 3 get the podium's medal ring + badge on the avatar. On desktop these
+    // rows are hidden behind the podium, so this is effectively the mobile treatment.
+    const medal = computed(() => medalForRank(displayRank.value))
 
     // Screen-reader summary of the row, including the rank change when shown.
     const rowAriaLabel = computed(() => {
@@ -180,13 +185,14 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
 
         <!-- Artist -->
         <div class="md:col-span-4 flex items-center gap-3">
+            <div class="relative shrink-0">
             <div
                 class="
                     w-10 h-10 md:w-12 md:h-12
                     rounded-xl overflow-hidden
                     bg-gray-100
-                    shrink-0
                 "
+                :class="medal ? ['ring-2 ring-offset-2 ring-offset-white', medal.ring] : ''"
             >
                 <img
                     v-if="artistImage"
@@ -204,6 +210,16 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
                     size="32"
                     class="text-gray-400"
                 />
+            </div>
+            <!-- medal badge on the avatar corner (top 3 only) -->
+            <div
+                v-if="medal"
+                class="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full grid place-items-center text-[11px] font-black shadow-sm"
+                :class="medal.badge"
+                aria-hidden="true"
+            >
+                {{ displayRank }}
+            </div>
             </div>
 
             <div class="leading-tight">

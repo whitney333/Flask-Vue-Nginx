@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import RankChange from '@/views/TrendingArtists/components/RankChange.vue'
 import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute.js'
+import { MEDALS } from '@/views/TrendingArtists/components/medals.js'
 
 // Podium card for the top 3 of the trending list. Same data shape as TA_card.
 const props = defineProps({
@@ -13,13 +14,6 @@ const props = defineProps({
     week: Number,
     showRankChange: { type: Boolean, default: false },
 })
-
-// gold / silver / bronze accents; everything else stays neutral so the accent reads
-const MEDALS = {
-    1: { ring: 'ring-amber-400', badge: 'bg-amber-400 text-amber-950', glow: 'from-amber-50' },
-    2: { ring: 'ring-slate-300', badge: 'bg-slate-300 text-slate-800', glow: 'from-slate-50' },
-    3: { ring: 'ring-orange-300', badge: 'bg-orange-300 text-orange-950', glow: 'from-orange-50' },
-}
 
 const medal = computed(() => MEDALS[props.place] ?? MEDALS[3])
 
