@@ -67,12 +67,10 @@ const hasRankChange = computed(() =>
   artistList.value.some((artist) => Number.isFinite(artist.rank_change))
 )
 
-// Only split out a podium when there are enough rows for it to make sense.
+// Podium (desktop only) shows the top 3 when there are enough rows for it to make sense.
+// The table always renders every artist; the first 3 rows are hidden at md+ via CSS.
 const showPodium = computed(() => artistList.value.length > PODIUM_SIZE)
 const podiumArtists = computed(() => (showPodium.value ? artistList.value.slice(0, PODIUM_SIZE) : []))
-const tableArtists = computed(() => (showPodium.value ? artistList.value.slice(PODIUM_SIZE) : artistList.value))
-// index offset so eager/lazy avatar loading in TA_card counts from the true row position
-const tableIndexOffset = computed(() => (showPodium.value ? PODIUM_SIZE : 0))
 
 // this week's leader, used to scale every row's popularity bar
 const maxPopularity = computed(() =>
@@ -438,7 +436,7 @@ onMounted(() => {
       <section
         v-if="loading || showPodium"
         :aria-label="$t('trending_artist.top_three')"
-        class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6"
+        class="hidden md:grid md:grid-cols-3 gap-4 mb-6"
       >
         <template v-if="loading">
           <div
@@ -542,14 +540,16 @@ onMounted(() => {
           </div>
           <!--  DATA -->
           <div v-else key="data">
-            <TACard v-for="(artist, i) in tableArtists"
+            <!-- every artist is a row; on md+ the first three are hidden here and shown on the podium -->
+            <TACard v-for="(artist, i) in artistList"
                     :key="artist.artistId ?? i"
                     :value="artist"
                     :year="currentYear"
                     :week="currentWeek"
                     :show-rank-change="hasRankChange"
                     :max-popularity="maxPopularity"
-                    :index="i + tableIndexOffset"/>
+                    :index="i"
+                    :class="showPodium && i < PODIUM_SIZE ? 'md:hidden' : ''"/>
 
             <!-- empty state -->
             <div

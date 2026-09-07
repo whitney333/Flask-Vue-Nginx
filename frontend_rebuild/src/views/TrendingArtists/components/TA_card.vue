@@ -145,6 +145,7 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
             md:grid md:grid-cols-12 md:items-center
 
             text-gray-900 no-underline
+            max-md:border-b max-md:border-gray-100 max-md:last:border-b-0
             hover:bg-gray-50
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400
             transition cursor-pointer group
@@ -153,8 +154,8 @@ import { buildArtistRoute } from '@/views/TrendingArtists/components/artistRoute
         <!-- TOP ROW (Mobile optimized) -->
         <div class="flex items-center justify-between md:contents">
 
-            <!-- Rank (+ change vs last week, stacked underneath) -->
-            <div class="md:col-span-1 flex flex-col items-center justify-center gap-0.5">
+            <!-- Rank + change vs last week: side by side on mobile, stacked in the desktop column -->
+            <div class="md:col-span-1 flex items-center gap-2 md:flex-col md:justify-center md:gap-0.5">
                 <!-- top 10 get a heavier numeral so the head of the chart scans while scrolling -->
                 <div
                     class="font-bold tabular-nums"
