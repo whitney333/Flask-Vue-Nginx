@@ -319,5 +319,27 @@
     "Digital Charts": "Digital Charts",
     "Album Charts": "Album Charts",
     "latest_posts_count": "Latest {{ n }} Posts"
+  },
+  "user": {
+    "expires": "Expires",
+    "upgrade_to_premium": "Upgrade to Premium",
+    "save_more": "Save more",
+    "upgrade_now": "Upgrade Now",
+    "your_subscription": "Your Subscription",
+    "manage_subscription": "Manage Subscription",
+    "followed_artists": "Followed Artists",
+    "manage": "Manage",
+    "no_followed_artists": "No followed artists",
+    "manage_artists": "Manage Artists",
+    "in_house": "In-House",
+    "external": "External",
+    "locked": "Locked",
+    "remove": "Remove",
+    "add": "Add",
+    "no_artists_found": "No artists found",
+    "no_more_artists": "No more artists",
+    "upgrade_to_standard_to_follow_more": "Upgrade to Standard to follow more",
+    "cancel": "Cancel",
+    "artist_limit_reached": "Your current plan allows up to {count} artist. Upgrade to Standard to follow more. | Your current plan allows up to {count} artists."
   }
 }

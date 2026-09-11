@@ -315,5 +315,27 @@
     "Digital Charts": "數位排行榜",
     "Album Charts": "專輯排行榜",
     "latest_posts_count": "最近 {n} 則貼文"
+  },
+  "user": {
+    "expires": "到期日",
+    "upgrade_to_premium": "升級至 Premium",
+    "save_more": "省更多",
+    "upgrade_now": "立即升級",
+    "your_subscription": "您的訂閱狀況",
+    "manage_subscription": "管理訂閱",
+    "followed_artists": "追蹤的藝人",
+    "manage": "管理",
+    "no_followed_artists": "尚未追蹤任何藝人",
+    "manage_artists": "管理藝人",
+    "in_house": "內部",
+    "external": "外部",
+    "locked": "已解鎖/已鎖定",
+    "remove": "移除",
+    "add": "新增",
+    "no_artists_found": "找不到相關藝人",
+    "no_more_artists": "沒有更多藝人了",
+    "upgrade_to_standard_to_follow_more": "升級至 Standard 以追蹤更多藝人",
+    "cancel": "取消",
+    "artist_limit_reached": "您目前的方案最多可追蹤 {count} 位藝人。升級至 Standard 以追蹤更多藝人。 | 您目前的方案最多可追蹤 {count} 位藝人。"
   }
 }

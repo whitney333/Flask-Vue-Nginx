@@ -311,5 +311,27 @@
     "Digital Charts": "Digital Charts",
     "Album Charts": "Album Charts",
     "latest_posts_count": "最新 {n}则 贴文"
+  },
+  "user": {
+    "expires": "到期时间",
+    "upgrade_to_premium": "升级至 Premium",
+    "save_more": "省更多",
+    "upgrade_now": "立即升级",
+    "your_subscription": "我的订阅",
+    "manage_subscription": "管理订阅",
+    "followed_artists": "已关注的艺人",
+    "manage": "管理",
+    "no_followed_artists": "暂未关注任何艺人",
+    "manage_artists": "管理艺人",
+    "in_house": "内部",
+    "external": "外部",
+    "locked": "已锁定",
+    "remove": "移除",
+    "add": "添加",
+    "no_artists_found": "未找到相关艺人",
+    "no_more_artists": "没有更多艺人了",
+    "upgrade_to_standard_to_follow_more": "升级至 Standard 以关注更多艺人",
+    "cancel": "取消",
+    "artist_limit_reached": "您当前的方案最多可关注 {count} 位艺人。升级至 Standard 以关注更多艺人。 | 您当前的方案最多可关注 {count} 位艺人。"
   }
 }
