@@ -146,7 +146,8 @@ const fetchDramas = async () => {
             name: filters.value.name.trim(),
             type: filters.value.type,
             status: filters.value.status,
-            broadcast_year: filters.value.broadcast_year
+            broadcast_year: filters.value.broadcast_year,
+            artist_id: filters.value.artist_id
           }
         }
     )
@@ -173,6 +174,15 @@ const fetchArtistOptions = async () => {
     console.error("Error fetching artist list:", err)
     artistOptions.value = []
   }
+};
+
+const getArtistLabel = (artist) => {
+  if (!artist || typeof artist !== "object") return "";
+
+  const englishName = artist.artist_en_name || artist.artist_id || "";
+  const koreanName = artist.artist_kr_name || "";
+
+  return koreanName ? `${englishName} (${koreanName})` : englishName;
 };
 
 const typeClass = (t) => {
@@ -454,7 +464,8 @@ const filters = ref({
   name: "",
   type: "",
   status: "",
-  broadcast_year: ""
+  broadcast_year: "",
+  artist_id: ""
 });
 
 const onFilterChange = () => {
@@ -467,6 +478,7 @@ const resetFilters = () => {
   filters.value.type = "";
   filters.value.status = "";
   filters.value.broadcast_year = "";
+  filters.value.artist_id = "";
   page.value = 1
   fetchDramas()
 }
@@ -588,7 +600,7 @@ watch([page, limit], () => {
                   label="Starring"
                   v-model="newDrama.starring"
                   :items="artistOptions"
-                  :item-title="item => `${item.artist_en_name || item.artist_id} (${item.artist_kr_name || ''})`"
+                  :item-title="getArtistLabel"
                   item-value="id"
                   multiple
                   chips
@@ -603,13 +615,13 @@ watch([page, limit], () => {
                         <v-img :src="item.raw.image" alt="" />
                       </v-avatar>
                     </template>
-                    <v-list-item-title>{{ `${item.raw.artist_en_name || item.raw.artist_id} (${item.raw.artist_kr_name || ''})` }}</v-list-item-title>
+                    <v-list-item-title>{{ getArtistLabel(item.raw) }}</v-list-item-title>
                     <v-list-item-subtitle>Birth: {{ formatBirthDate(item.raw.birth) }}</v-list-item-subtitle>
                   </v-list-item>
                 </template>
                 <template #selection="{ item }">
                   <v-chip size="small" class="ma-1" label>
-                    {{ `${item.raw.artist_en_name || item.raw.artist_id} (${item.raw.artist_kr_name || ''})` }}
+                    {{ getArtistLabel(item.raw) }}
                   </v-chip>
                 </template>
               </v-autocomplete>
@@ -825,6 +837,38 @@ watch([page, limit], () => {
           <option v-for="year in broadcastYears" :key="year" :value="year">{{ year }}</option>
         </select>
       </div>
+      <div class="w-72 flex flex-col">
+        <label class="text-sm font-medium text-gray-700 mb-1">Artist</label>
+        <v-autocomplete
+            v-model="filters.artist_id"
+            :items="artistOptions"
+            :item-title="getArtistLabel"
+            item-value="id"
+            density="compact"
+            variant="outlined"
+            :menu-props="{ width: 288, minWidth: 288, maxWidth: 288, contentClass: 'artist-filter-menu' }"
+            hide-details
+            clearable
+            placeholder="All"
+        >
+          <template #item="{ props, item }">
+            <v-list-item v-bind="props" :title="undefined" :subtitle="undefined">
+              <template #prepend>
+                <v-avatar size="32">
+                  <v-img :src="item.raw.image" alt="" />
+                </v-avatar>
+              </template>
+              <v-list-item-title class="artist-filter-menu__title">{{ getArtistLabel(item.raw) }}</v-list-item-title>
+              <v-list-item-subtitle>Birth: {{ formatBirthDate(item.raw.birth) }}</v-list-item-subtitle>
+            </v-list-item>
+          </template>
+          <template #selection="{ item }">
+            <span class="block truncate">
+              {{ getArtistLabel(item.raw) }}
+            </span>
+          </template>
+        </v-autocomplete>
+      </div>
       <button class="h-[42px] px-4 text-sm border rounded-md hover:bg-gray-100 transition" @click="resetFilters">Reset</button>
       <button class="h-[42px] px-4 text-sm rounded-md bg-gray-800 text-white hover:bg-gray-900 transition" @click="onFilterChange">Submit</button>
     </div>
@@ -934,7 +978,7 @@ watch([page, limit], () => {
                     label="Starring"
                     v-model="selectedDrama.starring"
                     :items="artistOptions"
-                    :item-title="item => `${item.artist_en_name || item.artist_id} (${item.artist_kr_name || ''})`"
+                    :item-title="getArtistLabel"
                     item-value="id"
                     multiple
                     chips
@@ -950,13 +994,13 @@ watch([page, limit], () => {
                           <v-img :src="item.raw.image" alt="" />
                         </v-avatar>
                       </template>
-                      <v-list-item-title>{{ `${item.raw.artist_en_name || item.raw.artist_id} (${item.raw.artist_kr_name || ''})` }}</v-list-item-title>
+                      <v-list-item-title>{{ getArtistLabel(item.raw) }}</v-list-item-title>
                       <v-list-item-subtitle>Birth: {{ formatBirthDate(item.raw.birth) }}</v-list-item-subtitle>
                     </v-list-item>
                   </template>
                   <template #selection="{ item }">
                     <v-chip size="small" class="ma-1" label>
-                      {{ `${item.raw.artist_en_name || item.raw.artist_id} (${item.raw.artist_kr_name || ''})` }}
+                      {{ getArtistLabel(item.raw) }}
                     </v-chip>
                   </template>
                 </v-autocomplete>
@@ -1141,4 +1185,11 @@ watch([page, limit], () => {
 </template>
 
 <style scoped>
+:global(.artist-filter-menu .v-list-item-title),
+:global(.artist-filter-menu .v-list-item-subtitle),
+.artist-filter-menu__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

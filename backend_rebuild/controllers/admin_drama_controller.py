@@ -21,6 +21,7 @@ class AdminDramaController:
             order = request.args.get("order", "asc")
             type = request.args.get("type")
             status = request.args.get("status")
+            artist_id = request.args.get("artist_id")
 
             broadcast_year = request.args.get("broadcast_year")
 
@@ -38,6 +39,12 @@ class AdminDramaController:
 
             if type:
                 query["type"] = {"$in": type.split(",")}
+
+            if artist_id:
+                try:
+                    query["starring"] = ObjectId(artist_id)
+                except Exception:
+                    pass
 
             now = datetime.utcnow()
             if status == "upcoming":
