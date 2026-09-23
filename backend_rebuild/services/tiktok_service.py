@@ -29,7 +29,8 @@ class TiktokService:
         before_record = (
             Tiktok.objects(
                 tiktok_id=tiktok_id,
-                datetime__lte=before_target
+                datetime__gte=before_target,
+                datetime__lt=campaign_start
             )
             .order_by("-datetime")
             .first()
@@ -39,7 +40,8 @@ class TiktokService:
         after_record = (
             Tiktok.objects(
                 tiktok_id=tiktok_id,
-                datetime__lte=after_target
+                datetime__gte=campaign_start,
+                datetime__lt=after_target
             )
             .order_by("-datetime")
             .first()

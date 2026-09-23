@@ -112,7 +112,7 @@ onMounted(fetchData)
       <template v-slot:title>
         <div class="text-left mb-2 font-semibold text-base text-gray-800">
           <span>
-            {{ $t(props.value.title) }}
+            {{ $t(`campaign.${props.value.title}`) }}
           </span>
           <v-tooltip
               location="bottom"

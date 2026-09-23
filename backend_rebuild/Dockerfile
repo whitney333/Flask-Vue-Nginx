@@ -8,13 +8,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python -m pip install --upgrade pip
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
 RUN pip install "setuptools<81" wheel
 RUN pip install pandas
 RUN pip install -i https://mirrors.aliyun.com/pypi/simple gunicorn
 RUN pip install gevent>=22.10.2
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt
 
 COPY . .
 

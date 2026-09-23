@@ -4,7 +4,8 @@ services:
     container_name: t024-ssh-tunnel
     volumes:
       # mount /tmp/MongoDB.pem
-      - ./backend_rebuild/MongoDB.pem:/tmp/MongoDB.pem:ro
+      # override with MONGODB_PEM_PATH in a root .env file (gitignored)
+      - ${MONGODB_PEM_PATH:-./backend_rebuild/MongoDB.pem}:/tmp/MongoDB.pem:ro
     env_file:
       - ./backend_rebuild/.env.development
     command: >
@@ -16,6 +17,9 @@ services:
       ssh -o StrictHostKeyChecking=no -N -L 0.0.0.0:27999:127.0.0.1:27017 \$${SSH_USER}@\$${SSH_HOST} -p 22
       "
     restart: always
+    ports:
+      # expose the tunnel to the host so the backend can run natively (DB_URI=localhost:27999)
+      - "127.0.0.1:27999:27999"
     networks:
       - app-network
 

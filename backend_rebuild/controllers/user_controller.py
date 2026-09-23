@@ -5,7 +5,6 @@ from services.user_service import UserService
 import datetime
 from mongoengine import ValidationError, DoesNotExist
 from flask import request, jsonify, g
-import uuid
 from functools import wraps
 from firebase_admin import auth
 from bson import json_util
@@ -249,9 +248,43 @@ class UserController:
             }), 401
 
     @classmethod
+    def get_user_followed_artist_by_id(cls):
+        if not getattr(g, "firebase_id", None):
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+        user = Users.objects(firebase_id=g.firebase_id).first()
+        print("g.firebase_id: ", g.firebase_id)
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 404
+        followed = getattr(user, "followed_artist", []) or []
+        # find all followed artist. return Artist object
+        # followed = user.followed_artist
+
+        artist_data = list()
+        # get user followed artist
+        for artist in followed:
+            artist_data.append({
+                "id": str(artist.id) if artist.id else None,
+                "artist_id": artist.artist_id,
+                "english_name": artist.english_name,
+                "korean_name": artist.korean_name,
+                "image": artist.image_url
+            })
+
+        return jsonify({
+            "status": "success",
+            "data": artist_data
+        }), 200
+
+    @classmethod
+
     def check_user_exists(cls):
         data = request.get_json(silent=True) or {}
         logger.debug(f"Checking user exists: {data}")
+
         request_uid = getattr(g, "firebase_id", None)
         if not request_uid:
             return jsonify({"error": "Unauthorized"}), 401
@@ -266,6 +299,7 @@ class UserController:
         user = Users.objects(firebase_id=firebase_uid).first()
 
         if user:
+
             # print(user)
             return jsonify({
                 "exists": True,

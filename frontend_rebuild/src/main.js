@@ -29,6 +29,7 @@ firebase()
 const app = createApp(App);
 const pinia = createPinia();
 
+
 // register ag-grid
 ModuleRegistry.registerModules([AllCommunityModule]);
 

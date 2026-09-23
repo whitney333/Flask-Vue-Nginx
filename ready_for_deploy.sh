@@ -28,16 +28,18 @@ services:
   # generates frontend
   frontend:
     image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-frontend:$frontend_version"
+    container_name: t024-frontend
     depends_on:
         - backend
     ports:
       - 8080:80
-    restart: always
+    restart: on-failure
     networks:
       - app-network
 
   backend:
     image: "417696335634.dkr.ecr.ap-northeast-1.amazonaws.com/mishkan-backend:$backend_version"
+    container_name: t024-backend
     ports:
       - 5001:5001
     environment:
@@ -47,7 +49,7 @@ services:
       - firebase_service_account
     env_file:
       - ./backend_rebuild/.env.production
-    restart: always
+    restart: on-failure
     networks:
       - app-network
 

@@ -89,11 +89,11 @@
           // get followed artists list
           if (exists === true) {
             const getFollowedArtists = await axios.get(
-                "/user/v1/followed_artists",
-                {headers: {
+                "/user/v1/followed_artists", {
+              headers: {
                 Authorization: `Bearer ${idToken}`,
-              },
-              timeout: 10000
+                timeout: 10000
+              }
             });
             // store followed artist
             userStore.setFollowedArtists(getFollowedArtists.data.data || []);
