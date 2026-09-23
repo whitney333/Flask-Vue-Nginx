@@ -340,6 +340,35 @@
     "no_more_artists": "No more artists",
     "upgrade_to_standard_to_follow_more": "Upgrade to Standard to follow more",
     "cancel": "Cancel",
-    "artist_limit_reached": "Your current plan allows up to {count} artist. Upgrade to Standard to follow more. | Your current plan allows up to {count} artists."
+    "artist_limit_reached": "Your current plan allows up to {count} artist. Upgrade to Standard to follow more. | Your current plan allows up to {count} artists.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "billed_monthly": "Billed Monthly",
+    "billed_yearly": "Billed Yearly",
+    "starter": "Starter",
+    "standard": "Standard",
+    "free_plan": "Free Plan",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "For focused tracking of a smaller artist roster",
+        "features": [
+          "Artist online presence data aggregation",
+          "Campaign performance tracking",
+          "Campaign analytics",
+          "Up to 5 artists (At least 1 own company artist)"
+        ]
+      },
+      "standard": {
+        "name": "Standard",
+        "description": "For growing teams managing more artists",
+        "features": [
+          "Artist online presence data aggregation",
+          "Campaign performance tracking",
+          "Campaign analytics",
+          "Up to 20 artists (At least 1 own company artist)"
+        ]
+      }
+    }
   }
 }

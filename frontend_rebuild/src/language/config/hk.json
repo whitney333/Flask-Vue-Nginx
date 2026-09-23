@@ -336,6 +336,35 @@
     "no_more_artists": "沒有更多藝人",
     "upgrade_to_standard_to_follow_more": "升級至 Standard 以關注更多演出者",
     "cancel": "取消",
-    "artist_limit_reached": "你目前的方案最多可追蹤 {count} 位藝人。升級至 Standard 以追蹤更多藝人。 | 你目前的方案最多可追蹤 {count} 位藝人。"
+    "artist_limit_reached": "你目前的方案最多可追蹤 {count} 位藝人。升級至 Standard 以追蹤更多藝人。 | 你目前的方案最多可追蹤 {count} 位藝人。",
+    "monthly": "按月",
+    "yearly": "按年",
+    "billed_monthly": "按月扣款",
+    "billed_yearly": "按年扣款",
+    "starter": "入門版",
+    "standard": "標準版",
+    "free_plan": "免費方案",
+    "plans": {
+      "starter": {
+        "name": "入門版",
+        "description": "適合追蹤較小規模嘅藝人名單",
+        "features": [
+          "藝人網上曝光數據整合",
+          "活動成效追蹤",
+          "活動分析",
+          "最多 5 位藝人（至少 1 位自家公司藝人）"
+        ]
+      },
+      "standard": {
+        "name": "標準版",
+        "description": "適合管理更多藝人嘅成長型團隊",
+        "features": [
+          "藝人網上曝光數據整合",
+          "活動成效追蹤",
+          "活動分析",
+          "最多 20 位藝人（至少 1 位自家公司藝人）"
+        ]
+      }
+    }
   }
 }
