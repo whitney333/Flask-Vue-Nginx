@@ -23,11 +23,14 @@ import ProfileView from "@/views/Auth/ProfileView.vue";
 import ComingSoonView from "@/views/Campaign/Coming_SoonView.vue"
 import Admin_Layout from "@/layouts/Admin_Layout.vue"
 import Admin_CampaignView from "@/views/Admin/AdminCampaignsView.vue"
+import Admin_OfflineEventView from "@/views/Admin/Admin_OfflineEventView.vue";
+import Admin_EventDetailView from "@/views/Admin/Admin_EventDetailView.vue";
 import Admin_UserView from "@/views/Admin/AdminUsersView.vue"
 import Admin_TenantView from "@/views/Admin/AdminTenantsView.vue"
 import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
 import Admin_DramaView from "@/views/Admin/AdminDramasView.vue";
 import Payment_SuccessView from "@/views/Payment/Payment_successView.vue"
+import Admin_CampaignLayout from "@/layouts/Admin_CampaignLayout.vue";
 
 
 const routes = [
@@ -116,7 +119,42 @@ const routes = [
             requireAdmin: true
         },
         children: [
-            { path: 'campaigns', name: 'Manage Campaign', component: Admin_CampaignView, meta: { requireAuth: true, requireAdmin: true }},
+            { path: 'campaigns',
+              name: 'Manage Campaign',
+              component: Admin_CampaignLayout,
+              meta: {
+                requireAuth: true,
+                requireAdmin: true
+            },
+            children: [
+                { path: '',
+                  redirect: { name: 'Online Campaigns' }
+                },
+                { path: 'online',
+                  name: 'Online Campaigns',
+                  component: Admin_CampaignView,
+                  meta: {
+                      requireAuth: true,
+                      requireAdmin: true
+                  }
+                },
+                { path: 'offline',
+                  name: 'Offline Event',
+                  component:  Admin_OfflineEventView,
+                  meta: {
+                      requireAuth: true,
+                      requireAdmin: true
+                  }
+                },
+            ]},
+            {  path: '/admin/events/:id',
+               name: 'Admin Event Detail',
+               component: Admin_EventDetailView,
+               meta: {
+                    requireAuth: true,
+                    requireAdmin: true
+               }
+            },
             { path: 'users', name: 'Manage Users', component: Admin_UserView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'tenants', name: 'Manage Tenants', component: Admin_TenantView, meta: { requireAuth: true, requireAdmin: true }},
             { path: 'artists', name: 'Manage Artists', component: Admin_ArtistView, meta: { requireAuth: true, requireAdmin: true }},
