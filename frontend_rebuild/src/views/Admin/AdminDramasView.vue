@@ -405,6 +405,7 @@ const uploadThumbnail = async () => {
   const formData = new FormData()
   formData.append("file", thumbnailFile.value)
   formData.append("drama_id", selectedDrama.value.drama_id)
+  formData.append("name", selectedDrama.value.name)
 
   try {
     const res = await axios.post(
@@ -895,7 +896,7 @@ watch([page, limit], () => {
               <img
                   v-if="d.thumbnail"
                   :src="d.thumbnail"
-                  class="w-12 aspect-[9/16] object-cover rounded" />
+                  class="w-12 aspect-[2/3] object-cover rounded" />
               <span v-else>-</span>
             </td>
             <td class="px-4 py-2">{{ d.name }}</td>
