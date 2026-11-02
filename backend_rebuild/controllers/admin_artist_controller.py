@@ -604,8 +604,20 @@ class AdminArtistController:
             )
             # url = f"https://{bucket}.s3.{region}.amazonaws.com/artist-profile/{filename}"
             url = f"https://{cdn_domain}/{s3_key}"
-            print(url)
-            return jsonify({"url": url}), 200
+
+            artist = Artists.objects(artist_id=artist_id).first()
+
+            if not artist:
+                return jsonify({
+                    "error": "Artist not found"
+                }), 404
+
+            artist.update(set__image_url=url)
+
+            return jsonify({
+                "url": url,
+                "message": "Artist image uploaded and updated successfully"
+            }), 200
 
         except Exception as e:
             return jsonify({

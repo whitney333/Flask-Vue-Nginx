@@ -16,6 +16,7 @@ const debutYears = Array.from({ length: currentYear - 1950 + 1 }, (_, i) => 1950
 const birthYears = Array.from({ length: currentYear - 1950 + 1 }, (_, i) => 1950 + i)
 
 const profileImageFile = ref(null);
+const uploading = ref(false)
 const artists = ref([]);
 const loading = ref(false);
 const userStore = useUserStore();
@@ -30,7 +31,7 @@ const totalPages = computed(() => Math.ceil(total.value / limit.value));
 
 // edit artist info
 const showEditDialog = ref(false);
-const selectedArtist = ref([]);
+const selectedArtist = ref({});
 const groupOptions = ref([]);
 const groupLoading = ref(false);
 const detailLoading = ref(false);
@@ -397,21 +398,32 @@ const uploadImage = async () => {
   // console.log("artist_name", selectedArtist.value.artist_en_name)
 
   try {
+    uploading.value = true
+
     const res = await axios.post(
       "/admin/v1/artists/upload/image",
       formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data"
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         }
-      }
     )
 
-    selectedArtist.image = res.data.url
+    selectedArtist.value.image = res.data.url
     profileImageFile.value = null
   } catch (err) {
-    console.error(err)
-    alert("Upload failed")
+    console.error("Upload failed:", err)
+    console.error("Response:", err.response?.data)
+    console.error("Status:", err.response?.status)
+
+    alert(
+        err.response?.data?.error ||
+        err.message ||
+        "Upload failed"
+    )
+  } finally {
+    uploading.value = false
   }
 }
 
@@ -1356,6 +1368,8 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                             v-model="selectedArtist.image"
                             label="Profile Image URL"
                             variant="underlined"
+                            readonly
+                            class="flex-1"
                         />
                         <!-- Local File -->
                         <v-file-input
@@ -1373,7 +1387,8 @@ watch(() => selectedArtist.value.tenant_id, (newId) => {
                         <v-btn
                             color="indigo"
                             @click="uploadImage"
-                            :disabled="!profileImageFile"
+                            :disabled="!profileImageFile || uploading"
+                            :loading="uploading"
                         >
                           Upload
                         </v-btn>
