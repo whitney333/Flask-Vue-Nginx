@@ -15,6 +15,10 @@ const props = defineProps({
 
 // formatting function
 const formatNum = (val) => Number(val || 0).toLocaleString('en-US');
+const netSold = item => {
+  if (item.net_sold != null) return Number(item.net_sold) || 0;
+  return Math.max(0, (Number(item.sold) || 0) - (Number(item.refund) || 0));
+};
 
 const chartOptions = computed(() => ({
   chart: {
@@ -78,11 +82,10 @@ const series = computed(() => {
     return [];
   }
 
-  const netSoldData = props.ticketItems.map(item => Number(item.net_sold) || 0);
+  const netSoldData = props.ticketItems.map(item => netSold(item));
   const remainingData = props.ticketItems.map(item => {
     const total = Number(item.total_quantity) || 0;
-    const netSold = Number(item.net_sold) || 0;
-    return Math.max(0, total - netSold);
+    return Math.max(0, total - netSold(item));
   });
 
   return [

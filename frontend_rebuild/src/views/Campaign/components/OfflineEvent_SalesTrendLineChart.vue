@@ -17,7 +17,7 @@ const props = defineProps({
   },
   colors: {
     type: Array,
-    default: () => ['#4F46E5', '#9333EA'] // Ticket: Indigo, Benefit: Purple
+    default: () => ['#2563EB', '#F97316'] // Ticket: Indigo, Benefit: Purple
   }
 });
 
