@@ -385,5 +385,21 @@
         ]
       }
     }
+  },
+  "currency": {
+    "usd": "USD",
+    "cad": "CAD",
+    "eur": "EUR",
+    "gbp": "GBP",
+    "cny": "CNY",
+    "hkd": "HKD",
+    "twd": "TWD",
+    "jpy": "JPY",
+    "krw": "KRW",
+    "sgd": "SGD",
+    "myr": "MYR",
+    "thb": "THB",
+    "idr": "IDR",
+    "vnd": "VND"
   }
 }
