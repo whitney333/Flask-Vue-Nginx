@@ -413,9 +413,9 @@ const uploadImage = async () => {
     selectedArtist.value.image = res.data.url
     profileImageFile.value = null
   } catch (err) {
-    console.error("Upload failed:", err)
-    console.error("Response:", err.response?.data)
-    console.error("Status:", err.response?.status)
+    // console.error("Upload failed:", err)
+    // console.error("Response:", err.response?.data)
+    // console.error("Status:", err.response?.status)
 
     alert(
         err.response?.data?.error ||

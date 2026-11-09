@@ -28,7 +28,7 @@ const filters = ref({
 const emptyEvent = () => ({
   event_name: "",
   type: "",
-  artist_id: "",
+  artist_ids: [],
   event_date: "",
   session: "",
   held_country: "",
@@ -77,7 +77,7 @@ const getArtistLabel = (artist) => {
 const buildPayload = (event) => ({
   event_name: event.event_name,
   type: event.type,
-  artist_id: event.artist_id,
+  artist_ids: event.artist_ids,
   event_date: event.event_date,
   session: event.session,
   held_country: event.held_country,
@@ -236,12 +236,15 @@ watch([page, limit], () => {
             </v-col>
             <v-col cols="12">
               <v-autocomplete
-                  v-model="newEvent.artist_id"
+                  v-model="newEvent.artist_ids"
                   :items="artistOptions"
                   :item-title="getArtistLabel"
                   item-value="id"
                   label="Artist"
                   clearable
+                  multiple
+                  chips
+                  closable-chips
                   variant="underlined">
                 <template #item="{ props, item }">
                   <v-list-item v-bind="props" :title="undefined" :subtitle="undefined">
@@ -349,6 +352,7 @@ watch([page, limit], () => {
         <tr>
           <th class="px-6 py-3">Event ID</th>
           <th class="px-6 py-3">Event Name</th>
+          <th class="px-6 py-3">Type</th>
           <th class="px-6 py-3">Show Date</th>
           <th class="px-6 py-3">Show Session</th>
           <th class="px-6 py-3">Artist Name</th>
@@ -367,6 +371,20 @@ watch([page, limit], () => {
             class="border-t hover:bg-gray-50 transition cursor-pointer">
           <td class="px-6 py-3 font-mono">{{ event.event_id }}</td>
           <td class="px-6 py-3">{{ event.event_name }}</td>
+          <td class="px-6 py-3">
+            <span
+                class="px-2.5 py-1 text-xs font-semibold rounded-full inline-flex items-center gap-1"
+                :class="{
+                  'bg-blue-50 text-blue-700 border border-blue-100': event.type === 'Concert',
+                  'bg-purple-50 text-purple-700 border border-purple-100': event.type === 'Fan Meeting',
+                  'bg-emerald-50 text-emerald-700 border border-emerald-100': event.type === 'Festival',
+                  'bg-amber-50 text-amber-700 border border-amber-100': event.type === 'Showcase',
+                  'bg-rose-50 text-rose-700 border border-rose-100': event.type === 'Award Show',
+                  'bg-gray-100 text-gray-700 border border-gray-200': !['Concert', 'Fan Meeting', 'Festival', 'Showcase', 'Award Show'].includes(event.type)
+                }">
+              {{ event.type || '-' }}
+            </span>
+          </td>
           <td class="px-6 py-3">{{ formatDate(event.event_date) }}</td>
           <td class="px-6 py-3">{{ event.session || '-' }}</td>
           <td class="px-6 py-3">{{ event.artist_name || '-' }}</td>

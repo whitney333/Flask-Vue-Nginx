@@ -1008,9 +1008,26 @@ watch([page, limit], () => {
               </v-col>
               <v-col cols="12">
                 <div class="d-flex align-center gap-2">
-                  <v-text-field v-model="selectedDrama.thumbnail" label="Thumbnail URL" variant="underlined" :readonly="!editSection.basic" />
-                  <v-file-input v-if="editSection.basic" v-model="thumbnailFile" accept="image/*" label="Upload" prepend-icon="mdi-image" density="comfortable" hide-details />
-                  <v-btn v-if="editSection.basic" color="indigo" @click="uploadThumbnail" :disabled="!thumbnailFile">Upload</v-btn>
+                  <v-text-field
+                      v-model="selectedDrama.thumbnail"
+                      label="Thumbnail URL"
+                      variant="underlined"
+                      :readonly="!editSection.basic" />
+                  <v-file-input
+                      v-if="editSection.basic"
+                      v-model="thumbnailFile"
+                      accept="image/*"
+                      label="Upload"
+                      prepend-icon="mdi-image"
+                      density="comfortable"
+                      hide-details />
+                  <v-btn
+                      v-if="editSection.basic"
+                      color="indigo"
+                      @click="uploadThumbnail"
+                      :disabled="!thumbnailFile">
+                    Upload
+                  </v-btn>
                 </div>
               </v-col>
             </v-row>
