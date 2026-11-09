@@ -3,6 +3,12 @@ from bson import ObjectId
 from models.tenant_model import Tenant
 from flask import jsonify, request
 from datetime import datetime
+import os
+import io
+import re
+import boto3
+from dotenv import load_dotenv
+from PIL import Image
 
 
 class AdminDramaController:
@@ -325,3 +331,147 @@ class AdminDramaController:
         # Implementation depends on what 'status' means, usually it's a soft delete or visibility toggle
         # For now, let's just placeholder it
         return jsonify({"message": "Status updated"}), 200
+
+    @staticmethod
+    def sanitize_drama_filename(drama_id, english_name):
+        # English name to lowercase
+        clean_name = (english_name or "").strip().lower()
+
+        # Replace whitespace with underscores
+        clean_name = re.sub(r"\s+", "_", clean_name)
+
+        # Remove punctuation and special characters
+        # Keep only lowercase letters, numbers, and underscores
+        clean_name = re.sub(r"[^a-z0-9_]", "", clean_name)
+
+        # Remove leading and trailing underscores
+        clean_name = clean_name.strip("_") or "drama"
+
+        return f"{drama_id}_{clean_name}"
+
+    @classmethod
+    def upload_thumbnail(cls):
+        file = request.files.get("file")
+        drama_id = request.form.get("drama_id", "").strip()
+        english_name = request.form.get("name", "")
+
+        if not file:
+            return jsonify({
+                "error": "No file provided"
+            }), 400
+
+        if not drama_id:
+            return jsonify({
+                "error": "Drama ID is required"
+            }), 400
+
+        if not english_name.strip():
+            return jsonify({
+                "error": "English name is required"
+            }), 400
+
+        ext = file.filename.rsplit(".", 1)[-1].lower() \
+            if "." in file.filename else ""
+
+        if ext not in {"jpg", "jpeg", "png", "webp"}:
+            return jsonify({
+                "error": "Invalid file type"
+            }), 400
+
+        clean_name = cls.sanitize_drama_filename(
+            drama_id,
+            english_name
+        )
+
+        filename = f"{clean_name}.jpg"
+        s3_key = f"drama/{filename}"
+
+        try:
+            environment = os.getenv("FLASK_ENV", "development")
+            env_file = f".env.{environment}"
+
+            if os.path.exists(env_file):
+                load_dotenv(dotenv_path=env_file)
+
+            # Initialize S3 client
+            client = boto3.client(
+                "s3",
+                region_name=os.getenv("AWS_S3_REGION"),
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            )
+
+            bucket = os.getenv("AWS_S3_BUCKET")
+            cdn_domain = os.getenv("AWS_CDN_DOMAIN", "").strip().rstrip("/")
+
+            if not bucket or not cdn_domain:
+                return jsonify({
+                    "error": "S3 bucket or CDN domain is not configured"
+                }), 500
+
+            # Image processing
+            img = Image.open(file.stream).convert("RGB")
+
+            # Resize thumbnail
+            img = img.resize((300, 300), Image.LANCZOS)
+
+            # Compress image
+            buffer = io.BytesIO()
+            quality = 85
+            min_quality = 40
+
+            img.save(
+                buffer,
+                format="JPEG",
+                optimize=True,
+                quality=quality
+            )
+
+            while buffer.tell() > 80 * 1024 and quality > min_quality:
+                buffer.seek(0)
+                buffer.truncate(0)
+
+                quality -= 5
+
+                img.save(
+                    buffer,
+                    format="JPEG",
+                    optimize=True,
+                    quality=quality
+                )
+
+            buffer.seek(0)
+
+            # Upload image to S3
+            client.upload_fileobj(
+                buffer,
+                bucket,
+                s3_key,
+                ExtraArgs={
+                    "ContentType": "image/jpeg",
+                    "CacheControl": "public, max-age=31536000"
+                }
+            )
+
+            # Return CDN URL
+            url = f"https://{cdn_domain}/{s3_key}"
+
+            # Update thumbnail URL in MongoDB
+            drama = Drama.objects(drama_id=drama_id).first()
+
+            if not drama:
+                return jsonify({
+                    "error": "Drama not found"
+                }), 404
+
+            drama.update(set__thumbnail_url=url)
+
+            return jsonify({
+                "url": url,
+                "message": "Thumbnail uploaded and updated successfully"
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "error": str(e)
+            }), 500

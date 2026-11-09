@@ -3,6 +3,7 @@ from controllers.admin_tenant_controller import AdminTenantController
 from controllers.admin_artist_controller import AdminArtistController
 from controllers.admin_user_controller import AdminUserController
 from controllers.admin_drama_controller import AdminDramaController
+from controllers.admin_event_controller import AdminEventController
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
 from libs.utils import auth_required, admin_required
@@ -185,6 +186,12 @@ def update_user(user_id):
     pass
 
 ##### Drama routes #####
+@admin_bp.route("/v1/dramas/upload/thumbnail", methods=["POST"])
+@admin_required
+def upload_drama_thumbnail():
+    result = AdminDramaController.upload_thumbnail()
+    return result
+
 @admin_bp.route("/v1/dramas", methods=["GET"])
 @admin_required
 def get_all_dramas():
@@ -212,6 +219,58 @@ def update_drama(drama_id):
     result = AdminDramaController.update_drama(drama_id)
 
     return result
+
+##### Offline event routes #####
+@admin_bp.route("/v1/events", methods=["GET"])
+@admin_required
+def get_all_events():
+    result = AdminEventController.get_events()
+
+    return result
+
+@admin_bp.route("/v1/events", methods=["POST"])
+@admin_required
+def add_event():
+    result = AdminEventController.create_event()
+
+    return result
+
+@admin_bp.route("/v1/events/<string:event_id>", methods=["GET"])
+@admin_required
+def get_event_by_id(event_id):
+    result = AdminEventController.get_event(event_id)
+
+    return result
+
+@admin_bp.route("/v1/events/<string:event_id>", methods=["PATCH"])
+@admin_required
+def update_event(event_id):
+    result = AdminEventController.update_event(event_id)
+
+    return result
+
+@admin_bp.route("/v1/events/<string:event_id>", methods=["DELETE"])
+@admin_required
+def delete_event(event_id):
+    result = AdminEventController.delete_event(event_id)
+
+    return result
+
+##### Offline event snapshot routes #####
+@admin_bp.route("/v1/events/<string:event_id>/snapshots", methods=["GET"])
+@admin_required
+def get_event_snapshots(event_id):
+    return AdminEventController.get_snapshots(event_id)
+
+@admin_bp.route("/v1/events/<string:event_id>/snapshots", methods=["POST"])
+@admin_required
+def add_event_snapshot(event_id):
+    return AdminEventController.create_snapshot(event_id)
+
+@admin_bp.route("/v1/snapshots/<string:snapshot_id>", methods=["DELETE"])
+@admin_required
+def delete_event_snapshot(snapshot_id):
+    return AdminEventController.delete_snapshot(snapshot_id)
 
 # @admin_bp.route("/v1/dramas/<string:drama_id>/status", methods=["PATCH"])
 # @admin_required

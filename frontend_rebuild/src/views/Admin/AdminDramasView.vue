@@ -405,6 +405,7 @@ const uploadThumbnail = async () => {
   const formData = new FormData()
   formData.append("file", thumbnailFile.value)
   formData.append("drama_id", selectedDrama.value.drama_id)
+  formData.append("name", selectedDrama.value.name)
 
   try {
     const res = await axios.post(
@@ -895,7 +896,7 @@ watch([page, limit], () => {
               <img
                   v-if="d.thumbnail"
                   :src="d.thumbnail"
-                  class="w-12 aspect-[9/16] object-cover rounded" />
+                  class="w-12 aspect-[2/3] object-cover rounded" />
               <span v-else>-</span>
             </td>
             <td class="px-4 py-2">{{ d.name }}</td>
@@ -1007,9 +1008,26 @@ watch([page, limit], () => {
               </v-col>
               <v-col cols="12">
                 <div class="d-flex align-center gap-2">
-                  <v-text-field v-model="selectedDrama.thumbnail" label="Thumbnail URL" variant="underlined" :readonly="!editSection.basic" />
-                  <v-file-input v-if="editSection.basic" v-model="thumbnailFile" accept="image/*" label="Upload" prepend-icon="mdi-image" density="comfortable" hide-details />
-                  <v-btn v-if="editSection.basic" color="indigo" @click="uploadThumbnail" :disabled="!thumbnailFile">Upload</v-btn>
+                  <v-text-field
+                      v-model="selectedDrama.thumbnail"
+                      label="Thumbnail URL"
+                      variant="underlined"
+                      :readonly="!editSection.basic" />
+                  <v-file-input
+                      v-if="editSection.basic"
+                      v-model="thumbnailFile"
+                      accept="image/*"
+                      label="Upload"
+                      prepend-icon="mdi-image"
+                      density="comfortable"
+                      hide-details />
+                  <v-btn
+                      v-if="editSection.basic"
+                      color="indigo"
+                      @click="uploadThumbnail"
+                      :disabled="!thumbnailFile">
+                    Upload
+                  </v-btn>
                 </div>
               </v-col>
             </v-row>
