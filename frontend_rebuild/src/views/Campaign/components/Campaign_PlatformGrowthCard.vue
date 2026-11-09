@@ -13,13 +13,13 @@ const props = defineProps({
 })
 
 const platforms = [
-  { key: "instagram", label: "Instagram" },
-  { key: "spotify", label: "Spotify" },
-  { key: "threads", label: "Threads" },
-  { key: "tiktok", label: "Tiktok" },
-  { key: "youtube", label: "Youtube" },
-  { key: "bilibili", label: "Bilibili"},
-  { key : "weibo", label: "Weibo" }
+  { key: "instagram", label: "instagram" },
+  { key: "spotify", label: "spotify" },
+  { key: "threads", label: "threads" },
+  { key: "tiktok", label: "tiktok" },
+  { key: "youtube", label: "youtube" },
+  { key: "bilibili", label: "bilibili"},
+  { key : "weibo", label: "weibo" }
 ]
 
 const platformIconMap = {
