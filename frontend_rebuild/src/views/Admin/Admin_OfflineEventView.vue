@@ -3,11 +3,13 @@ import {computed, onMounted, ref, watch} from "vue";
 import {useRouter} from "vue-router";
 import axios from "@/axios";
 import {indexToCountry} from "@/libs/utils.js";
+import {loadAdminArtistOptions} from "@/libs/adminArtistOptions.js";
 
 const router = useRouter();
 
 const events = ref([]);
 const artistOptions = ref([]);
+const artistsLoading = ref(false);
 const loading = ref(false);
 
 const showAddDialog = ref(false);
@@ -108,13 +110,16 @@ const fetchEvents = async () => {
   }
 };
 
+// The artist list is large and only needed in the Add dialog: load it when the dialog opens.
 const fetchArtistOptions = async () => {
+  artistsLoading.value = true;
   try {
-    const res = await axios.get("/admin/v1/artists/list");
-    artistOptions.value = Array.isArray(res.data?.data) ? res.data.data : [];
+    artistOptions.value = await loadAdminArtistOptions();
   } catch (err) {
     console.error("Error fetching artist list:", err);
-    artistOptions.value = [];
+    showMessage("Failed to load artists. Close and reopen the form to retry.", "error");
+  } finally {
+    artistsLoading.value = false;
   }
 };
 
@@ -181,7 +186,10 @@ const onPageChange = (newPage) => {
 
 onMounted(() => {
   fetchEvents();
-  fetchArtistOptions();
+});
+
+watch(showAddDialog, (isOpen) => {
+  if (isOpen) fetchArtistOptions();
 });
 
 watch([page, limit], () => {
@@ -238,6 +246,7 @@ watch([page, limit], () => {
               <v-autocomplete
                   v-model="newEvent.artist_ids"
                   :items="artistOptions"
+                  :loading="artistsLoading"
                   :item-title="getArtistLabel"
                   item-value="id"
                   label="Artist"

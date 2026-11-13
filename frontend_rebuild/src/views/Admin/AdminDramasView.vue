@@ -2,6 +2,7 @@
 import {ref, onMounted, watch, computed} from "vue";
 import axios from "@/axios";
 import StatusChip from "@/components/StatusChip.vue"
+import {loadAdminArtistOptions} from "@/libs/adminArtistOptions.js";
 import {getAuth} from "firebase/auth";
 
 // dropdown list options
@@ -21,6 +22,7 @@ const loading = ref(false);
 const showDialog = ref(false);
 const datePickerMenu = ref(false);
 const artistOptions = ref([]);
+const artistsLoading = ref(false);
 
 // pagination
 const page = ref(1); // current page
@@ -163,16 +165,18 @@ const fetchDramas = async () => {
   }
 };
 
+// The artist list is large: load it on first use (artist filter, add or detail dialog),
+// then reuse it for the rest of the visit.
 const fetchArtistOptions = async () => {
+  if (artistOptions.value.length) return;
+  artistsLoading.value = true;
   try {
-    const res = await axios.get(
-        `/admin/v1/artists/list`,
-        {}
-    )
-    artistOptions.value = Array.isArray(res.data?.data) ? res.data.data : []
+    artistOptions.value = await loadAdminArtistOptions();
   } catch (err) {
     console.error("Error fetching artist list:", err)
-    artistOptions.value = []
+    showMessage("Failed to load artists. Please try again.", "error");
+  } finally {
+    artistsLoading.value = false;
   }
 };
 
@@ -490,7 +494,10 @@ const onPageChange = (newPage) => {
 
 onMounted(() => {
   fetchDramas();
-  fetchArtistOptions();
+});
+
+watch([showAddDialog, showDialog], ([isAddOpen, isDetailOpen]) => {
+  if (isAddOpen || isDetailOpen) fetchArtistOptions();
 });
 
 watch([page, limit], () => {
@@ -601,6 +608,7 @@ watch([page, limit], () => {
                   label="Starring"
                   v-model="newDrama.starring"
                   :items="artistOptions"
+                  :loading="artistsLoading"
                   :item-title="getArtistLabel"
                   item-value="id"
                   multiple
@@ -843,6 +851,8 @@ watch([page, limit], () => {
         <v-autocomplete
             v-model="filters.artist_id"
             :items="artistOptions"
+            :loading="artistsLoading"
+            @update:focused="(isFocused) => isFocused && fetchArtistOptions()"
             :item-title="getArtistLabel"
             item-value="id"
             density="compact"
@@ -979,6 +989,7 @@ watch([page, limit], () => {
                     label="Starring"
                     v-model="selectedDrama.starring"
                     :items="artistOptions"
+                    :loading="artistsLoading"
                     :item-title="getArtistLabel"
                     item-value="id"
                     multiple

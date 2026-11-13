@@ -1,6 +1,6 @@
 from datetime import datetime
 from bson import ObjectId
-from mongoengine.errors import DoesNotExist, ValidationError
+from mongoengine.errors import ValidationError
 from models.artist_model import Artists
 from models.event_model import (
     OfflineEvent,
@@ -75,33 +75,41 @@ class OfflineEventService:
         return resolved_event_artists
 
     @staticmethod
-    def serialize_event(event):
-        artists_data = []
-        if event.artists:
-            for item in event.artists:
-                # 嘗試即時 fetch 取得最新名稱，若失敗則使用內嵌快照名稱
-                en_name = item.artist_en_name
-                kr_name = item.artist_kr_name
-                a_id = None
-                try:
-                    if item.artist_id:
-                        fetched = item.artist_id.fetch()
-                        if fetched:
-                            en_name = fetched.english_name or en_name
-                            kr_name = fetched.korean_name or kr_name
-                            a_id = str(fetched.id)
-                except (DoesNotExist, AttributeError):
-                    pass
+    def _artist_lookup(events):
+        """Current names for every artist on these events, in ONE query (avoids N+1 fetches)."""
+        ids = {
+            item.artist_id.pk
+            for event in events
+            for item in (event.artists or [])
+            if item.artist_id
+        }
+        if not ids:
+            return {}
+        artists = Artists.objects(id__in=list(ids)).only("id", "english_name", "korean_name", "image_url")
+        return {artist.id: artist for artist in artists}
 
-                if not a_id and item.artist_id:
-                    a_id = str(item.artist_id.pk)
+    @staticmethod
+    def _serialize_event_artist(item, artists_by_id):
+        # 使用批次查詢取得最新名稱，若藝人已不存在則使用內嵌快照名稱
+        artist_pk = item.artist_id.pk if item.artist_id else None
+        current = artists_by_id.get(artist_pk) if artist_pk else None
+        a_id = str(artist_pk) if artist_pk else None
+        return {
+            "id": a_id,
+            "artist_id": a_id,
+            "artist_en_name": (current.english_name if current else None) or item.artist_en_name,
+            "artist_kr_name": (current.korean_name if current else None) or item.artist_kr_name,
+            "image": getattr(current, "image_url", None) if current else None,
+        }
 
-                artists_data.append({
-                    "id": a_id,
-                    "artist_id": a_id,
-                    "artist_en_name": en_name,
-                    "artist_kr_name": kr_name
-                })
+    @staticmethod
+    def serialize_event(event, artists_by_id=None):
+        if artists_by_id is None:
+            artists_by_id = OfflineEventService._artist_lookup([event])
+        artists_data = [
+            OfflineEventService._serialize_event_artist(item, artists_by_id)
+            for item in (event.artists or [])
+        ]
 
         # 為了向下相容前端單選欄位，取第一個藝人作為代表
         primary_artist = artists_data[0] if artists_data else {}
@@ -198,13 +206,14 @@ class OfflineEventService:
         events_query = OfflineEvent.objects(**query).order_by("-event_date")
         total = events_query.count()
         events = list(events_query.skip((page - 1) * limit).limit(limit))
+        artists_by_id = OfflineEventService._artist_lookup(events)
 
         return {
             "total": total,
             "page": page,
             "limit": limit,
             "count": len(events),
-            "data": [OfflineEventService.serialize_event(event) for event in events]
+            "data": [OfflineEventService.serialize_event(event, artists_by_id) for event in events]
         }
 
     @staticmethod

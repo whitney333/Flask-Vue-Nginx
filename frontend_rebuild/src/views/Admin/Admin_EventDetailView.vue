@@ -1,5 +1,7 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { loadAdminArtistOptions } from "@/libs/adminArtistOptions.js";
+import { resolveSelectedArtists } from "@/libs/artistOptions.js";
 import { useRoute, useRouter } from "vue-router";
 import axios from "@/axios";
 import html2pdf from 'html2pdf.js'
@@ -48,15 +50,11 @@ const eventData = ref({
 
 const originalEventData = ref({});
 
-const selectedArtistsList = computed(() => {
-  const selectedIds = Array.isArray(eventData.value.artist_ids)
-    ? eventData.value.artist_ids.map(String)
-    : [];
-
-  return artistOptions.value.filter(
-    artist => selectedIds.includes(String(artist.id))
-  );
-});
+// Read-only view uses the event's own artists; the full list (loaded in edit mode)
+// covers artists newly picked in the form.
+const selectedArtistsList = computed(() =>
+  resolveSelectedArtists(eventData.value.artist_ids, artistOptions.value, eventData.value.artists)
+);
 
 const toggleArtistSelection = (artistId) => {
   const selectedIds = Array.isArray(eventData.value.artist_ids)
@@ -278,11 +276,10 @@ const normalizeEvent = (event) => ({
 
 const fetchArtistOptions = async () => {
   try {
-    const res = await axios.get("/admin/v1/artists/list");
-    artistOptions.value = Array.isArray(res.data?.data) ? res.data.data : [];
+    artistOptions.value = await loadAdminArtistOptions();
   } catch (err) {
     console.error("Error fetching artist list:", err);
-    artistOptions.value = [];
+    showMessage("Failed to load artists. Leave edit mode and try again.", "error");
   }
 };
 
@@ -1012,8 +1009,12 @@ const exportEventPDF = async () => {
 
 onMounted(() => {
   fetchEventDetail();
-  fetchArtistOptions();
   fetchSnapshots();
+});
+
+// The artist list is large and only needed by the edit form: load it on entering edit mode.
+watch(editMode, (isEditing) => {
+  if (isEditing) fetchArtistOptions();
 });
 </script>
 
