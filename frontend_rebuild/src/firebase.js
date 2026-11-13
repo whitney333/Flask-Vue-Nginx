@@ -13,7 +13,9 @@ const firebase = async () => {
         measurementId: import.meta.env.VITE_API_FIREBASE_MEASUREMENTID
     };
 
-    initializeApp(firebaseConfig);
+    // Keep the returned app: a bare `app` here resolves to the <div id="app"> DOM element
+    // (browsers expose id'd elements as globals), which made getAuth() throw on startup.
+    const app = initializeApp(firebaseConfig);
     getAuth(app);
     console.log("Firebase running...");
 
