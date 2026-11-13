@@ -18,6 +18,7 @@ import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import "/node_modules/ag-grid-community/styles/ag-theme-quartz.css";
 // window.Apex.chart = { fontFamily: "Cairo, sans-serif" };
 import { useAuthStore } from "@/stores/auth"
+import { loadGoogleAnalytics } from '@/libs/siteScripts.js'
 import 'flag-icons/css/flag-icons.min.css'
 
 const vuetify = createVuetify({
@@ -41,13 +42,21 @@ app.use(VueApexCharts);
 app.use(i18n);
 app.use(pinia);
 
-if (import.meta.env.VITE_GA4_ID) {
+// Google Analytics: only when VITE_GA4_ID is set. Set up synchronously (before the first
+// route) so the first page view is queued; gtag.js itself loads async, so a blocker that
+// blocks it cannot stop the app. The loader's file name is neutral on purpose (see siteScripts.js).
+if (loadGoogleAnalytics(import.meta.env.VITE_GA4_ID)) {
   router.afterEach((to) => {
     if (typeof window.gtag === 'function') {
+      // public share URLs carry a secret token: report the route pattern, never the real URL
+      const pagePath = to.meta.public
+        ? (to.matched[to.matched.length - 1]?.path || '/share')
+        : to.fullPath
       window.gtag('event', 'page_view', {
-        page_path: to.fullPath,
-        page_title: document.title,
-        page_location: window.location.href
+        page_path: pagePath,
+        // the share page title is the (confidential) event name, so send a fixed one
+        page_title: to.meta.public ? 'Shared report' : document.title,
+        page_location: to.meta.public ? `${window.location.origin}${pagePath}` : window.location.href
       })
     }
   })
