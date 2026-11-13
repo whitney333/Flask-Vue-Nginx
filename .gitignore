@@ -1,3 +1,6 @@
 .env
 .DS_Store
 .playwright-mcp/
+
+# Fan meeting financial data (confidential, never commit)
+**/fanmeeting/data/

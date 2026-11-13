@@ -4,6 +4,7 @@ from controllers.admin_artist_controller import AdminArtistController
 from controllers.admin_user_controller import AdminUserController
 from controllers.admin_drama_controller import AdminDramaController
 from controllers.admin_event_controller import AdminEventController
+from controllers.event_share_controller import EventShareController
 from flask import Blueprint, jsonify, request
 from flask_restful import Api
 from libs.utils import auth_required, admin_required
@@ -255,6 +256,22 @@ def delete_event(event_id):
     result = AdminEventController.delete_event(event_id)
 
     return result
+
+##### Offline event share-link routes #####
+@admin_bp.route("/v1/events/<string:event_id>/share", methods=["GET"])
+@admin_required
+def get_event_share_link(event_id):
+    return EventShareController.get_share_link(event_id)
+
+@admin_bp.route("/v1/events/<string:event_id>/share", methods=["POST"])
+@admin_required
+def create_event_share_link(event_id):
+    return EventShareController.create_share_link(event_id)
+
+@admin_bp.route("/v1/events/<string:event_id>/share", methods=["DELETE"])
+@admin_required
+def revoke_event_share_link(event_id):
+    return EventShareController.revoke_share_link(event_id)
 
 ##### Offline event snapshot routes #####
 @admin_bp.route("/v1/events/<string:event_id>/snapshots", methods=["GET"])

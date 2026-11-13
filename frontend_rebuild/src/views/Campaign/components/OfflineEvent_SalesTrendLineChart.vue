@@ -18,6 +18,11 @@ const props = defineProps({
   colors: {
     type: Array,
     default: () => ['#2563EB', '#F97316'] // Ticket: Indigo, Benefit: Purple
+  },
+  // prefix for money values, e.g. '¥'; default keeps the original '$' output
+  currencySymbol: {
+    type: String,
+    default: '$'
   }
 });
 
@@ -42,10 +47,10 @@ const formatNumFunc = (value) => {
 
   if (unit) {
     const formatted = (num / unit.value).toFixed(1).replace(/\.0$/, '');
-    return `$${formatted}${unit.suffix}`;
+    return `${props.currencySymbol}${formatted}${unit.suffix}`;
   }
 
-  return `$${num.toLocaleString('en-US')}`;
+  return `${props.currencySymbol}${num.toLocaleString('en-US')}`;
 };
 
 const chartOptions = ref({

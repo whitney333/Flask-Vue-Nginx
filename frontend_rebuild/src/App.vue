@@ -1,10 +1,10 @@
 <script setup>
-    import { RouterView, useRouter } from 'vue-router';
+    import { RouterView, useRoute, useRouter } from 'vue-router';
     import { useDisplay } from 'vuetify';
     import Drawer from './components/Drawer.vue';
     import AppBar from './components/AppBar.vue';
     import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-    import { onMounted, ref } from 'vue';
+    import { computed, onMounted, ref } from 'vue';
     import { useArtistStore } from "@/stores/artist.js";
     import { useUserStore } from "@/stores/user.js";
 
@@ -15,6 +15,9 @@
 
 
     const router = useRouter()
+    const route = useRoute()
+    // public pages (artist share links) render without the app bar / drawer
+    const isPublicPage = computed(() => Boolean(route.meta.public))
     const isLoggedIn = ref(false)
     // desktop version default is true; mobile version will control by hamburger menu
     const drawer = ref(true)
@@ -59,10 +62,11 @@
 <template>
   <v-app class="font">
       <Drawer
-          v-if="isLoggedIn"
+          v-if="isLoggedIn && !isPublicPage"
           v-model="drawer"
       />
-      <AppBar :isLoggedIn="isLoggedIn"
+      <AppBar v-if="!isPublicPage"
+              :isLoggedIn="isLoggedIn"
               :handleSignOut="handleSignOut"
               :drawer="drawer"
               @toggle-drawer="toggleDrawer"

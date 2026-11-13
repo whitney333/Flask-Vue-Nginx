@@ -1,5 +1,19 @@
 import multiprocessing
 
+from gunicorn.glogging import Logger
+
+from libs.log_redaction import redact_atoms
+
+
+class ShareTokenRedactingLogger(Logger):
+    """Access logger that masks artist share-link tokens (they are bearer credentials)."""
+
+    def atoms(self, resp, req, environ, request_time):
+        return redact_atoms(super().atoms(resp, req, environ, request_time))
+
+
+logger_class = ShareTokenRedactingLogger
+
 # 默认'127.0.0.1:8000'，防火墙需开启对应端口
 bind = '0.0.0.0:5001'
 

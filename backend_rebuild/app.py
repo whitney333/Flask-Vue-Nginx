@@ -21,6 +21,7 @@ from routes.tenant_route import *
 from routes.campaign_route import *
 from routes.admin_route import *
 from routes.stripe_route import *
+from routes.share_route import share_bp
 from db_connect import connect_db
 from flask_cors import CORS
 import firebase_admin
@@ -97,6 +98,8 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(stripe_bp, url_prefix="/api/stripe")
     app.register_blueprint(weibo_bp, url_prefix="/api/weibo")
+    # public, unauthenticated (token-gated) read-only reports
+    app.register_blueprint(share_bp, url_prefix="/api/share")
 
     # init DB
     try:

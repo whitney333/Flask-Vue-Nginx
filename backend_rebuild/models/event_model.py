@@ -9,7 +9,25 @@ class EventArtist(EmbeddedDocument):
     artist_kr_name = StringField(default="")
 
 class OfflineEvent(Document):
-    meta = {'collection': 'offline_event'}
+    meta = {
+        'collection': 'offline_event',
+        # Never create indexes from the app at request time: doing so on the live DocumentDB
+        # failed and broke the events list. Create the index below once, deliberately
+        # (OfflineEvent.ensure_indexes() from a maintenance shell). Lookups work without it.
+        'auto_create_index': False,
+        # Ignore fields stored by earlier code (e.g. share_token_hash from the first share-link
+        # version) instead of failing to load the event: one stray field broke the whole list.
+        'strict': False,
+        'indexes': [
+            # Public share-link lookups. Partial on $exists (supported by MongoDB and
+            # AWS DocumentDB): events without a link have no field and are not indexed.
+            {
+                'fields': ['share_token'],
+                'unique': True,
+                'partialFilterExpression': {'share_token': {'$exists': True}},
+            },
+        ],
+    }
 
     event_name = StringField(required=True)
     type = StringField(required=True)
@@ -28,6 +46,12 @@ class OfflineEvent(Document):
     # ticket sales time
     ticket_release = DateTimeField(required=True)
     ticket_close = DateTimeField(required=True)
+    # Public share-link token (absent = no active link). Stored as-is so admins can copy the
+    # same link again; it only guards this event's report, which lives in this same DB.
+    # Must NOT be null=True: an explicit null would be indexed by the partial $exists index
+    # and collide across events. Revoke uses $unset so the field disappears.
+    share_token = StringField()
+    share_token_created_at = DateTimeField()
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
     share_token_created_at = DateTimeField(

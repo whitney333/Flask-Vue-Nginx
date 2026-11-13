@@ -31,9 +31,18 @@ import Admin_ArtistView from "@/views/Admin/AdminArtistsView.vue"
 import Admin_DramaView from "@/views/Admin/AdminDramasView.vue";
 import Payment_SuccessView from "@/views/Payment/Payment_successView.vue"
 import Admin_CampaignLayout from "@/layouts/Admin_CampaignLayout.vue";
+import Share_EventReportView from "@/views/Share/Share_EventReportView.vue";
 
 
 const routes = [
+    // Public artist share link: no login, no app chrome; the token is a credential,
+    // so analytics only ever see the route pattern (see main.js).
+    {
+        path: '/share/events/:token',
+        name: 'ShareEventReport',
+        component: Share_EventReportView,
+        meta: { public: true },
+    },
     {
         path: '/',
         name: '',
@@ -208,6 +217,11 @@ const getCurrentUser = () => {
 // })
 
 router.beforeEach(async (to, from, next) => {
+    // public pages (e.g. artist share links) skip login and profile checks entirely
+    if (to.meta.public) {
+        return next()
+    }
+
     const auth = getAuth()
     // console.log(">>> [Router Guard] navigating to:", to.path, "from:", from.path)
 

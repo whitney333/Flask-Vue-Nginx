@@ -125,6 +125,13 @@ class OfflineEventService:
             "organizer": event.organizer,
             "ticket_release": event.ticket_release.isoformat() if event.ticket_release else None,
             "ticket_close": event.ticket_close.isoformat() if event.ticket_close else None,
+            # share-link status only: admins fetch the link itself from GET /events/<id>/share,
+            # which keeps the token out of list payloads and anything that logs them
+            "has_share_link": bool(getattr(event, "share_token", None)),
+            "share_token_created_at": (
+                event.share_token_created_at.isoformat()
+                if getattr(event, "share_token_created_at", None) else None
+            ),
             "created_at": event.created_at.isoformat() if event.created_at else None,
             "updated_at": event.updated_at.isoformat() if event.updated_at else None
         }

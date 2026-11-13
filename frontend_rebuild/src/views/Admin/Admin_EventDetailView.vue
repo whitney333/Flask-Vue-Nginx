@@ -11,6 +11,8 @@ import TicketZonePerformanceChart from "@/views/Campaign/components/OfflineEvent
 import GenderDistributionChart from "@/views/Campaign/components/OfflineEvent_GenderCard.vue";
 import AgeDistributionChart from "@/views/Campaign/components/OfflineEvent_AgeCard.vue";
 import OfflineEventReport from '@/views/Campaign/components/OfflineEvent_Report.vue'
+import EventShareLinkCard from '@/views/Admin/components/EventShareLinkCard.vue'
+import { computeEventSummaryMetrics } from '@/libs/eventMetrics.js'
 
 const route = useRoute();
 const router = useRouter();
@@ -533,113 +535,10 @@ const deleteSnapshot = async (snapshotId) => {
 };
 
 // 第三區：計算當前選中 (Tab) 的 Snapshot 指標，隨 Tab 切換連動
-const eventSummaryMetrics = computed(() => {
-  if (!currentActiveSnapshot.value || !currentActiveSnapshot.value.ticket_items) {
-    return {
-      ticketRevenue: 0,
-      benefitRevenue: 0,
-      totalRevenue: 0,
-      ticketSellThrough: 0,
-      benefitSellThrough: 0,
-      salesVelocity: '0.0 / hr',
-      ticketRemaining: 0,
-      benefitRemaining: 0,
-      ticketRefundRate: 0,
-      benefitRefundRate: 0
-    };
-  }
-
-  // 1. 取得當前 Tab 的 Snapshot 與項目
-  const snapshot = currentActiveSnapshot.value;
-
-  let ticketRevenue = 0;
-  let benefitRevenue = 0;
-  let ticketTotalQty = 0;
-  let ticketNetSold = 0;
-  let ticketSold = 0;
-  let ticketRefund = 0;
-
-  let benefitTotalQty = 0;
-  let benefitNetSold = 0;
-  let benefitSold = 0;
-  let benefitRefund = 0;
-
-  snapshot.ticket_items.forEach(item => {
-    const price = Number(item.price) || 0;
-    const totalQty = Number(item.total_quantity) || 0;
-    const sold = Number(item.sold) || 0;
-    const refund = Number(item.refund) || 0;
-    const netSold = Math.max(0, sold - refund);
-    const revenue = netSold * price;
-
-    if (item.type === 'ticket') {
-      ticketRevenue += revenue;
-      ticketTotalQty += totalQty;
-      ticketNetSold += netSold;
-      ticketSold += sold;
-      ticketRefund += refund;
-    } else if (item.type === 'benefit') {
-      benefitRevenue += revenue;
-      benefitTotalQty += totalQty;
-      benefitNetSold += netSold;
-      benefitSold += sold;
-      benefitRefund += refund;
-    }
-  });
-
-  const totalRevenue = ticketRevenue + benefitRevenue;
-  const ticketSellThrough = ticketTotalQty > 0 ? Number(((ticketNetSold / ticketTotalQty) * 100).toFixed(2)) : 0.0;
-  const benefitSellThrough = benefitTotalQty > 0 ? Number(((benefitNetSold / benefitTotalQty) * 100).toFixed(2)) : 0.0;
-
-  // 剩餘數量
-  const ticketRemaining = Math.max(0, ticketTotalQty - ticketNetSold);
-  const benefitRemaining = Math.max(0, benefitTotalQty - benefitNetSold);
-
-  // 退款率 (Refund / Sold * 100%)
-  const ticketRefundRate = ticketSold > 0 ? Number(((ticketRefund / ticketSold) * 100).toFixed(2)) : 0.0;
-  const benefitRefundRate = benefitSold > 0 ? Number(((benefitRefund / benefitSold) * 100).toFixed(2)) : 0.0;
-
-  // 2. 計算 Sales Velocity：找到「當前 Snapshot」與「前一期 Snapshot」進行比對
-  let velocityFormatted = '0.0 / hr';
-  const sortedSnapshots = [...snapshots.value].sort(
-    (a, b) => new Date(a.observed_at) - new Date(b.observed_at)
-  );
-
-  const currentIndex = sortedSnapshots.findIndex(s => s.id === snapshot.id);
-
-  if (currentIndex > 0) {
-    const prevSnapshot = sortedSnapshots[currentIndex - 1];
-    const timeDiffMs = new Date(snapshot.observed_at) - new Date(prevSnapshot.observed_at);
-    const hoursElapsed = timeDiffMs > 0 ? timeDiffMs / (1000 * 60 * 60) : 1;
-
-    let prevNetSold = 0;
-    if (prevSnapshot.ticket_items) {
-      prevSnapshot.ticket_items.forEach(item => {
-        const sold = Number(item.sold) || 0;
-        const refund = Number(item.refund) || 0;
-        prevNetSold += Math.max(0, sold - refund);
-      });
-    }
-
-    const currentTotalNetSold = ticketNetSold + benefitNetSold;
-    const netSoldDiff = currentTotalNetSold - prevNetSold;
-    const velocityPerHour = netSoldDiff / hoursElapsed;
-    velocityFormatted = `${velocityPerHour >= 0 ? '+' : ''}${velocityPerHour.toFixed(1)} / hr`;
-  }
-
-  return {
-    ticketRevenue,
-    benefitRevenue,
-    totalRevenue,
-    ticketSellThrough,
-    benefitSellThrough,
-    salesVelocity: velocityFormatted,
-    ticketRemaining,
-    benefitRemaining,
-    ticketRefundRate,
-    benefitRefundRate
-  };
-});
+// shared with the public share page so both always show identical figures
+const eventSummaryMetrics = computed(() =>
+  computeEventSummaryMetrics(currentActiveSnapshot.value, snapshots.value)
+);
 
 // export report file name
 const getReportFileName = () => {
@@ -1202,6 +1101,15 @@ onMounted(() => {
     </div>
 
     <div v-else class="space-y-6">
+
+      <!-- Artist share link (public read-only report) -->
+      <EventShareLinkCard
+          :event-id="eventId"
+          :has-share-link="Boolean(eventData.has_share_link)"
+          :share-token-created-at="eventData.share_token_created_at || null"
+          @notify="showMessage"
+          @updated="(link) => { eventData = { ...eventData, ...link } }"
+      />
 
       <!-- 第一區：Event Info -->
       <div class="bg-white rounded-xl shadow p-6 border border-gray-200 mb-6">
