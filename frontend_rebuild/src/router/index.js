@@ -17,6 +17,9 @@ import Campaign_AnalyticsView from '@/views/Campaign/Campaign_AnalyticsView.vue'
 import RegisterView from '@/views/Auth/RegisterView.vue'
 import RegisterDetailsView from '@/views/Auth/RegisterDetailsView.vue'
 import Works_Layout from '@/layouts/Works_Layout.vue'
+import Campaign_Layout from '@/layouts/Campaign_Layout.vue'
+import Campaign_OfflineEventView from "@/views/Campaign/Campaign_OfflineEventView.vue";
+import Campaign_OfflineEventDetailView from "@/views/Campaign/Campaign_OfflineEventDetailView.vue";
 import Campaign_PostsView from '@/views/Campaign/Campaign_PostsView.vue'
 import Campaign_CreatePostView from '@/views/Campaign/Campaign_CreatePostView.vue'
 import ProfileView from "@/views/Auth/ProfileView.vue";
@@ -90,12 +93,32 @@ const routes = [
     {
         path: '/campaign',
         name: 'Campaign',
-        component: Works_Layout,
+        component: Campaign_Layout,
         meta: { requireAuth: true},
         children: [
-            { path: 'analytics', name: 'Campaign Performance', component: Campaign_AnalyticsView, meta: { requireAuth: true,}},
-            { path: 'posts', name: 'Campaign Posts', component: Campaign_PostsView, meta: { requireAuth: true }},
-            { path: 'posts/create', name: 'Campaign Create Posts', component: Campaign_CreatePostView, meta: { requireAuth: true }}
+            { path: '',
+              redirect: { name: 'Campaign Performance' }
+            },
+            { path: 'analytics',
+              name: 'Campaign Performance',
+              component: Campaign_AnalyticsView,
+              meta: { requireAuth: true,}},
+            { path: 'posts',
+              name: 'Campaign Posts',
+              component: Campaign_PostsView,
+              meta: { requireAuth: true }},
+            { path: 'posts/create',
+              name: 'Campaign Create Posts',
+              component: Campaign_CreatePostView,
+              meta: { requireAuth: true }},
+            { path: 'offline-event',
+              name: 'Campaign Offline Event',
+              component: Campaign_OfflineEventView,
+              meta: { requireAuth: true }},
+            { path: 'offline-event/:id',
+              name: 'Campaign Offline Event Detail',
+              component: Campaign_OfflineEventDetailView,
+              meta: { requireAuth: true }},
         ]
     },
     {
@@ -139,7 +162,7 @@ const routes = [
                   }
                 },
                 { path: 'offline',
-                  name: 'Offline Event',
+                  name: 'Admin Offline Event',
                   component:  Admin_OfflineEventView,
                   meta: {
                       requireAuth: true,

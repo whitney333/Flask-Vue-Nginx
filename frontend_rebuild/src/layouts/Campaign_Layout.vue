@@ -1,29 +1,28 @@
 <script setup>
-  import { currentProfile } from '@/libs/current-profile';
-  import { getAuth } from 'firebase/auth';
-  import { useRouter } from 'vue-router';
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-  // console.log("Running Layout...");
-  //
-  //
-  // const router = useRouter()
-  // const { currentUser } = getAuth()
-  //
-  // if (!currentUser) {
-  //   router.push('/auth/login')
-  // } else {
-  //   const profile = await currentProfile()
-  //
-  //   if (!profile) {
-  //     router.push('/auth/register/details')
-  //   }
-  //
-  // }
+const route = useRoute()
 
-
-
+const activeTab = computed(() => route.path)
 </script>
 
 <template>
-  <router-view :profile="profile"></router-view>
+  <v-container fluid>
+    <v-tabs :model-value="activeTab">
+      <v-tab to="/campaign/">
+        Online Campaigns
+      </v-tab>
+
+      <v-tab to="/campaign/offline-event">
+        Offline Event
+      </v-tab>
+    </v-tabs>
+
+    <router-view />
+  </v-container>
 </template>
+
+<style scoped>
+
+</style>
