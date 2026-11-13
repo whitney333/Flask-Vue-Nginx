@@ -137,6 +137,15 @@ class TestUniqueIndexSafety:
         assert result["count"] == 1
         assert result["data"][0]["has_share_link"] is False
 
+    def test_new_events_store_no_share_fields_until_a_link_is_created(self, event):
+        # Absent fields mean "no link". Explicit nulls would add dead data to every event
+        # (and a null share_token would collide in the partial $exists unique index).
+        stored = OfflineEvent._get_collection().find_one({"_id": event.id})
+
+        assert "share_token" not in stored
+        assert "share_token_created_at" not in stored
+        assert "share_token_hash" not in stored
+
     def test_index_uses_exists_filter_supported_by_documentdb(self):
         index = next(i for i in OfflineEvent._meta["indexes"] if i["fields"] == ["share_token"])
 

@@ -54,17 +54,8 @@ class OfflineEvent(Document):
     share_token_created_at = DateTimeField()
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
-    share_token_created_at = DateTimeField(
-        required=False,
-        null=True,
-        default=None
-    )
-
-    share_token_hash = StringField(
-        required=False,
-        null=True,
-        default=None
-    )
+    # share_token_hash (first, hashed version of share links) is intentionally not a field:
+    # links are now the plain share_token above, and strict=False ignores any old values.
 
 class TicketBenefitItem(EmbeddedDocument):
     name = StringField(required=True)
