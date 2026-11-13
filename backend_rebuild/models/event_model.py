@@ -30,8 +30,17 @@ class OfflineEvent(Document):
     ticket_close = DateTimeField(required=True)
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
-    share_token_created_at = DateTimeField(default=datetime.now)
-    share_token_hash = StringField(required=True)
+    share_token_created_at = DateTimeField(
+        required=False,
+        null=True,
+        default=None
+    )
+
+    share_token_hash = StringField(
+        required=False,
+        null=True,
+        default=None
+    )
 
 class TicketBenefitItem(EmbeddedDocument):
     name = StringField(required=True)
